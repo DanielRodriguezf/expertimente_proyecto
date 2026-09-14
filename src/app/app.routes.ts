@@ -11,8 +11,11 @@ export const routes: Routes = [
     redirectTo: 'home',
     pathMatch: 'full',
   },
+<<<<<<< HEAD
   {
     path: 'hola',
     loadComponent: () => import('./pages/hola/hola.page').then( m => m.HolaPage)
   },
+=======
+>>>>>>> 8730e012b52730b3c5493bd2430124ab6db109e5
 ];
