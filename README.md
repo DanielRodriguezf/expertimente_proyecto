@@ -1,5 +1,4 @@
 # expertimente_proyecto
-Solo avances del grupo
--Vista Postulante
--Vista Administrador
--Vista Reclutador externo
+-Vista Postulante (App - Celular)
+-Vista Administrador (Web - PC)
+-Vista Reclutador externo (Web - PC)
