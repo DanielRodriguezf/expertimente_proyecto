@@ -1,2 +1,5 @@
 # expertimente_proyecto
-solo avances del grupo
+Solo avances del grupo
+-Vista Postulante
+-Vista Administrador
+-Vista Reclutador externo
