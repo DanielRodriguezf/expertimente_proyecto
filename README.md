@@ -7,4 +7,4 @@
 
 
 # npm install --legacy-peer-deps
-* *ejecutar al descargar proyecto en su respectiva carpeta*
+* *ejecutar al descargar proyecto*
