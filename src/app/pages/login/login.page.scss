@@ -1,0 +1,153 @@
+.login-content {
+  --background: #ffffff;
+}
+
+.split-layout {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+
+  @media (max-width: 900px) {
+    flex-direction: column;
+  }
+}
+
+// LADO IZQUIERDO: PANEL AZUL
+.left-panel {
+  flex: 1;
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: #ffffff;
+
+  @media (max-width: 900px) {
+    padding: 2.5rem 1.5rem;
+    min-height: 200px;
+  }
+
+  .brand-container {
+    max-width: 420px;
+
+    .brand-name {
+      font-size: 3.5rem;
+      font-weight: 800;
+      margin: 0 0 0.5rem 0;
+      letter-spacing: -1px;
+
+      @media (max-width: 900px) {
+        font-size: 2.5rem;
+      }
+    }
+
+    .brand-subtitle {
+      font-size: 1.2rem;
+      color: #93c5fd;
+      margin: 0 0 1.5rem 0;
+      font-weight: 400;
+    }
+
+    .accent-bar {
+      width: 50px;
+      height: 6px;
+      background-color: #f59e0b;
+      border-radius: 4px;
+    }
+  }
+}
+
+// LADO DERECHO: PANEL FORMULARIO
+.right-panel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background-color: #ffffff;
+
+  .form-container {
+    width: 100%;
+    max-width: 400px;
+
+    .welcome-title {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0 0 0.5rem 0;
+    }
+
+    .welcome-subtitle {
+      font-size: 0.95rem;
+      color: #64748b;
+      margin: 0 0 2rem 0;
+    }
+
+    .input-group {
+      margin-bottom: 1.25rem;
+
+      .custom-input {
+        --border-radius: 10px;
+        --border-color: #e2e8f0;
+        --border-color-focused: #2563eb;
+        --background: #f8fafc;
+        --padding-start: 1rem;
+        font-size: 0.95rem;
+      }
+
+      .error-text {
+        display: block;
+        color: #ef4444;
+        font-size: 0.8rem;
+        margin-top: 0.4rem;
+        padding-left: 0.2rem;
+      }
+    }
+
+    .submit-btn {
+      --background: #2563eb;
+      --background-hover: #1d4ed8;
+      --border-radius: 10px;
+      --box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+      height: 48px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin-top: 1.5rem;
+      letter-spacing: 0.5px;
+    }
+
+    .register-footer {
+      margin-top: 2.5rem;
+      text-align: center;
+
+      p {
+        color: #64748b;
+        font-size: 0.85rem;
+        margin: 0 0 0.5rem 0;
+      }
+
+      .register-link-btn {
+        background: transparent;
+        border: none;
+        color: #2563eb;
+        font-weight: 800;
+        font-size: 0.85rem;
+        cursor: pointer;
+        padding: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: color 0.2s ease, transform 0.1s ease;
+        outline: none;
+
+        &:hover {
+          color: #1d4ed8;
+          text-decoration: underline;
+        }
+
+        &:active {
+          transform: scale(0.98);
+        }
+      }
+    }
+  }
+}

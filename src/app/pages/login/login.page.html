@@ -1,0 +1,74 @@
+<ion-content class="login-content">
+  <div class="split-layout">
+    
+    <!-- LADO IZQUIERDO: BANNER AZUL -->
+    <div class="left-panel">
+      <div class="brand-container">
+        <h1 class="brand-name">ExpertiMente</h1>
+        <p class="brand-subtitle">Portal de Gestión para Reclutadores</p>
+        <div class="accent-bar"></div>
+      </div>
+    </div>
+
+    <!-- LADO DERECHO: FORMULARIO DE INGRESO -->
+    <div class="right-panel">
+      <div class="form-container">
+        
+        <h2 class="welcome-title">Bienvenido de vuelta</h2>
+        <p class="welcome-subtitle">Ingresa tus credenciales para acceder a tu panel.</p>
+
+        <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
+          
+          <!-- CORREO ELECTRÓNICO -->
+          <div class="input-group">
+            <ion-input
+              type="email"
+              fill="outline"
+              placeholder="Correo Electrónico"
+              formControlName="email"
+              class="custom-input">
+            </ion-input>
+            <span class="error-text" *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.invalid">
+              • Ingresa un correo electrónico válido
+            </span>
+          </div>
+
+          <!-- CONTRASEÑA -->
+          <div class="input-group">
+            <ion-input
+              type="password"
+              fill="outline"
+              placeholder="Contraseña"
+              formControlName="password"
+              class="custom-input">
+            </ion-input>
+            <span class="error-text" *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.invalid">
+              • La contraseña es requerida
+            </span>
+          </div>
+
+          <!-- BOTÓN INICIAR SESIÓN -->
+          <ion-button 
+            type="submit" 
+            expand="block" 
+            class="submit-btn" 
+            [disabled]="isSubmitting">
+            <ion-spinner name="crescent" *ngIf="isSubmitting"></ion-spinner>
+            <span *ngIf="!isSubmitting">INICIAR SESIÓN</span>
+          </ion-button>
+
+        </form>
+
+        <!-- ENLACE A REGISTRO CORREGIDO -->
+        <div class="register-footer">
+          <p>¿No tienes una cuenta de Reclutador?</p>
+          <button type="button" class="register-link-btn" (click)="irARegistro()">
+            REGÍSTRATE AQUÍ
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</ion-content>
