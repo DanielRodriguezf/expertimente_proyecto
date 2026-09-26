@@ -49,12 +49,7 @@
             <ion-icon slot="start" name="search-outline"></ion-icon>
             Buscar Empleo Ahora
           </ion-button>
-          
-          <!-- BOTÓN VOLVER AL INICIO -->
-          <ion-button expand="block" fill="clear" class="btn-clear-gray mt-12" routerLink="/home">
-            <ion-icon slot="start" name="home-outline"></ion-icon>
-            Volver al Inicio
-          </ion-button>
+
         </ion-card-content>
       </ion-card>
     </div>
@@ -92,7 +87,7 @@
             <div class="status-box">
               <p class="status-label">Estado de tu postulación:</p>
               <p class="status-value" [class.text-accepted]="itemActual?.estado === 'Aceptado'">
-                {{ itemActual?.estado === 'Aceptado' ? '✨ ¡Aceptado con éxito!' : '⏳ En revisión por la empresa' }}
+                {{ itemActual?.estado === 'Aceptado' ? '✨ ¡Aceptado con éxito!' : '⏳ En revisión' }}
               </p>
             </div>
 
@@ -119,11 +114,6 @@
 
         <!-- ACCIONES INFERIORES: HOME Y BÚSQUEDA -->
         <div class="bottom-actions mt-20">
-          <ion-button expand="block" class="btn-solid-gray" routerLink="/home">
-            <ion-icon slot="start" name="home-outline"></ion-icon>
-            Volver al Inicio
-          </ion-button>
-          
           <ion-button expand="block" fill="clear" class="btn-clear-orange mt-12" routerLink="/search">
             <ion-icon slot="start" name="search-outline"></ion-icon>
             Buscar Más Empleos

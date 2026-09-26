@@ -49,7 +49,7 @@
 
         <hr class="divider">
 
-        <!-- Contacto Directo (Muy útil para adultos mayores) -->
+        <!-- Contacto Directo -->
         <div class="contact-box" *ngIf="oferta.contactoTelefono || oferta.contactoEmail">
           <h3>Contacto Directo</h3>
           <p *ngIf="oferta.contactoTelefono">
@@ -65,14 +65,14 @@
       </ion-card-content>
     </ion-card>
 
-    <!-- BOTÓN DE POSTULACIÓN -->
+    <!-- BOTÓN DE POSTULACIÓN / CUESTIONARIO -->
     <div class="action-section">
       <ion-button 
         expand="block" 
         class="btn-solid-orange" 
         [disabled]="yaPostulado"
-        (click)="postularse()">
-        {{ yaPostulado ? '¡Ya te postulaste a este empleo!' : 'Postular a este trabajo' }}
+        (click)="irAlCuestionario()">
+        {{ yaPostulado ? '¡Ya te postulaste a este empleo!' : 'Iniciar Cuestionario y Postular' }}
       </ion-button>
     </div>
 

@@ -5,16 +5,16 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { 
   IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, 
   IonBackButton, IonCard, IonCardContent, IonIcon, IonButton,
-  IonSpinner, IonFooter, ToastController, LoadingController 
+  IonSpinner, IonFooter, ToastController 
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { 
-  locationOutline, starOutline, callOutline, mailOutline, checkmarkCircle 
+  locationOutline, starOutline, callOutline, mailOutline, checkmarkCircle, informationCircle, warning, closeCircle 
 } from 'ionicons/icons';
 
 import { Auth } from '@angular/fire/auth';
 import { 
-  Firestore, doc, getDoc, collection, addDoc, query, where, getDocs, updateDoc, increment 
+  Firestore, doc, getDoc, collection, query, where, getDocs 
 } from '@angular/fire/firestore';
 
 @Component({
@@ -26,7 +26,7 @@ import {
     CommonModule, FormsModule, IonContent, IonHeader, 
     IonToolbar, IonTitle, IonButtons, IonBackButton, 
     IonCard, IonCardContent, IonIcon, IonButton, IonSpinner,
-    IonFooter // <-- Agregado aquí para que reconozca el footer
+    IonFooter
   ]
 })
 export class OfertaDetallePage implements OnInit {
@@ -41,7 +41,6 @@ export class OfertaDetallePage implements OnInit {
   private auth = inject(Auth);
   private router = inject(Router);
   private toastCtrl = inject(ToastController);
-  private loadingCtrl = inject(LoadingController);
   private cdr = inject(ChangeDetectorRef);
 
   constructor() {
@@ -50,7 +49,10 @@ export class OfertaDetallePage implements OnInit {
       'star-outline': starOutline,
       'call-outline': callOutline,
       'mail-outline': mailOutline,
-      'checkmark-circle': checkmarkCircle
+      'checkmark-circle': checkmarkCircle,
+      'information-circle': informationCircle,
+      'warning': warning,
+      'close-circle': closeCircle
     });
   }
 
@@ -103,50 +105,16 @@ export class OfertaDetallePage implements OnInit {
     }
   }
 
-  async postularse() {
+  irAlCuestionario() {
     const user = this.auth.currentUser;
     if (!user) {
       this.mostrarMensaje('Debes iniciar sesión para postular.', 'warning');
       return;
     }
-
-    const loading = await this.loadingCtrl.create({
-      message: 'Enviando postulación...',
-      spinner: 'crescent'
-    });
-    await loading.present();
-
-    try {
-      const postulacionData = {
-        ofertaId: this.ofertaId,
-        postulanteId: user.uid,
-        tituloOferta: this.oferta.titulo,
-        nombreEmpresa: this.oferta.nombreEmpresa,
-        estado: 'Enviada',
-        fechaPostulacion: new Date()
-      };
-
-      await addDoc(collection(this.firestore, 'postulaciones'), postulacionData);
-
-      const ofertaRef = doc(this.firestore, `ofertas/${this.ofertaId}`);
-      await updateDoc(ofertaRef, {
-        candidatosCount: increment(1)
-      });
-
-      this.yaPostulado = true;
-      await loading.dismiss();
-      
-      this.mostrarMensaje('¡Postulación enviada con éxito!', 'success');
-      
-      setTimeout(() => {
-        this.router.navigate(['/search']);
-      }, 1500);
-
-    } catch (error) {
-      await loading.dismiss();
-      console.error('Error al postular:', error);
-      this.mostrarMensaje('Hubo un error al enviar tu postulación.', 'danger');
-    }
+    
+    // Asumo que la ruta de tu componente de cuestionario se llama 'cuestionario'
+    // y recibe el id de la oferta por la URL. Si se llama diferente, ajusta la ruta aquí:
+    this.router.navigate(['/cuestionario', this.ofertaId]);
   }
 
   async mostrarMensaje(mensaje: string, color: 'success' | 'warning' | 'danger' | string) {
@@ -157,7 +125,7 @@ export class OfertaDetallePage implements OnInit {
 
     const toast = await this.toastCtrl.create({
       message: mensaje,
-      duration: 3000,
+      duration: 2000,
       color: color,
       cssClass: 'toast-expertimente',
       position: 'middle',

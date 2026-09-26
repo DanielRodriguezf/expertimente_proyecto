@@ -56,5 +56,10 @@ export const routes: Routes = [
     path: 'mis-postulaciones',
     loadComponent: () => import('./pages/mis-postulaciones/mis-postulaciones.page').then( m => m.MisPostulacionesPage),
     canActivate: [authGuard] // <-- Ruta protegida
+  },
+  {
+    path: 'cuestionario/:id',
+    loadComponent: () => import('./pages/cuestionario/cuestionario.page').then( m => m.CuestionarioPage),
+    canActivate: [authGuard] // <-- Ruta protegida
   }
 ];

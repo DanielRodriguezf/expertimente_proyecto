@@ -79,3 +79,31 @@ ion-toast.toast-expertimente::part(message) {
     opacity: 1; 
   }
 }
+
+
+/* ==============================
+   LOADING ACCESIBLE (EXPERTIMENTE)
+============================== */
+ion-loading.loading-expertimente {
+  --background: #ffffff;
+  --spinner-color: #ff6a00;
+  --backdrop-opacity: 0.7; 
+}
+
+/* Diseño de la caja blanca penetrando el Shadow DOM */
+ion-loading.loading-expertimente::part(wrapper) {
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  padding: 30px 20px;
+  border: 2px solid #ff6a00;
+}
+
+/* Diseño del texto penetrando el Shadow DOM */
+ion-loading.loading-expertimente::part(message) {
+  color: #000000;
+  font-weight: 800;
+  font-size: 1.2rem;
+  text-align: center;
+  margin-top: 15px;
+  line-height: 1.4;
+}
