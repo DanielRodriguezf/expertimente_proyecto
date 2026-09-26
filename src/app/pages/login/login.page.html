@@ -1,0 +1,66 @@
+<ion-content [fullscreen]="true">
+  <div class="login-container">
+    
+    <div class="logo-section">
+      <ion-icon name="person-circle-outline"></ion-icon>
+      <h1>ExpertiMente</h1>
+      <p>Inicia sesión para continuar</p>
+    </div>
+
+    <!-- Sección del Formulario -->
+    <div class="form-section">
+      <!-- Cambiamos RUT por Correo -->
+      <ion-input
+        label="Correo electrónico"
+        labelPlacement="floating"
+        fill="outline"
+        type="email"
+        placeholder="ejemplo@correo.com"
+        [(ngModel)]="credenciales.correo">
+      </ion-input>
+
+      <ion-input
+        label="Contraseña"
+        labelPlacement="floating"
+        fill="outline"
+        [type]="showPassword ? 'text' : 'password'"
+        placeholder="********"
+        [(ngModel)]="credenciales.password">
+        
+        <ion-button 
+          fill="clear" 
+          slot="end" 
+          class="manual-toggle" 
+          (click)="togglePassword()">
+          <ion-icon 
+            slot="icon-only"
+            [name]="showPassword ? 'eye-off-outline' : 'eye-outline'">
+          </ion-icon>
+        </ion-button>
+      </ion-input>
+
+      <!-- Mensaje de error dinámico -->
+      <p *ngIf="errorMessage" style="color: #d9534f; font-weight: bold; text-align: center; margin: 10px 0;">
+        {{ errorMessage }}
+      </p>
+
+      <div class="forgot-password">
+        <a href="#">¿Olvidaste tu contraseña?</a>
+      </div>
+
+      <!-- Cambiamos routerLink por el (click) que ejecuta la función -->
+      <ion-button expand="block" class="btn-login" (click)="iniciarSesion()" [disabled]="cargando">
+        {{ cargando ? 'Iniciando...' : 'Iniciar Sesión' }}
+      </ion-button>
+
+      <!-- Opción de Registro -->
+      <div class="register-section">
+        <p>¿No tienes una cuenta?</p>
+        <ion-button fill="clear" class="btn-register" routerLink="/register">
+          Regístrate aquí
+        </ion-button>
+      </div>
+    </div>
+
+  </div>
+</ion-content>

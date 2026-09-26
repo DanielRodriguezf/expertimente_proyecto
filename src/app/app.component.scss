@@ -1,0 +1,102 @@
+/* Estilos del contenido del menú */
+.menu-content {
+  --background: #f4f5f8;
+}
+
+/* Encabezado con fondo degradado naranja */
+.menu-header {
+  background: linear-gradient(135deg, #ff6a00 0%, #e65c00 100%);
+  padding: 40px 20px 25px;
+  text-align: center;
+  color: #ffffff;
+
+/* ... resto del código superior (menu-content, menu-header) ... */
+
+  .menu-avatar {
+    width: 90px;  /* <-- Aumentado de 75px a 90px */
+    height: 90px; /* <-- Aumentado de 75px a 90px */
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    border: 3px solid rgba(255, 255, 255, 0.6); /* <-- Borde un poquito más grueso para que destaque */
+    overflow: hidden; 
+
+    ion-icon {
+      font-size: 45px; /* <-- Ícono también un poco más grande por si no tiene foto */
+      color: #ffffff;
+    }
+
+    /* Estilo para la foto real */
+    .avatar-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover; 
+    }
+  }
+
+  h2 {
+    font-size: 1.3rem;
+    font-weight: 800;
+    margin: 0 0 4px;
+  }
+
+  p {
+    font-size: 0.9rem;
+    margin: 0;
+    opacity: 0.9;
+  }
+}
+
+/* Lista de opciones del menú */
+.menu-list {
+  padding: 15px;
+  background: transparent;
+
+  .menu-item {
+    --background: transparent;
+    --color: #333333;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 1.05rem;
+    --padding-start: 15px;
+
+    ion-icon {
+      color: #ff6a00;
+      font-size: 22px;
+      margin-right: 15px;
+    }
+
+    &:hover, &.ion-activated {
+      --background: rgba(255, 106, 0, 0.1);
+      color: #ff6a00;
+    }
+  }
+}
+
+/* Pie del menú para cerrar sesión */
+.menu-footer {
+  padding: 15px;
+  border-top: 1px solid #e0e0e0;
+  margin-top: 20px;
+
+  .logout-item {
+    --background: transparent;
+    --color: #d9534f;
+    border-radius: 12px;
+    font-weight: 600;
+
+    ion-icon {
+      color: #d9534f;
+      font-size: 22px;
+      margin-right: 15px;
+    }
+
+    &:hover {
+      --background: rgba(217, 83, 79, 0.1);
+    }
+  }
+}

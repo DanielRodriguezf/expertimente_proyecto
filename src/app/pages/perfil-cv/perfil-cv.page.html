@@ -1,0 +1,322 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      @if (pasoActual > 1) {
+        <ion-button (click)="pasoAnterior()">
+          <ion-icon slot="icon-only" name="arrow-back-outline" style="color: #ff6a00;"></ion-icon>
+        </ion-button>
+      }
+      @if (pasoActual === 1) {
+        <ion-back-button defaultHref="/home" style="color: #ff6a00;"></ion-back-button>
+      }
+    </ion-buttons>
+    <ion-title style="color: #222; font-weight: bold;">Mi Experiencia</ion-title>
+  </ion-toolbar>
+  
+  <ion-progress-bar 
+    [value]="pasoActual / totalPasos" 
+    style="--background: #e2e4ed; --progress-background: #ff6a00; height: 6px;">
+  </ion-progress-bar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding-bottom">
+  <div class="cv-container">
+
+    <div class="step-indicator">
+      <p>Paso {{ pasoActual }} de {{ totalPasos }}</p>
+    </div>
+
+    <!-- ==============================================
+         PASO 1: EDUCACIÓN
+    =============================================== -->
+    @if (pasoActual === 1) {
+      <div class="form-section">
+        <ion-card class="form-card text-center-card">
+          <ion-card-content>
+            <ion-icon name="school-outline" class="huge-icon text-orange"></ion-icon>
+            <h2 class="question-title">¿Cuál es tu nivel de estudios?</h2>
+            <p class="question-subtitle">Selecciona hasta qué nivel llegaste.</p>
+
+            <ion-radio-group [(ngModel)]="datosManuales.nivelEducativo">
+              <ion-item class="radio-item" lines="none">
+                <ion-radio value="Educación Básica" justify="space-between">Educación Básica</ion-radio>
+              </ion-item>
+              <ion-item class="radio-item" lines="none">
+                <ion-radio value="Educación Media" justify="space-between">Educación Media</ion-radio>
+              </ion-item>
+              <ion-item class="radio-item" lines="none">
+                <ion-radio value="Técnico Superior" justify="space-between">Técnico Superior</ion-radio>
+              </ion-item>
+              <ion-item class="radio-item" lines="none">
+                <ion-radio value="Universidad" justify="space-between">Universidad / Profesional</ion-radio>
+              </ion-item>
+              <ion-item class="radio-item" lines="none">
+                <ion-radio value="Otro" justify="space-between">Otro</ion-radio>
+              </ion-item>
+            </ion-radio-group>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-button expand="block" class="btn-solid-orange" (click)="siguientePaso()">
+          Siguiente
+        </ion-button>
+      </div>
+    }
+
+    <!-- ==============================================
+         PASO 2: ÁREA DE EXPERIENCIA
+    =============================================== -->
+    @if (pasoActual === 2) {
+      <div class="form-section">
+        <ion-card class="form-card text-center-card">
+          <ion-card-content>
+            <ion-icon name="briefcase-outline" class="huge-icon text-orange"></ion-icon>
+            <h2 class="question-title">¿En qué has trabajado principalmente?</h2>
+            <p class="question-subtitle">Dinos tu oficio o el cargo donde tienes más experiencia.</p>
+
+            <ion-input
+              [(ngModel)]="datosManuales.areaExperiencia"
+              fill="outline"
+              type="text"
+              placeholder="Ej. Conserje, Ventas, Soporte, Profesor..."
+              class="large-input">
+            </ion-input>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-button expand="block" class="btn-solid-orange" (click)="siguientePaso()">
+          Siguiente
+        </ion-button>
+      </div>
+    }
+
+    <!-- ==============================================
+         PASO 3: AÑOS DE EXPERIENCIA
+    =============================================== -->
+    @if (pasoActual === 3) {
+      <div class="form-section">
+        <ion-card class="form-card text-center-card">
+          <ion-card-content>
+            <ion-icon name="time-outline" class="huge-icon text-orange"></ion-icon>
+            <h2 class="question-title">¿Cuántos años de experiencia tienes?</h2>
+            <p class="question-subtitle">Anota el número de años aproximado.</p>
+
+            <ion-input
+              [(ngModel)]="datosManuales.anosExperiencia"
+              fill="outline"
+              type="number"
+              placeholder="Ej. 5"
+              class="large-input input-centered-text">
+            </ion-input>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-button expand="block" class="btn-solid-orange" (click)="siguientePaso()">
+          Siguiente
+        </ion-button>
+      </div>
+    }
+
+    <!-- ==============================================
+         PASO 4: HABILIDADES
+    =============================================== -->
+    @if (pasoActual === 4) {
+      <div class="form-section">
+        <ion-card class="form-card text-center-card">
+          <ion-card-content>
+            <ion-icon name="star-outline" class="huge-icon text-orange"></ion-icon>
+            <h2 class="question-title">¿Cuáles son tus mejores habilidades?</h2>
+            <p class="question-subtitle">Cuéntanos qué sabes hacer bien o cuáles son tus fortalezas.</p>
+
+            <ion-textarea
+              [(ngModel)]="datosManuales.habilidades"
+              fill="outline"
+              rows="5"
+              placeholder="Ej. Soy responsable, sé usar computadores..."
+              class="large-input">
+            </ion-textarea>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-button expand="block" class="btn-solid-orange" (click)="siguientePaso()">
+          Siguiente
+        </ion-button>
+      </div>
+    }
+
+    <!-- ==============================================
+         PASO 5: FOTO DE PERFIL
+    =============================================== -->
+    @if (pasoActual === 5) {
+      <div class="form-section">
+        <div class="section-header" style="text-align: center; margin-bottom: 20px;">
+          <h2 style="color: #ff6a00; font-size: 1.6rem; font-weight: 800; margin:0;">Foto de Perfil</h2>
+          <p style="color: #555;">Sube una foto tuya para que las empresas te conozcan (Opcional).</p>
+        </div>
+
+        <ion-card class="form-card text-center-card">
+          <ion-card-content>
+            
+            <div style="margin-bottom: 20px; display: flex; justify-content: center;">
+              @if (fotoPendienteBase64 || fotoPerfilSavedBase64) {
+                <img [src]="fotoPendienteBase64 || fotoPerfilSavedBase64" class="avatar-preview" />
+              } @else {
+                <ion-icon name="person-circle-outline" style="font-size: 140px; color: #e2e4ed;"></ion-icon>
+              }
+            </div>
+
+            <input type="file" #fotoInput (change)="alSeleccionarFoto($event)" accept="image/*" style="display: none;">
+
+            <ion-button expand="block" fill="outline" class="btn-outline-orange" (click)="abrirSelectorFoto()">
+              <ion-icon slot="start" name="camera-outline"></ion-icon>
+              {{ (fotoPendienteBase64 || fotoPerfilSavedBase64) ? 'Cambiar Foto' : 'Elegir Foto' }}
+            </ion-button>
+
+            @if (fotoPerfilSavedBase64 && !fotoPendienteBase64) {
+              <ion-button expand="block" fill="clear" color="danger" (click)="eliminarFotoGuardada()" style="margin-top: 10px;">
+                <ion-icon slot="start" name="trash-outline"></ion-icon> Quitar Foto Guardada
+              </ion-button>
+            }
+          </ion-card-content>
+        </ion-card>
+
+        <ion-button expand="block" class="btn-solid-orange" (click)="siguientePaso()">
+          Siguiente
+        </ion-button>
+      </div>
+    }
+
+    <!-- ==============================================
+         PASO 6: ARCHIVO PDF Y GUARDADO
+    =============================================== -->
+    @if (pasoActual === 6) {
+      <div class="form-section">
+        <div class="section-header" style="text-align: center; margin-bottom: 20px;">
+          <h2 style="color: #ff6a00; font-size: 1.6rem; font-weight: 800; margin:0;">Archivo Opcional</h2>
+          <p style="color: #555;">Si tienes tu currículum en PDF en el teléfono, súbelo aquí.</p>
+        </div>
+
+        @if (tieneCVSubido) {
+          <ion-card class="form-card">
+            <ion-card-content>
+              <ion-item lines="none" style="--background: transparent; padding: 0;">
+                <div slot="start" class="icon-box-orange">
+                  <ion-icon name="document-text-outline"></ion-icon>
+                </div>
+                <ion-label>
+                  <h3 class="text-dark-bold">Currículum Guardado</h3>
+                  <p class="text-gray">{{ nombreCVSaved }}</p>
+                </ion-label>
+              </ion-item>
+              
+              <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <ion-button expand="block" fill="outline" class="btn-outline-orange" style="flex: 1;" (click)="verCVSaved()">
+                  <ion-icon slot="start" name="eye-outline"></ion-icon> Ver
+                </ion-button>
+                <ion-button expand="block" fill="outline" class="btn-outline-danger" style="flex: 1;" (click)="eliminarCVGuardado()">
+                  <ion-icon slot="start" name="trash-outline"></ion-icon> Quitar
+                </ion-button>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        }
+
+        <ion-card class="form-card">
+          <ion-card-content>
+            <div class="drop-zone">
+              <input type="file" #fileInput (change)="alSeleccionarArchivo($event)" accept="application/pdf" style="display: none;">
+              
+              <ion-icon name="cloud-upload-outline"></ion-icon>
+              <h4>{{ tieneCVSubido ? 'Reemplazar Archivo' : 'Selecciona tu PDF' }}</h4>
+              <p>Formato PDF (Máx. 600KB)</p>
+              
+              <ion-button fill="solid" class="btn-solid-orange-small" (click)="abrirSelectorArchivo()" shape="round">
+                Buscar Archivo
+              </ion-button>
+            </div>
+
+            @if (archivoSeleccionadoNombre) {
+              <ion-item lines="none" class="pending-file">
+                <ion-icon name="checkmark-circle" class="text-orange" slot="start"></ion-icon>
+                <ion-label>
+                  <h4 class="text-orange" style="font-weight: bold; margin: 0;">{{ archivoSeleccionadoNombre }}</h4>
+                  <p class="text-gray" style="font-size: 0.9rem;">Listo para guardar</p>
+                </ion-label>
+                <ion-button fill="clear" color="danger" slot="end" (click)="quitarArchivoPendiente()">
+                  <ion-icon name="trash-outline"></ion-icon>
+                </ion-button>
+              </ion-item>
+            }
+          </ion-card-content>
+        </ion-card>
+
+        <ion-button expand="block" class="btn-solid-orange" (click)="guardarDatos()">
+          Terminar y Guardar Perfil
+        </ion-button>
+      </div>
+    }
+
+  </div>
+
+  <ion-modal [isOpen]="mostrandoRecortador" (didDismiss)="cancelarRecorte()">
+    <ng-template>
+      <ion-content [scrollY]="false" style="--background: #111111;">
+        
+        <div style="display: flex; flex-direction: column; height: 100%; width: 100%; padding-top: env(safe-area-inset-top); position: relative;">
+          
+          <!-- BOTONES FLOTANTES SUPERIORES -->
+          <div style="position: absolute; top: calc(15px + env(safe-area-inset-top)); right: 20px; z-index: 99999; display: flex; gap: 10px;">
+            <button (click)="girarImagen()" style="background: rgba(0,0,0,0.6); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+              <ion-icon name="sync-outline" style="font-size: 24px;"></ion-icon>
+            </button>
+            <button (click)="voltearHorizontal()" style="background: rgba(0,0,0,0.6); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+              <ion-icon name="swap-horizontal-outline" style="font-size: 24px;"></ion-icon>
+            </button>
+          </div>
+
+          <!-- ZONA DEL RECORTADOR AMPLIADA -->
+          <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 0; overflow: hidden; background: #111111;">
+            
+            <div class="full-screen-cropper">
+              <image-cropper
+                [imageChangedEvent]="imageChangedEvent"
+                [maintainAspectRatio]="true"
+                [aspectRatio]="1 / 1"
+                [roundCropper]="true" 
+                [containWithinAspectRatio]="false"
+                format="png"
+                [resizeToWidth]="800"
+                [transform]="transform"
+                [allowMoveImage]="false"
+                (imageCropped)="imageCropped($event)"
+                (imageLoaded)="imageLoaded()"
+                (loadImageFailed)="loadImageFailed()">
+              </image-cropper>
+            </div>
+
+          </div>
+
+          <!-- BARRA INFERIOR DE BOTONES -->
+          <div style="background-color: #222222; padding: 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom)); display: flex; gap: 15px; border-top: 1px solid #333;">
+            
+            <ion-button expand="block" style="--background: transparent; --border-color: #ff6a00; --border-style: solid; --border-width: 2px; --color: #ff6a00; flex: 1; height: 55px; font-weight: bold; margin: 0; --border-radius: 12px;" (click)="cancelarRecorte()">
+              CANCELAR
+            </ion-button>
+            
+            <ion-button expand="block" style="--background: #ff6a00; --color: #ffffff; flex: 1; height: 55px; font-weight: bold; margin: 0; --border-radius: 12px;" (click)="confirmarRecorte()">
+              CONFIRMAR
+            </ion-button>
+
+          </div>
+
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+</ion-content>
+
+<ion-footer class="ion-no-border">
+  <ion-toolbar class="footer-toolbar">
+    <p class="footer-text">© ExpertiMente 2026</p>
+  </ion-toolbar>
+</ion-footer>

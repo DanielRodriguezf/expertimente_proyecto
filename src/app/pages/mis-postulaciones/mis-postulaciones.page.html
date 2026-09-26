@@ -1,0 +1,143 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="custom-toolbar">
+    <ion-buttons slot="start">
+      
+      <!-- Botón para retroceder de postulación (Si está en la 2, 3, etc.) -->
+      <ion-button (click)="pasoAnterior()" *ngIf="pasoActual > 1">
+        <ion-icon slot="icon-only" name="arrow-back-outline" style="color: #ff6a00;"></ion-icon>
+      </ion-button>
+      
+      <!-- Flecha nativa para volver al HOME (Si está en la postulación 1 o si no hay ninguna) -->
+      <ion-back-button defaultHref="/home" text="" *ngIf="pasoActual === 1" style="color: #ff6a00;"></ion-back-button>
+      
+    </ion-buttons>
+    
+    <ion-title style="color: #222; font-weight: bold;">Mis Postulaciones</ion-title>
+    
+    <!-- Botón Home Superior Derecho -->
+    <ion-buttons slot="end">
+    </ion-buttons>
+  </ion-toolbar>
+  
+  <ion-progress-bar 
+    *ngIf="totalPasos > 0"
+    [value]="pasoActual / totalPasos" 
+    style="--background: #e2e4ed; --progress-background: #ff6a00; height: 6px;">
+  </ion-progress-bar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="custom-bg ion-padding-bottom">
+  <div class="cv-container">
+
+    <!-- SPINNER DE CARGA -->
+    <div class="loading-container" *ngIf="cargando">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+      <p>Cargando tus postulaciones...</p>
+    </div>
+
+    <!-- ESTADO VACÍO -->
+    <div class="form-section" *ngIf="!cargando && misPostulaciones.length === 0">
+      <ion-card class="form-card text-center-card empty-card">
+        <ion-card-content>
+          <div class="empty-icon-box">
+            <ion-icon name="folder-open-outline"></ion-icon>
+          </div>
+          <h2 class="question-title">Aún no tienes postulaciones</h2>
+          <p class="question-subtitle">Explora los empleos disponibles y postula fácilmente.</p>
+          
+          <ion-button expand="block" class="btn-solid-orange mt-20" routerLink="/search">
+            <ion-icon slot="start" name="search-outline"></ion-icon>
+            Buscar Empleo Ahora
+          </ion-button>
+          
+          <!-- BOTÓN VOLVER AL INICIO -->
+          <ion-button expand="block" fill="clear" class="btn-clear-gray mt-12" routerLink="/home">
+            <ion-icon slot="start" name="home-outline"></ion-icon>
+            Volver al Inicio
+          </ion-button>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- WIZARD DE POSTULACIONES -->
+    <ng-container *ngIf="!cargando && misPostulaciones.length > 0">
+
+      <div class="step-indicator">
+        <span class="step-badge">Postulación {{ pasoActual }} de {{ totalPasos }}</span>
+      </div>
+
+      <div class="form-section">
+        <ion-card class="form-card text-center-card" [class.card-accepted]="itemActual?.estado === 'Aceptado'">
+          <ion-card-content class="card-content-centered">
+            
+            <!-- Banner de Aceptación Premium -->
+            <div *ngIf="itemActual?.estado === 'Aceptado'" class="accepted-banner shadow-pulse">
+              <ion-icon name="checkmark-circle"></ion-icon>
+              <div class="banner-text">
+                <strong>¡Excelentes noticias! </strong>
+                <span>Fuiste aceptado en este puesto</span>
+              </div>
+            </div>
+
+            <div class="card-main-icon" *ngIf="itemActual?.estado !== 'Aceptado'">
+              <ion-icon name="briefcase-outline"></ion-icon>
+            </div>
+
+            <h2 class="question-title">{{ itemActual?.tituloOferta }}</h2>
+            <h3 class="company-subtitle">
+              <ion-icon name="business-outline"></ion-icon> {{ itemActual?.nombreEmpresa }}
+            </h3>
+
+            <!-- Caja de Estado -->
+            <div class="status-box">
+              <p class="status-label">Estado de tu postulación:</p>
+              <p class="status-value" [class.text-accepted]="itemActual?.estado === 'Aceptado'">
+                {{ itemActual?.estado === 'Aceptado' ? '✨ ¡Aceptado con éxito!' : '⏳ En revisión por la empresa' }}
+              </p>
+            </div>
+
+            <!-- Aviso de contacto -->
+            <div class="contact-box-hint" *ngIf="itemActual?.estado === 'Aceptado'">
+              <ion-icon name="call-outline"></ion-icon>
+              <p>Pronto la empresa se pondrá en contacto contigo a través de tu teléfono o correo registrado.</p>
+            </div>
+
+          </ion-card-content>
+        </ion-card>
+
+        <!-- BOTONES DE NAVEGACIÓN (CON ÍCONOS DE FLECHA) -->
+        <div class="nav-buttons-row" *ngIf="totalPasos > 1">
+          <ion-button *ngIf="pasoActual > 1" expand="block" fill="outline" class="btn-outline-orange" (click)="pasoAnterior()">
+            <ion-icon slot="start" name="chevron-back-outline"></ion-icon>
+            Anterior
+          </ion-button>
+          <ion-button *ngIf="pasoActual < totalPasos" expand="block" class="btn-solid-orange" (click)="siguientePaso()">
+            Siguiente
+            <ion-icon slot="end" name="chevron-forward-outline"></ion-icon>
+          </ion-button>
+        </div>
+
+        <!-- ACCIONES INFERIORES: HOME Y BÚSQUEDA -->
+        <div class="bottom-actions mt-20">
+          <ion-button expand="block" class="btn-solid-gray" routerLink="/home">
+            <ion-icon slot="start" name="home-outline"></ion-icon>
+            Volver al Inicio
+          </ion-button>
+          
+          <ion-button expand="block" fill="clear" class="btn-clear-orange mt-12" routerLink="/search">
+            <ion-icon slot="start" name="search-outline"></ion-icon>
+            Buscar Más Empleos
+          </ion-button>
+        </div>
+
+      </div>
+    </ng-container>
+
+  </div>
+</ion-content>
+
+<ion-footer class="ion-no-border">
+  <ion-toolbar class="footer-toolbar">
+    <p class="footer-text">© ExpertiMente 2026</p>
+  </ion-toolbar>
+</ion-footer>

@@ -1,0 +1,69 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <!-- Si vienes del Home, un botón de atrás. Si es menú principal, usa ion-menu-button -->
+      <ion-back-button defaultHref="/home" style="color: #ff6a00;"></ion-back-button>
+    </ion-buttons>
+    <ion-title style="color: #222; font-weight: bold;">Buscar Empleo</ion-title>
+  </ion-toolbar>
+  
+  <!-- Barra de búsqueda anclada al header para que no se pierda al hacer scroll -->
+  <ion-toolbar style="--background: #ffffff; padding: 0 10px;">
+    <ion-searchbar 
+      placeholder="Ej. Conserje, Vendedor..." 
+      class="custom-searchbar"
+      [debounce]="300"
+      (ionInput)="filtrarOfertas($event)">
+    </ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding-bottom">
+  
+  <div class="feed-container">
+
+    <!-- Spinner de carga -->
+    <div class="loading-container" *ngIf="cargando">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+      <p>Buscando ofertas...</p>
+    </div>
+
+    <!-- Estado vacío (Si no hay ofertas o la búsqueda no coincide) -->
+    <div class="empty-state" *ngIf="!cargando && ofertasFiltradas.length === 0">
+      <ion-icon name="search-outline"></ion-icon>
+      <h3>No encontramos resultados</h3>
+      <p>Intenta con otra palabra o revisa más tarde.</p>
+    </div>
+
+    <!-- LISTA DE OFERTAS FILTRADAS -->
+    <ng-container *ngIf="!cargando && ofertasFiltradas.length > 0">
+      <ion-card class="job-card" *ngFor="let oferta of ofertasFiltradas">
+        <ion-card-content>
+          
+          <div class="badge-container">
+            <span class="badge-modalidad">{{ oferta.modalidad }}</span>
+          </div>
+
+          <h2 class="job-title">{{ oferta.titulo }}</h2>
+          <h3 class="job-company">{{ oferta.nombreEmpresa }}</h3>
+
+          <div class="job-info-row">
+            <ion-icon name="location-outline" class="text-orange"></ion-icon>
+            <span class="text-dark">{{ oferta.direccion }}</span>
+          </div>
+
+          <div class="job-info-row" *ngIf="oferta.habilidades">
+            <ion-icon name="star-outline" class="text-orange"></ion-icon>
+            <span class="text-gray truncate-text">Req: {{ oferta.habilidades }}</span>
+          </div>
+
+          <ion-button expand="block" class="btn-solid-orange mt-15" (click)="verDetalles(oferta)">
+            Ver Detalles
+          </ion-button>
+
+        </ion-card-content>
+      </ion-card>
+    </ng-container>
+
+  </div>
+</ion-content>

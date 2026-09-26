@@ -1,0 +1,143 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <!-- Botón para retroceder de paso o volver al perfil -->
+      <ion-button (click)="pasoAnterior()" *ngIf="pasoActual > 1">
+        <ion-icon slot="icon-only" name="arrow-back-outline" style="color: #ff6a00;"></ion-icon>
+      </ion-button>
+      <ion-button routerLink="/perfil" *ngIf="pasoActual === 1">
+        <ion-icon slot="icon-only" name="arrow-back-outline" style="color: #ff6a00;"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title style="color: #222; font-weight: bold;">Editar Perfil</ion-title>
+  </ion-toolbar>
+  
+  <!-- Barra de progreso visual igual al registro -->
+  <ion-progress-bar 
+    [value]="pasoActual / totalPasos" 
+    style="--background: #f4f5f8; --progress-background: #ff6a00; height: 6px;">
+  </ion-progress-bar>
+</ion-header>
+
+<!-- Agregamos *ngIf="!cargando" para esperar a que los datos lleguen de Firebase -->
+<ion-content [fullscreen]="true">
+  <div class="edit-container" *ngIf="!cargando"> 
+
+    <div class="step-indicator">
+      <p>Paso {{ pasoActual }} de {{ totalPasos }}</p>
+    </div>
+
+    <!-- PASO 1: Identidad -->
+    <div class="form-section" *ngIf="pasoActual === 1">
+      <h2>Tu Identidad</h2>
+      <p class="subtitle">Actualiza tus nombres y documento.</p>
+
+      <ion-input
+        label="RUT"
+        labelPlacement="floating"
+        fill="outline"
+        [(ngModel)]="usuario.rut"
+        type="text">
+      </ion-input>
+
+      <!-- Cambiado de primerNombre a nombre -->
+      <ion-input
+        label="Primer Nombre"
+        labelPlacement="floating"
+        fill="outline"
+        [(ngModel)]="usuario.nombre" 
+        type="text">
+      </ion-input>
+
+      <!-- Cambiado de apellidoPatero a apellidoPaterno -->
+      <ion-input
+        label="Apellido Paterno"
+        labelPlacement="floating"
+        fill="outline"
+        [(ngModel)]="usuario.apellidoPaterno" 
+        type="text">
+      </ion-input>
+
+      <ion-input
+        label="Apellido Materno"
+        labelPlacement="floating"
+        fill="outline"
+        [(ngModel)]="usuario.apellidoMaterno"
+        type="text">
+      </ion-input>
+
+      <ion-button expand="block" class="btn-primary" (click)="siguientePaso()">
+        Continuar
+      </ion-button>
+    </div>
+
+    <!-- PASO 2: Contacto -->
+    <div class="form-section" *ngIf="pasoActual === 2">
+      <h2>Datos de Contacto</h2>
+      <p class="subtitle">¿Cómo podemos comunicarnos contigo?</p>
+
+      <!-- El correo se muestra pero se desactiva (readonly) por seguridad -->
+      <ion-input
+        label="Correo Electrónico"
+        labelPlacement="floating"
+        fill="outline"
+        [(ngModel)]="usuario.correo"
+        type="email"
+        readonly="true">
+      </ion-input>
+      <p style="font-size: 12px; color: gray; margin-top: -10px; margin-bottom: 15px;">El correo no puede modificarse aquí por seguridad.</p>
+
+      <ion-input
+        label="Teléfono Celular"
+        labelPlacement="floating"
+        fill="outline"
+        [(ngModel)]="usuario.telefono"
+        type="tel">
+      </ion-input>
+
+      <ion-button expand="block" class="btn-primary" (click)="siguientePaso()">
+        Continuar
+      </ion-button>
+    </div>
+
+    <!-- PASO 3: Ubicación -->
+    <div class="form-section" *ngIf="pasoActual === 3">
+      <h2>Tu Ubicación</h2>
+      <p class="subtitle">¿Dónde te encuentras actualmente?</p>
+
+      <ion-input
+        label="Comuna"
+        labelPlacement="floating"
+        fill="outline"
+        [(ngModel)]="usuario.comuna"
+        type="text">
+      </ion-input>
+
+      <ion-input
+        label="Dirección"
+        labelPlacement="floating"
+        fill="outline"
+        [(ngModel)]="usuario.direccion"
+        type="text">
+      </ion-input>
+
+      <!-- Se quitó routerLink y se agregó [disabled] -->
+      <ion-button expand="block" class="btn-success" (click)="guardarCambios()" [disabled]="guardando">
+        {{ guardando ? 'Guardando...' : 'Guardar Cambios' }}
+      </ion-button>
+    </div>
+
+  </div>
+
+  <!-- Spinner mientras carga los datos iniciales -->
+  <div *ngIf="cargando" style="display: flex; justify-content: center; align-items: center; height: 100%;">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+  </div>
+</ion-content>
+
+<!-- FOOTER FIJO -->
+<ion-footer class="ion-no-border">
+  <ion-toolbar class="footer-toolbar">
+    <p class="footer-text">© ExpertiMente 2026</p>
+  </ion-toolbar>
+</ion-footer>

@@ -1,0 +1,81 @@
+@import "@ionic/angular/css/core.css";
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import "@ionic/angular/css/display.css";
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+@import '@ionic/angular/css/palettes/dark.system.css';
+
+/* ==============================
+   TOAST GLOBAL ACCESIBLE (EXPERTIMENTE)
+============================== */
+ion-toast.toast-expertimente {
+  --border-radius: 16px;
+  --box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  font-weight: bold;
+  font-size: 1.15rem; /* Letra un poco más pequeña */
+  text-align: center;
+}
+
+/* Colores personalizados según el tipo */
+ion-toast.toast-expertimente.ion-color-success {
+  --background: #ff6a00; /* Naranja corporativo ExpertiMente */
+  --color: #ffffff;
+  --box-shadow: 0 8px 20px rgba(255, 106, 0, 0.4);
+}
+
+ion-toast.toast-expertimente.ion-color-warning {
+  --background: #ffc409;
+  --color: #222222;
+}
+
+ion-toast.toast-expertimente.ion-color-danger {
+  --background: #eb445a;
+  --color: #ffffff;
+}
+
+/* Contenedor más pequeño: Animación unificada para caja y texto */
+ion-toast.toast-expertimente::part(container) {
+  animation: popInBounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15px 20px; /* Espaciado reducido */
+  min-width: 240px; /* Ancho reducido */
+  max-width: 85vw;
+}
+
+/* Ícono más pequeño y sin animación independiente */
+ion-toast.toast-expertimente::part(icon) {
+  font-size: 3.5rem; /* Reducido desde 4.5rem */
+  margin-bottom: 10px;
+  margin-inline-end: 0;
+}
+
+/* Texto ajustado */
+ion-toast.toast-expertimente::part(message) {
+  padding: 0;
+  line-height: 1.3;
+}
+
+/* ==============================
+   KEYFRAMES DE ANIMACIÓN UNIFICADA
+============================== */
+@keyframes popInBounce {
+  0% { 
+    transform: scale(0.6); 
+    opacity: 0; 
+  }
+  70% { 
+    transform: scale(1.05); 
+    opacity: 1; 
+  }
+  100% { 
+    transform: scale(1); 
+    opacity: 1; 
+  }
+}

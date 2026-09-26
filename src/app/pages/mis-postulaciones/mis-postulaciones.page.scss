@@ -1,0 +1,313 @@
+/* ENCABEZADO Y BOTÓN HOME SUPERIOR */
+.custom-toolbar {
+  --background: #ffffff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+}
+
+.btn-home-header {
+  --color: #ff6a00;
+  --background: rgba(255, 106, 0, 0.1);
+  --border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  margin-right: 12px;
+  transition: transform 0.2s;
+}
+.btn-home-header:active {
+  transform: scale(0.9);
+}
+
+/* FONDO CON DEGRADADO SUAVE */
+.custom-bg {
+  --background: linear-gradient(180deg, #f4f6fb 0%, #ffffff 100%);
+}
+
+.cv-container {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 16px 40px 16px;
+  max-width: 600px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* INDICADOR DE PASO TIPO PÍLDORA */
+.step-indicator {
+  text-align: center;
+  margin: 5px 0 20px;
+}
+.step-badge {
+  background: rgba(34, 34, 34, 0.05);
+  color: #555555;
+  font-weight: 700;
+  font-size: 1.05rem;
+  padding: 8px 18px;
+  border-radius: 20px;
+  display: inline-block;
+}
+
+/* TARJETA PRINCIPAL WIZARD (Más suave y flotante) */
+.form-card {
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+  margin: 0 0 25px 0;
+  border: 1px solid rgba(0,0,0,0.03);
+  width: 100%;
+}
+.empty-card {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.card-content-centered {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 35px 20px !important;
+}
+
+/* ESTILO CUANDO ESTÁ ACEPTADO */
+.card-accepted {
+  border: 2px solid #2dd36f;
+  background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
+  box-shadow: 0 12px 35px rgba(45, 211, 111, 0.15);
+}
+
+/* REEMPLAZA DESDE .accepted-banner HASTA .banner-text span */
+
+.accepted-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #2dd36f;
+  color: #ffffff;
+  padding: 24px 16px;
+  border-radius: 16px;
+  margin-bottom: 25px;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.shadow-pulse {
+  box-shadow: 0 0 0 0 rgba(45, 211, 111, 0.4);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(45, 211, 111, 0.4); }
+  70% { box-shadow: 0 0 0 15px rgba(45, 211, 111, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(45, 211, 111, 0); }
+}
+
+.accepted-banner ion-icon { 
+  font-size: 46px; /* Ícono más grande para mayor impacto */
+  color: #ffffff;
+  margin-bottom: 10px; /* Separación clara del texto */
+}
+
+.banner-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.banner-text strong { 
+  font-size: 1.3rem; 
+  font-weight: 800; 
+  display: block; /* Obliga a que tome su propia línea */
+  width: 100%;
+}
+
+.banner-text span { 
+  font-size: 1.05rem; 
+  opacity: 0.95; 
+  display: block; /* Lo posiciona de forma ordenada abajo */
+  width: 100%;
+}
+
+.card-main-icon {
+  width: 75px;
+  height: 75px;
+  background: rgba(255, 106, 0, 0.08);
+  color: #ff6a00;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 38px;
+  margin-bottom: 18px;
+}
+
+.question-title {
+  color: #1a1a1a;
+  font-weight: 800;
+  font-size: 1.6rem;
+  margin: 0 0 8px;
+  line-height: 1.25;
+}
+
+.company-subtitle {
+  color: #666666;
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 0 0 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.status-box {
+  background: rgba(0,0,0,0.02);
+  padding: 16px 20px;
+  border-radius: 16px;
+  margin-top: 5px;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+.status-label {
+  margin: 0 0 6px 0;
+  color: #777777;
+  font-size: 1rem;
+}
+.status-value {
+  margin: 0;
+  font-weight: 800;
+  font-size: 1.15rem;
+  color: #ff6a00;
+}
+.text-accepted { color: #1b7a43 !important; }
+
+.contact-box-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  background: rgba(45, 211, 111, 0.1);
+  padding: 16px;
+  border-radius: 16px;
+  color: #1b7a43;
+  width: 100%;
+  box-sizing: border-box;
+}
+.contact-box-hint ion-icon { font-size: 28px; }
+.contact-box-hint p {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* BOTONES DE NAVEGACIÓN Y ACCIÓN */
+.nav-buttons-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 15px;
+  width: 100%;
+}
+.nav-buttons-row ion-button {
+  flex: 1;
+  margin: 0;
+}
+
+.btn-solid-orange {
+  --background: #ff6a00; 
+  --background-hover: #e65c00; 
+  --color: #ffffff; 
+  --border-radius: 16px;
+  font-weight: bold;
+  font-size: 1.15rem;
+  height: 58px;
+  --box-shadow: 0 6px 16px rgba(255, 106, 0, 0.3);
+  margin: 0;
+  width: 100%;
+}
+
+.btn-outline-orange {
+  --border-color: #ff6a00;
+  --border-width: 2px;
+  --color: #ff6a00;
+  --border-radius: 16px;
+  font-weight: bold;
+  font-size: 1.15rem;
+  height: 58px;
+  margin: 0;
+  width: 100%;
+}
+
+.btn-solid-gray {
+  --background: #eaecef;
+  --background-hover: #d1d5db;
+  --color: #333333;
+  --border-radius: 16px;
+  font-weight: bold;
+  font-size: 1.15rem;
+  height: 58px;
+  --box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  margin: 0;
+  width: 100%;
+}
+
+.btn-clear-orange {
+  --color: #ff6a00;
+  font-weight: bold;
+  font-size: 1.1rem;
+  height: 50px;
+}
+
+.btn-clear-gray {
+  --color: #666666;
+  font-weight: bold;
+  font-size: 1.1rem;
+  height: 50px;
+}
+
+/* ESTADO VACÍO */
+.empty-icon-box {
+  width: 90px;
+  height: 90px;
+  background: #f4f5f8;
+  color: #a0aab5;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 45px;
+  margin: 0 auto 20px auto;
+}
+
+.loading-container {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666666;
+}
+.loading-container ion-spinner {
+  width: 45px;
+  height: 45px;
+  --color: #ff6a00;
+}
+
+.mt-20 { margin-top: 20px; }
+.mt-12 { margin-top: 12px; }
+
+ion-footer {
+  .footer-toolbar {
+    --background: transparent;
+    text-align: center;
+    padding-bottom: 10px;
+  }
+  .footer-text {
+    margin: 0;
+    color: #a0aab5;
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+}

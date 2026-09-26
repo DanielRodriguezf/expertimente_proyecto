@@ -1,0 +1,80 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/search" style="color: #ff6a00;"></ion-back-button>
+    </ion-buttons>
+    <ion-title style="color: #222; font-weight: bold;">Detalle del Empleo</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" style="--padding-bottom: 100px;">
+  
+  <!-- SPINNER DE CARGA -->
+  <div class="loading-container" *ngIf="cargando">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+    <p>Cargando información...</p>
+  </div>
+
+  <!-- CONTENIDO SI EXISTE LA OFERTA -->
+  <div class="detail-container" *ngIf="!cargando && oferta">
+
+    <!-- Tarjeta Principal de Información -->
+    <ion-card class="detail-card">
+      <ion-card-content>
+        
+        <span class="badge-modalidad">{{ oferta.modalidad }}</span>
+
+        <h1 class="job-title">{{ oferta.titulo }}</h1>
+        <h2 class="job-company">{{ oferta.nombreEmpresa }}</h2>
+
+        <!-- Ubicación -->
+        <div class="info-row">
+          <ion-icon name="location-outline" class="text-orange"></ion-icon>
+          <span><strong>Dirección:</strong> {{ oferta.direccion }}</span>
+        </div>
+
+        <!-- Habilidades -->
+        <div class="info-row" *ngIf="oferta.habilidades">
+          <ion-icon name="star-outline" class="text-orange"></ion-icon>
+          <span><strong>Requisitos:</strong> {{ oferta.habilidades }}</span>
+        </div>
+
+        <hr class="divider">
+
+        <!-- Descripción completa -->
+        <div class="description-section">
+          <h3>Descripción del trabajo</h3>
+          <p class="job-description">{{ oferta.descripcion }}</p>
+        </div>
+
+        <hr class="divider">
+
+        <!-- Contacto Directo (Muy útil para adultos mayores) -->
+        <div class="contact-box" *ngIf="oferta.contactoTelefono || oferta.contactoEmail">
+          <h3>Contacto Directo</h3>
+          <p *ngIf="oferta.contactoTelefono">
+            <ion-icon name="call-outline" class="text-orange"></ion-icon> 
+            Teléfono: <strong>{{ oferta.contactoTelefono }}</strong>
+          </p>
+          <p *ngIf="oferta.contactoEmail">
+            <ion-icon name="mail-outline" class="text-orange"></ion-icon> 
+            Correo: <strong>{{ oferta.contactoEmail }}</strong>
+          </p>
+        </div>
+
+      </ion-card-content>
+    </ion-card>
+
+    <!-- BOTÓN DE POSTULACIÓN -->
+    <div class="action-section">
+      <ion-button 
+        expand="block" 
+        class="btn-solid-orange" 
+        [disabled]="yaPostulado"
+        (click)="postularse()">
+        {{ yaPostulado ? '¡Ya te postulaste a este empleo!' : 'Postular a este trabajo' }}
+      </ion-button>
+    </div>
+
+  </div>
+</ion-content>
