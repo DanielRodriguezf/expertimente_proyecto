@@ -1,117 +1,673 @@
-<ion-content scroll-y="false">
-  <div class="split-layout">
-    
-    <!-- Lado Izquierdo: Branding -->
-    <div class="brand-section">
-      <div class="brand-content">
-        <h1>Únete a ExpertiMente</h1>
-        <p>Conecta con el mejor talento gestionando tus ofertas desde un solo lugar.</p>
-        <div class="decoration-line"></div>
-      </div>
-    </div>
+<ion-content>
 
-    <!-- Lado Derecho: Formulario de Registro -->
-    <div class="form-section">
-      <div class="form-container">
-        
-        <!-- Encabezado dinámico -->
-        <h2>{{ pasoActual === 1 ? 'Tus Datos Personales' : 'Datos de tu Empresa' }}</h2>
-        <p class="subtitle">
-          {{ pasoActual === 1 ? 'Paso 1 de 2: Crea tu cuenta de reclutador.' : 'Paso 2 de 2: Asocia tu perfil a una organización.' }}
+  <div class="split-layout">
+
+    <!-- ========================================== -->
+    <!-- BRANDING -->
+    <!-- ========================================== -->
+
+    <div class="brand-section">
+
+      <div class="brand-content">
+
+        <h1>
+          Únete a ExpertiMente
+        </h1>
+
+        <p>
+          Conecta con el mejor talento
+          gestionando tus ofertas desde
+          un solo lugar.
         </p>
 
-        <form [formGroup]="registroForm">
-          
-          <!-- ============================== -->
-          <!-- PASO 1: DATOS DEL USUARIO      -->
-          <!-- ============================== -->
-          <div *ngIf="pasoActual === 1" formGroupName="usuario">
-            
-            <div class="input-group">
-              <ion-input label="Nombre Completo" labelPlacement="floating" fill="outline" type="text" formControlName="nombre"></ion-input>
-            </div>
-
-            <div class="input-group">
-              <ion-input label="Correo Electrónico" labelPlacement="floating" fill="outline" type="email" formControlName="email"></ion-input>
-            </div>
-
-            <div class="input-group">
-              <ion-input label="Contraseña" labelPlacement="floating" fill="outline" type="password" formControlName="password"></ion-input>
-            </div>
-
-            <div class="input-group">
-              <ion-input label="Confirmar Contraseña" labelPlacement="floating" fill="outline" type="password" formControlName="confirmPassword"></ion-input>
-              <div class="error-msg" *ngIf="registroForm.get('usuario')?.hasError('passwordMismatch') && registroForm.get('usuario.confirmPassword')?.touched">
-                Las contraseñas no coinciden.
-              </div>
-            </div>
-
-            <ion-button expand="block" shape="round" color="primary" class="action-btn" (click)="siguientePaso()">
-              Siguiente Paso
-            </ion-button>
-          </div>
-
-          <!-- ============================== -->
-          <!-- PASO 2: DATOS DE LA EMPRESA    -->
-          <!-- ============================== -->
-          <div *ngIf="pasoActual === 2" formGroupName="empresa" class="fade-in">
-            
-            <ion-radio-group formControlName="modoRegistro">
-              <div class="radio-option">
-                <ion-radio value="existente"></ion-radio>
-                <label>Vincularme a una empresa registrada</label>
-              </div>
-              <div class="radio-option">
-                <ion-radio value="nueva"></ion-radio>
-                <label>Registrar una nueva empresa</label>
-              </div>
-            </ion-radio-group>
-
-            <hr class="divider">
-
-            <!-- Mostrar si elige Existente -->
-            <div *ngIf="modoRegistro === 'existente'" class="fade-in input-group">
-              <ion-select label="Selecciona la Empresa" labelPlacement="floating" fill="outline" formControlName="empresaId">
-                <ion-select-option *ngFor="let emp of empresasExistentes" [value]="emp.id">
-                  {{ emp.nombre }}
-                </ion-select-option>
-              </ion-select>
-            </div>
-
-            <!-- Mostrar si elige Nueva -->
-            <div *ngIf="modoRegistro === 'nueva'" class="fade-in">
-              <div class="input-group">
-                <ion-input label="Nombre de la Empresa" labelPlacement="floating" fill="outline" type="text" formControlName="nombreEmpresa"></ion-input>
-              </div>
-              <div class="input-group">
-                <ion-input label="RUT de la Empresa (Opcional)" labelPlacement="floating" fill="outline" type="text" formControlName="rutEmpresa"></ion-input>
-              </div>
-            </div>
-
-            <div class="button-group">
-              <ion-button fill="outline" shape="round" color="medium" (click)="volverPasoAnterior()">
-                Atrás
-              </ion-button>
-              
-              <ion-button expand="block" shape="round" color="primary" class="action-btn" [disabled]="isLoading" (click)="onSubmit()">
-                <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
-                <span *ngIf="!isLoading">Completar Registro</span>
-              </ion-button>
-            </div>
-          </div>
-          
-        </form>
-
-        <!-- Footer para volver al login -->
-        <div class="login-prompt" *ngIf="pasoActual === 1">
-          <p>¿Ya tienes una cuenta?</p>
-          <ion-button fill="clear" color="primary" (click)="irALogin()">
-            Inicia sesión aquí
-          </ion-button>
+        <div class="decoration-line">
         </div>
 
       </div>
+
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- FORMULARIO -->
+    <!-- ========================================== -->
+
+    <div class="form-section">
+
+      <div class="form-container">
+
+        <h2>
+          {{
+            pasoActual === 1
+              ? 'Tus Datos Personales'
+              : 'Datos de tu Empresa'
+          }}
+        </h2>
+
+
+        <p class="subtitle">
+
+          {{
+            pasoActual === 1
+              ? 'Paso 1 de 2: Crea tu cuenta de reclutador.'
+              : 'Paso 2 de 2: Asocia tu perfil a una organización.'
+          }}
+
+        </p>
+
+
+        <form [formGroup]="registroForm">
+
+
+          <!-- ==================================== -->
+          <!-- PASO 1 -->
+          <!-- ==================================== -->
+
+          <div
+            *ngIf="pasoActual === 1"
+            formGroupName="usuario">
+
+
+            <div class="input-group">
+
+              <ion-input
+                label="Nombre Completo"
+                labelPlacement="floating"
+                fill="outline"
+                type="text"
+                formControlName="nombre">
+              </ion-input>
+
+            </div>
+
+
+            <div class="input-group">
+
+              <ion-input
+                label="Correo Electrónico"
+                labelPlacement="floating"
+                fill="outline"
+                type="email"
+                formControlName="email">
+              </ion-input>
+
+            </div>
+
+
+            <div class="input-group">
+
+              <ion-input
+                label="Contraseña"
+                labelPlacement="floating"
+                fill="outline"
+                type="password"
+                formControlName="password">
+              </ion-input>
+
+            </div>
+
+
+            <div class="input-group">
+
+              <ion-input
+                label="Confirmar Contraseña"
+                labelPlacement="floating"
+                fill="outline"
+                type="password"
+                formControlName="confirmPassword">
+              </ion-input>
+
+
+              <div
+                class="error-msg"
+                *ngIf="
+                  registroForm
+                    .get('usuario')
+                    ?.hasError('passwordMismatch')
+                  &&
+                  registroForm
+                    .get('usuario.confirmPassword')
+                    ?.touched
+                ">
+
+                Las contraseñas no coinciden.
+
+              </div>
+
+            </div>
+
+
+            <ion-button
+              type="button"
+              expand="block"
+              shape="round"
+              color="primary"
+              class="action-btn"
+              (click)="siguientePaso()">
+
+              Siguiente Paso
+
+            </ion-button>
+
+          </div>
+
+
+          <!-- ==================================== -->
+          <!-- PASO 2 -->
+          <!-- ==================================== -->
+
+          <div
+            *ngIf="pasoActual === 2"
+            formGroupName="empresa"
+            class="fade-in">
+
+
+            <!-- ================================= -->
+            <!-- TIPO EMPRESA -->
+            <!-- ================================= -->
+
+            <ion-radio-group
+              formControlName="modoRegistro">
+
+
+              <div class="radio-option">
+
+                <ion-radio
+                  value="existente">
+                </ion-radio>
+
+                <label>
+                  Vincularme a una empresa registrada
+                </label>
+
+              </div>
+
+
+              <div class="radio-option">
+
+                <ion-radio
+                  value="nueva">
+                </ion-radio>
+
+                <label>
+                  Registrar una nueva empresa
+                </label>
+
+              </div>
+
+            </ion-radio-group>
+
+
+            <hr class="divider">
+
+
+            <!-- ================================= -->
+            <!-- EMPRESA EXISTENTE -->
+            <!-- ================================= -->
+
+            <div
+              *ngIf="
+                modoRegistro === 'existente'
+              "
+              class="fade-in input-group">
+
+
+              <ion-select
+                label="Selecciona la Empresa"
+                labelPlacement="floating"
+                fill="outline"
+                formControlName="empresaId"
+                [disabled]="cargandoEmpresas">
+
+
+                <ion-select-option
+                  *ngFor="
+                    let emp of empresasExistentes
+                  "
+                  [value]="emp.id">
+
+                  {{ emp.nombre }}
+
+                  <span *ngIf="emp.rut">
+                    — {{ emp.rut }}
+                  </span>
+
+                </ion-select-option>
+
+              </ion-select>
+
+            </div>
+
+
+            <!-- ================================= -->
+            <!-- EMPRESA NUEVA -->
+            <!-- ================================= -->
+
+            <div
+              *ngIf="
+                modoRegistro === 'nueva'
+              "
+              class="fade-in">
+
+
+              <!-- NOMBRE -->
+
+              <div class="input-group">
+
+                <ion-input
+                  label="Nombre / Razón Social *"
+                  labelPlacement="floating"
+                  fill="outline"
+                  type="text"
+                  formControlName="nombreEmpresa">
+                </ion-input>
+
+              </div>
+
+
+              <!-- RUT -->
+
+              <div class="input-group">
+
+                <ion-input
+                  label="RUT de la Empresa *"
+                  labelPlacement="floating"
+                  fill="outline"
+                  type="text"
+                  placeholder="76.123.456-7"
+                  formControlName="rutEmpresa"
+                  (ionBlur)="formatearRutEmpresa()">
+                </ion-input>
+
+
+                <div
+                  class="error-msg"
+                  *ngIf="
+                    registroForm
+                      .get('empresa.rutEmpresa')
+                      ?.touched
+                    &&
+                    registroForm
+                      .get('empresa.rutEmpresa')
+                      ?.hasError('required')
+                  ">
+
+                  El RUT de la empresa es obligatorio.
+
+                </div>
+
+
+                <div
+                  class="error-msg"
+                  *ngIf="
+                    registroForm
+                      .get('empresa.rutEmpresa')
+                      ?.touched
+                    &&
+                    registroForm
+                      .get('empresa.rutEmpresa')
+                      ?.hasError('rutInvalido')
+                  ">
+
+                  Ingresa un RUT chileno válido.
+
+                </div>
+
+              </div>
+
+
+              <!-- RUBRO -->
+
+              <div class="input-group">
+
+                <ion-input
+                  label="Rubro / Actividad de la Empresa *"
+                  labelPlacement="floating"
+                  fill="outline"
+                  type="text"
+                  placeholder="Ej: Tecnología, Retail, Consultoría"
+                  formControlName="rubro">
+                </ion-input>
+
+              </div>
+
+
+              <!-- TAMAÑO -->
+
+              <div class="input-group">
+
+                <ion-select
+                  label="Tamaño de la Empresa *"
+                  labelPlacement="floating"
+                  fill="outline"
+                  formControlName="tamanoEmpresa">
+
+
+                  <ion-select-option
+                    value="1-10">
+
+                    1 a 10 trabajadores
+
+                  </ion-select-option>
+
+
+                  <ion-select-option
+                    value="11-50">
+
+                    11 a 50 trabajadores
+
+                  </ion-select-option>
+
+
+                  <ion-select-option
+                    value="51-200">
+
+                    51 a 200 trabajadores
+
+                  </ion-select-option>
+
+
+                  <ion-select-option
+                    value="201-500">
+
+                    201 a 500 trabajadores
+
+                  </ion-select-option>
+
+
+                  <ion-select-option
+                    value="501-1000">
+
+                    501 a 1.000 trabajadores
+
+                  </ion-select-option>
+
+
+                  <ion-select-option
+                    value="1000+">
+
+                    Más de 1.000 trabajadores
+
+                  </ion-select-option>
+
+                </ion-select>
+
+              </div>
+
+
+              <!-- REGIÓN -->
+
+              <div class="input-group">
+
+                <ion-select
+                  label="Región *"
+                  labelPlacement="floating"
+                  fill="outline"
+                  formControlName="region">
+
+
+                  <ion-select-option value="Arica y Parinacota">
+                    Arica y Parinacota
+                  </ion-select-option>
+
+                  <ion-select-option value="Tarapacá">
+                    Tarapacá
+                  </ion-select-option>
+
+                  <ion-select-option value="Antofagasta">
+                    Antofagasta
+                  </ion-select-option>
+
+                  <ion-select-option value="Atacama">
+                    Atacama
+                  </ion-select-option>
+
+                  <ion-select-option value="Coquimbo">
+                    Coquimbo
+                  </ion-select-option>
+
+                  <ion-select-option value="Valparaíso">
+                    Valparaíso
+                  </ion-select-option>
+
+                  <ion-select-option value="Región Metropolitana de Santiago">
+                    Región Metropolitana de Santiago
+                  </ion-select-option>
+
+                  <ion-select-option value="O'Higgins">
+                    O'Higgins
+                  </ion-select-option>
+
+                  <ion-select-option value="Maule">
+                    Maule
+                  </ion-select-option>
+
+                  <ion-select-option value="Ñuble">
+                    Ñuble
+                  </ion-select-option>
+
+                  <ion-select-option value="Biobío">
+                    Biobío
+                  </ion-select-option>
+
+                  <ion-select-option value="La Araucanía">
+                    La Araucanía
+                  </ion-select-option>
+
+                  <ion-select-option value="Los Ríos">
+                    Los Ríos
+                  </ion-select-option>
+
+                  <ion-select-option value="Los Lagos">
+                    Los Lagos
+                  </ion-select-option>
+
+                  <ion-select-option value="Aysén">
+                    Aysén
+                  </ion-select-option>
+
+                  <ion-select-option value="Magallanes y de la Antártica Chilena">
+                    Magallanes y de la Antártica Chilena
+                  </ion-select-option>
+
+                </ion-select>
+
+              </div>
+
+
+              <!-- COMUNA -->
+
+              <div class="input-group">
+
+                <ion-input
+                  label="Comuna *"
+                  labelPlacement="floating"
+                  fill="outline"
+                  type="text"
+                  placeholder="Ej: Las Condes"
+                  formControlName="comuna">
+                </ion-input>
+
+              </div>
+
+
+              <!-- DIRECCIÓN -->
+
+              <div class="input-group">
+
+                <ion-input
+                  label="Dirección Comercial *"
+                  labelPlacement="floating"
+                  fill="outline"
+                  type="text"
+                  placeholder="Ej: Av. Apoquindo 1234"
+                  formControlName="direccionEmpresa">
+                </ion-input>
+
+              </div>
+
+
+              <!-- EMAIL EMPRESA -->
+
+              <div class="input-group">
+
+                <ion-input
+                  label="Email Corporativo *"
+                  labelPlacement="floating"
+                  fill="outline"
+                  type="email"
+                  placeholder="contacto@empresa.cl"
+                  formControlName="emailEmpresa">
+                </ion-input>
+
+              </div>
+
+
+              <!-- TELÉFONO -->
+
+              <div class="input-group">
+
+                <ion-input
+                  label="Teléfono de la Empresa *"
+                  labelPlacement="floating"
+                  fill="outline"
+                  type="tel"
+                  placeholder="+56 9 1234 5678"
+                  formControlName="telefonoEmpresa">
+                </ion-input>
+
+              </div>
+
+
+              <!-- WEB -->
+
+              <div class="input-group">
+
+                <ion-input
+                  label="Sitio Web (Opcional)"
+                  labelPlacement="floating"
+                  fill="outline"
+                  type="url"
+                  placeholder="https://www.empresa.cl"
+                  formControlName="sitioWeb">
+                </ion-input>
+
+              </div>
+
+
+              <!-- DESCRIPCIÓN -->
+
+              <div class="input-group">
+
+                <ion-textarea
+                  label="Descripción de la Empresa *"
+                  labelPlacement="floating"
+                  fill="outline"
+                  rows="4"
+                  placeholder="Describe brevemente la actividad, servicios o propósito de la empresa."
+                  formControlName="descripcionEmpresa">
+                </ion-textarea>
+
+
+                <div
+                  class="error-msg"
+                  *ngIf="
+                    registroForm
+                      .get('empresa.descripcionEmpresa')
+                      ?.touched
+                    &&
+                    registroForm
+                      .get('empresa.descripcionEmpresa')
+                      ?.invalid
+                  ">
+
+                  La descripción debe contener
+                  al menos 20 caracteres.
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <!-- ================================= -->
+            <!-- BOTONES -->
+            <!-- ================================= -->
+
+            <div class="button-group">
+
+              <ion-button
+                type="button"
+                fill="outline"
+                shape="round"
+                color="medium"
+                (click)="volverPasoAnterior()">
+
+                Atrás
+
+              </ion-button>
+
+
+              <ion-button
+                type="button"
+                expand="block"
+                shape="round"
+                color="primary"
+                class="action-btn"
+                [disabled]="isLoading"
+                (click)="onSubmit()">
+
+
+                <ion-spinner
+                  *ngIf="isLoading"
+                  name="crescent">
+                </ion-spinner>
+
+
+                <span *ngIf="!isLoading">
+
+                  Completar Registro
+
+                </span>
+
+              </ion-button>
+
+            </div>
+
+          </div>
+
+        </form>
+
+
+        <!-- ====================================== -->
+        <!-- LOGIN -->
+        <!-- ====================================== -->
+
+        <div
+          class="login-prompt"
+          *ngIf="pasoActual === 1">
+
+          <p>
+            ¿Ya tienes una cuenta?
+          </p>
+
+          <ion-button
+            type="button"
+            fill="clear"
+            color="primary"
+            (click)="irALogin()">
+
+            Inicia sesión aquí
+
+          </ion-button>
+
+        </div>
+
+      </div>
+
     </div>
 
   </div>
+
 </ion-content>

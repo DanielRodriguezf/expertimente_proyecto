@@ -415,7 +415,8 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   editarOferta(ofertaId: string) {
-    this.router.navigate(['/editar-oferta', ofertaId]);
+    // CAMBIO IMPORTANTE: Apunta a crear-oferta pasando el ID para re-utilizar el formulario de creación.
+    this.router.navigate(['/crear-oferta', ofertaId]);
   }
 
   async cambiarEstadoOferta(oferta: OfertaTrabajo) {

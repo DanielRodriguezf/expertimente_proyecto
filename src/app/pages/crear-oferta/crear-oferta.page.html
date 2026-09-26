@@ -1,127 +1,710 @@
 <ion-header class="ion-no-border">
+
   <ion-toolbar class="navbar">
+
     <div class="header-container">
-      <ion-button fill="clear" color="dark" (click)="volver()">
-        <ion-icon name="arrow-back-outline" slot="icon-only"></ion-icon>
+
+      <ion-button
+        fill="clear"
+        color="dark"
+        type="button"
+        (click)="volver()">
+
+        <ion-icon
+          name="arrow-back-outline"
+          slot="icon-only">
+        </ion-icon>
+
       </ion-button>
-      <h2>{{ isEditMode ? 'Editar Oferta' : 'Nueva Oferta de Trabajo' }}</h2>
+
+      <h2>
+        {{ isEditMode
+          ? 'Editar Oferta'
+          : 'Nueva Oferta de Trabajo'
+        }}
+      </h2>
+
     </div>
+
   </ion-toolbar>
+
 </ion-header>
 
+
 <ion-content [fullscreen]="true">
+
   <div class="form-wrapper">
 
     <div class="form-header">
-      <div class="badge-empresa" *ngIf="nombreEmpresa">🏢 {{ nombreEmpresa }}</div>
-      <h1>{{ isEditMode ? 'Modificar datos del puesto' : 'Registra una vacante de empleo' }}</h1>
-      <p>Los campos indicados como opcionales pueden omitirse si prefieres no mostrarlos.</p>
+
+      <div
+        class="badge-empresa"
+        *ngIf="nombreEmpresa">
+
+        🏢 {{ nombreEmpresa }}
+
+      </div>
+
+      <h1>
+        {{
+          isEditMode
+            ? 'Modificar datos del puesto'
+            : 'Registra una vacante de empleo'
+        }}
+      </h1>
+
+      <p>
+        Los campos indicados como opcionales
+        pueden omitirse si prefieres no mostrarlos.
+      </p>
+
     </div>
 
-    <form [formGroup]="ofertaForm" (ngSubmit)="guardarOferta()" class="offer-form">
 
-      <!-- TÍTULO DEL PUESTO -->
+    <form
+      [formGroup]="ofertaForm"
+      (ngSubmit)="guardarOferta()"
+      class="offer-form">
+
+
+      <!-- =================================================== -->
+      <!-- TÍTULO -->
+      <!-- =================================================== -->
+
       <div class="form-group">
-        <label>Nombre / Cargo de la Vacante <span class="required">*</span></label>
-        <ion-input 
-          formControlName="titulo" 
+
+        <label>
+          Nombre / Cargo de la Vacante
+          <span class="required">*</span>
+        </label>
+
+        <ion-input
+          formControlName="titulo"
           placeholder="Ej: Desarrollador Frontend Angular"
           fill="outline">
         </ion-input>
-        <span class="error-text" *ngIf="ofertaForm.get('titulo')?.touched && ofertaForm.get('titulo')?.invalid">
-          Ingresa un título descriptivo (mínimo 4 caracteres).
+
+        <span
+          class="error-text"
+          *ngIf="
+            ofertaForm.get('titulo')?.touched &&
+            ofertaForm.get('titulo')?.invalid
+          ">
+
+          Ingresa un título descriptivo
+          (mínimo 4 caracteres).
+
         </span>
+
       </div>
 
+
+      <!-- =================================================== -->
       <!-- MODALIDAD -->
+      <!-- =================================================== -->
+
       <div class="form-group">
-        <label>Modalidad de Trabajo <span class="required">*</span></label>
-        <ion-select formControlName="modalidad" interface="popover" fill="outline">
-          <ion-select-option value="Remoto">🏠 Home Office / Remoto</ion-select-option>
-          <ion-select-option value="Híbrido">🏢 Híbrido</ion-select-option>
-          <ion-select-option value="Presencial">📍 Presencial</ion-select-option>
+
+        <label>
+          Modalidad de Trabajo
+          <span class="required">*</span>
+        </label>
+
+        <ion-select
+          formControlName="modalidad"
+          interface="popover"
+          fill="outline">
+
+          <ion-select-option value="Remoto">
+            🏠 Home Office / Remoto
+          </ion-select-option>
+
+          <ion-select-option value="Híbrido">
+            🏢 Híbrido
+          </ion-select-option>
+
+          <ion-select-option value="Presencial">
+            📍 Presencial
+          </ion-select-option>
+
         </ion-select>
+
       </div>
 
-      <!-- UBICACIÓN / DIRECCIÓN (OPCIONAL) -->
+
+      <!-- =================================================== -->
+      <!-- ÁREA LABORAL -->
+      <!-- =================================================== -->
+
       <div class="form-group">
-        <label>Dirección / Ubicación de Oficina <span class="optional">(Opcional)</span></label>
-        <ion-input 
-          formControlName="direccion" 
+
+        <label>
+          Área Laboral
+          <span class="required">*</span>
+        </label>
+
+        <ion-select
+          formControlName="areaLaboral"
+          interface="action-sheet"
+          fill="outline"
+          (ionChange)="cargarPlantilla($event.detail.value)">
+
+          <ion-select-option value="ventas">
+            Atención al Cliente y Ventas
+          </ion-select-option>
+
+          <ion-select-option value="admin">
+            Administración y Oficina
+          </ion-select-option>
+
+          <ion-select-option value="limpieza">
+            Mantenimiento y Limpieza
+          </ion-select-option>
+
+          <ion-select-option value="logistica">
+            Logística y Bodega
+          </ion-select-option>
+
+        </ion-select>
+
+        <span
+          class="error-text"
+          *ngIf="
+            ofertaForm.get('areaLaboral')?.touched &&
+            ofertaForm.get('areaLaboral')?.invalid
+          ">
+
+          Selecciona un área laboral.
+
+        </span>
+
+      </div>
+
+
+      <!-- =================================================== -->
+      <!-- CUESTIONARIO -->
+      <!-- =================================================== -->
+
+      <div class="section-divider">
+
+        <h3>
+          Preguntas filtro de la oferta
+        </h3>
+
+        <p
+          style="
+            font-size: 0.9em;
+            color: var(--ion-color-medium);
+            margin-top: 5px;
+          ">
+
+          Las preguntas serán respondidas
+          por los candidatos al postular.
+
+          Puedes utilizar la plantilla del área,
+          modificarla, eliminar preguntas
+          o crear preguntas nuevas.
+
+        </p>
+
+        <p
+          *ngIf="puntajeMaximo > 0"
+          style="
+            font-size: 0.9em;
+            font-weight: 600;
+          ">
+
+          Puntaje máximo actual:
+          {{ puntajeMaximo }} pts
+
+        </p>
+
+      </div>
+
+
+      <!-- FORM ARRAY PREGUNTAS -->
+
+      <div formArrayName="preguntas">
+
+        <ion-card
+          *ngFor="
+            let pregunta of preguntas.controls;
+            let i = index
+          "
+          [formGroupName]="i"
+          class="ion-margin-bottom">
+
+          <ion-card-content>
+
+
+            <!-- CABECERA PREGUNTA -->
+
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 16px;
+              ">
+
+              <strong
+                style="
+                  color: var(--ion-color-primary);
+                ">
+
+                Pregunta {{ i + 1 }}
+
+              </strong>
+
+
+              <ion-button
+                type="button"
+                fill="clear"
+                color="danger"
+                size="small"
+                (click)="eliminarPregunta(i)">
+
+                <ion-icon
+                  name="trash-outline"
+                  slot="icon-only">
+                </ion-icon>
+
+              </ion-button>
+
+            </div>
+
+
+            <!-- TEXTO -->
+
+            <div class="form-group">
+
+              <label>
+                Texto de la pregunta
+                <span class="required">*</span>
+              </label>
+
+              <ion-textarea
+                formControlName="texto"
+                rows="2"
+                fill="outline"
+                placeholder="Ej: ¿Tienes experiencia previa en este cargo?">
+              </ion-textarea>
+
+              <span
+                class="error-text"
+                *ngIf="
+                  pregunta.get('texto')?.touched &&
+                  pregunta.get('texto')?.invalid
+                ">
+
+                La pregunta debe contener
+                al menos 5 caracteres.
+
+              </span>
+
+            </div>
+
+
+            <!-- TIPO -->
+
+            <div class="form-group">
+
+              <label>
+                Tipo de respuesta
+              </label>
+
+              <ion-select
+                formControlName="tipo"
+                fill="outline"
+                interface="popover"
+                (ionChange)="cambiarTipoPregunta(i)">
+
+                <ion-select-option value="texto">
+                  Respuesta escrita
+                </ion-select-option>
+
+                <ion-select-option value="seleccion">
+                  Selección con alternativas
+                </ion-select-option>
+
+              </ion-select>
+
+            </div>
+
+
+            <!-- REQUERIDA -->
+
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin: 16px 0;
+              ">
+
+              <ion-checkbox
+                formControlName="requerida">
+              </ion-checkbox>
+
+              <span>
+                Respuesta obligatoria
+              </span>
+
+            </div>
+
+
+            <!-- ============================================ -->
+            <!-- OPCIONES -->
+            <!-- ============================================ -->
+
+            <div
+              *ngIf="
+                pregunta.get('tipo')?.value ===
+                'seleccion'
+              "
+              formArrayName="opciones">
+
+              <div class="section-divider">
+
+                <h4>
+                  Alternativas
+                </h4>
+
+              </div>
+
+
+              <div
+                *ngFor="
+                  let opcion of getOpciones(i).controls;
+                  let j = index
+                "
+                [formGroupName]="j"
+                style="
+                  display: flex;
+                  gap: 10px;
+                  align-items: flex-end;
+                  margin-bottom: 12px;
+                ">
+
+
+                <!-- TEXTO OPCIÓN -->
+
+                <div
+                  class="form-group"
+                  style="
+                    flex: 1;
+                    margin-bottom: 0;
+                  ">
+
+                  <label>
+                    Opción {{ j + 1 }}
+                  </label>
+
+                  <ion-input
+                    formControlName="texto"
+                    fill="outline"
+                    placeholder="Texto de la alternativa">
+                  </ion-input>
+
+                </div>
+
+
+                <!-- PUNTAJE -->
+
+                <div
+                  class="form-group"
+                  style="
+                    width: 95px;
+                    margin-bottom: 0;
+                  ">
+
+                  <label>
+                    Pts
+                  </label>
+
+                  <ion-input
+                    formControlName="puntaje"
+                    type="number"
+                    min="0"
+                    fill="outline">
+                  </ion-input>
+
+                </div>
+
+
+                <!-- ELIMINAR OPCIÓN -->
+
+                <ion-button
+                  type="button"
+                  fill="clear"
+                  color="danger"
+                  (click)="eliminarOpcion(i, j)">
+
+                  <ion-icon
+                    name="trash-outline"
+                    slot="icon-only">
+                  </ion-icon>
+
+                </ion-button>
+
+              </div>
+
+
+              <!-- AGREGAR OPCIÓN -->
+
+              <ion-button
+                type="button"
+                fill="outline"
+                size="small"
+                (click)="agregarOpcion(i)">
+
+                <ion-icon
+                  name="add-outline"
+                  slot="start">
+                </ion-icon>
+
+                Agregar alternativa
+
+              </ion-button>
+
+            </div>
+
+          </ion-card-content>
+
+        </ion-card>
+
+      </div>
+
+
+      <!-- AGREGAR PREGUNTA -->
+
+      <div
+        style="
+          margin-top: 15px;
+          margin-bottom: 30px;
+        ">
+
+        <ion-button
+          type="button"
+          fill="outline"
+          color="primary"
+          (click)="agregarPregunta()">
+
+          <ion-icon
+            name="add-outline"
+            slot="start">
+          </ion-icon>
+
+          Agregar Pregunta
+
+        </ion-button>
+
+      </div>
+
+
+      <!-- =================================================== -->
+      <!-- DETALLES PUESTO -->
+      <!-- =================================================== -->
+
+      <div class="section-divider">
+
+        <h3>
+          Detalles del Puesto
+        </h3>
+
+      </div>
+
+
+      <!-- DIRECCIÓN -->
+
+      <div class="form-group">
+
+        <label>
+          Dirección / Ubicación de Oficina
+          <span class="optional">
+            (Opcional)
+          </span>
+        </label>
+
+        <ion-input
+          formControlName="direccion"
           placeholder="Ej: Av. Andrés Bello 2457, Providencia, Santiago"
           fill="outline">
         </ion-input>
+
       </div>
 
-      <!-- HABILIDADES (OPCIONAL) -->
+
+      <!-- HABILIDADES -->
+
       <div class="form-group">
-        <label>Habilidades o Conocimientos Requeridos <span class="optional">(Opcional)</span></label>
-        <ion-input 
-          formControlName="habilidades" 
+
+        <label>
+          Habilidades o Conocimientos Requeridos
+          <span class="optional">
+            (Opcional)
+          </span>
+        </label>
+
+        <ion-input
+          formControlName="habilidades"
           placeholder="Ej: Angular, Firebase, TypeScript, Git, Scrum"
           fill="outline">
         </ion-input>
+
       </div>
 
-      <!-- DESCRIPCIÓN DEL TRABAJO -->
+
+      <!-- DESCRIPCIÓN -->
+
       <div class="form-group">
-        <label>Descripción del Trabajo y Funciones <span class="required">*</span></label>
-        <ion-textarea 
-          formControlName="descripcion" 
-          placeholder="Detalla las responsabilidades, requisitos del perfil, horario y beneficios del empleo..."
+
+        <label>
+          Descripción del Trabajo y Funciones
+          <span class="required">*</span>
+        </label>
+
+        <ion-textarea
+          formControlName="descripcion"
+          placeholder="Detalla responsabilidades, requisitos, horario y beneficios..."
           rows="5"
           fill="outline">
         </ion-textarea>
-        <span class="error-text" *ngIf="ofertaForm.get('descripcion')?.touched && ofertaForm.get('descripcion')?.invalid">
-          La descripción debe contener al menos 15 caracteres.
+
+        <span
+          class="error-text"
+          *ngIf="
+            ofertaForm.get('descripcion')?.touched &&
+            ofertaForm.get('descripcion')?.invalid
+          ">
+
+          La descripción debe contener
+          al menos 15 caracteres.
+
         </span>
+
       </div>
+
+
+      <!-- =================================================== -->
+      <!-- CONTACTO -->
+      <!-- =================================================== -->
 
       <div class="section-divider">
-        <h3>Datos de Contacto para el Reclutamiento</h3>
+
+        <h3>
+          Datos de Contacto para el Reclutamiento
+        </h3>
+
       </div>
 
-      <!-- DATOS DE CONTACTO -->
+
       <div class="form-row">
+
+        <!-- EMAIL -->
+
         <div class="form-group">
-          <label>Email de Contacto <span class="required">*</span></label>
-          <ion-input 
-            formControlName="contactoEmail" 
+
+          <label>
+            Email de Contacto
+            <span class="required">*</span>
+          </label>
+
+          <ion-input
+            formControlName="contactoEmail"
             type="email"
             placeholder="reclutamiento@empresa.com"
             fill="outline">
           </ion-input>
-          <span class="error-text" *ngIf="ofertaForm.get('contactoEmail')?.touched && ofertaForm.get('contactoEmail')?.invalid">
+
+          <span
+            class="error-text"
+            *ngIf="
+              ofertaForm.get('contactoEmail')?.touched &&
+              ofertaForm.get('contactoEmail')?.invalid
+            ">
+
             Ingresa un correo electrónico válido.
+
           </span>
+
         </div>
 
+
+        <!-- TELÉFONO -->
+
         <div class="form-group">
-          <label>Teléfono de Contacto <span class="optional">(Opcional)</span></label>
-          <ion-input 
-            formControlName="contactoTelefono" 
+
+          <label>
+            Teléfono de Contacto
+            <span class="optional">
+              (Opcional)
+            </span>
+          </label>
+
+          <ion-input
+            formControlName="contactoTelefono"
             type="tel"
             placeholder="+56 9 1234 5678"
             fill="outline">
           </ion-input>
+
         </div>
+
       </div>
 
-      <!-- BOTONES DE ACCIÓN -->
-      <div class="form-actions">
-        <ion-button fill="outline" color="medium" (click)="volver()">
+
+      <!-- =================================================== -->
+      <!-- ACCIONES -->
+      <!-- =================================================== -->
+
+      <div
+        class="form-actions"
+        style="margin-top: 30px;">
+
+        <ion-button
+          type="button"
+          fill="outline"
+          color="medium"
+          (click)="volver()">
+
           Cancelar
+
         </ion-button>
 
-        <ion-button type="submit" color="primary" [disabled]="isLoading">
-          <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
+
+        <ion-button
+          type="submit"
+          color="primary"
+          [disabled]="isLoading">
+
+          <ion-spinner
+            *ngIf="isLoading"
+            name="crescent">
+          </ion-spinner>
+
           <span *ngIf="!isLoading">
-            <ion-icon name="save-outline" slot="start"></ion-icon>
-            {{ isEditMode ? 'Guardar Cambios' : 'Publicar Oferta' }}
+
+            <ion-icon
+              name="save-outline"
+              slot="start">
+            </ion-icon>
+
+            {{
+              isEditMode
+                ? 'Guardar Cambios'
+                : 'Publicar Oferta'
+            }}
+
           </span>
+
         </ion-button>
+
       </div>
 
     </form>
+
   </div>
+
 </ion-content>

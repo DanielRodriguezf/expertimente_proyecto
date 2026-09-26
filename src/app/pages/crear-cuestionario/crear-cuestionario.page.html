@@ -1,0 +1,74 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-title>Crear Cuestionario</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form [formGroup]="cuestionarioForm">
+    
+    <ion-item class="ion-margin-bottom">
+      <ion-input 
+        label="Título del Cuestionario" 
+        labelPlacement="stacked" 
+        formControlName="titulo" 
+        placeholder="Ej: Evaluación para Desarrollador Web">
+      </ion-input>
+    </ion-item>
+
+    <div class="header-preguntas">
+      <h3>Preguntas</h3>
+      <ion-button size="small" fill="outline" (click)="agregarPregunta()">
+        <ion-icon slot="start" name="add-outline"></ion-icon>
+        Añadir Pregunta
+      </ion-button>
+    </div>
+
+    <div formArrayName="preguntas">
+      <ion-card *ngFor="let pregunta of preguntas.controls; let i = index" [formGroupName]="i" class="pregunta-card">
+        <ion-card-content>
+          
+          <div class="pregunta-header">
+            <h4>Pregunta {{ i + 1 }}</h4>
+            <ion-button fill="clear" color="danger" (click)="eliminarPregunta(i)">
+              <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+            </ion-button>
+          </div>
+
+          <ion-item>
+            <ion-input 
+              label="Escribe tu pregunta" 
+              labelPlacement="stacked" 
+              formControlName="texto"
+              placeholder="¿Cuántos años de experiencia tienes?">
+            </ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-select label="Tipo de respuesta" labelPlacement="stacked" formControlName="tipo">
+              <ion-select-option value="texto">Respuesta de Texto Corto</ion-select-option>
+              <ion-select-option value="opcion_multiple">Opción Múltiple</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <ion-item *ngIf="pregunta.get('tipo')?.value === 'opcion_multiple'">
+            <ion-input 
+              label="Opciones (Separadas por comas)" 
+              labelPlacement="stacked" 
+              formControlName="opciones"
+              placeholder="Ej: Si, No, Tal vez">
+            </ion-input>
+          </ion-item>
+
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <ion-button expand="block" class="ion-margin-top" (click)="guardarCuestionario()" [disabled]="isSaving">
+      <ion-icon slot="start" name="save-outline" *ngIf="!isSaving"></ion-icon>
+      <ion-spinner name="crescent" *ngIf="isSaving"></ion-spinner>
+      {{ isSaving ? 'Guardando...' : 'Guardar Cuestionario' }}
+    </ion-button>
+
+  </form>
+</ion-content>
