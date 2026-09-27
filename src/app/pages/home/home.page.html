@@ -1,0 +1,70 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button class="menu-btn-custom"></ion-menu-button>
+    </ion-buttons>
+    <ion-title class="app-title">Inicio</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="home-container">
+
+    <!-- SALUDO DE BIENVENIDA -->
+    <div class="welcome-section">
+      <h1 class="welcome-title">¡Hola, {{ nombreUsuario }}!</h1>
+      <p class="welcome-subtitle">Bienvenido a ExpertiMente, tu espacio para encontrar nuevas oportunidades.</p>
+    </div>
+
+    <!-- SECCIÓN DE ACCIONES (Botones grandes y claros) -->
+    <div class="actions-section">
+      <h3 class="section-title">¿Qué deseas hacer hoy?</h3>
+
+      <!-- 1. DATOS PERSONALES -->
+      <ion-card class="action-card" routerLink="/perfil" button="true">
+        <ion-item class="action-item" lines="none" detail="true">
+          <div slot="start" class="icon-box user-box">
+            <ion-icon name="person-outline"></ion-icon>
+          </div>
+          <ion-label class="ion-text-wrap">
+            <h4 class="action-title">Mis Datos Personales</h4>
+            <p class="action-desc">Revisa o actualiza tu información de contacto.</p>
+          </ion-label>
+        </ion-item>
+      </ion-card>
+
+      <!-- 2. CURRÍCULUM -->
+      <ion-card class="action-card" routerLink="/perfil-cv" button="true">
+        <ion-item class="action-item" lines="none" detail="true">
+          <div slot="start" class="icon-box doc-box">
+            <ion-icon name="document-text-outline"></ion-icon>
+          </div>
+          <ion-label class="ion-text-wrap">
+            <h4 class="action-title">Mi Currículum</h4>
+            <p class="action-desc">Gestiona tu experiencia, habilidades y archivo PDF.</p>
+          </ion-label>
+        </ion-item>
+      </ion-card>
+
+      <!-- 3. BUSCAR EMPLEO (Destacado con color principal) -->
+      <ion-card class="action-card primary-action-card" routerLink="/search" button="true">
+        <ion-item class="action-item primary-item" lines="none" detail="true">
+          <div slot="start" class="icon-box search-box">
+            <ion-icon name="search-outline"></ion-icon>
+          </div>
+          <ion-label class="ion-text-wrap">
+            <h4 class="action-title text-white">Buscar Empleo</h4>
+            <p class="action-desc text-white">Explora las ofertas de trabajo disponibles.</p>
+          </ion-label>
+        </ion-item>
+      </ion-card>
+
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer class="ion-no-border">
+  <ion-toolbar class="footer-toolbar">
+    <p class="footer-text">© ExpertiMente 2026</p>
+  </ion-toolbar>
+</ion-footer>

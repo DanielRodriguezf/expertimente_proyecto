@@ -1,0 +1,122 @@
+ion-header {
+  ion-toolbar {
+    --background: #ffffff;
+  }
+}
+
+ion-content {
+  --background: #f4f5f8;
+}
+
+/* ESTILOS DEL BUSCADOR */
+.custom-searchbar {
+  --background: #f4f5f8;
+  --border-radius: 12px;
+  --icon-color: #ff6a00;
+  --clear-button-color: #ff6a00;
+  padding-bottom: 10px;
+  font-size: 1.1rem;
+}
+
+.feed-container {
+  padding: 15px 20px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* TARJETAS DE TRABAJO */
+.job-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  margin: 0 0 20px 0;
+}
+
+.badge-container {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 12px;
+}
+
+.badge-modalidad {
+  background: rgba(255, 106, 0, 0.1);
+  color: #ff6a00;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.job-title {
+  color: #222222;
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0 0 5px 0;
+  line-height: 1.2;
+}
+
+.job-company {
+  color: #666666;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 15px 0;
+}
+
+.job-info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.job-info-row ion-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.job-info-row span {
+  font-size: 1.05rem;
+  line-height: 1.4;
+}
+
+.truncate-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* UTILIDADES Y BOTONES */
+.text-orange { color: #ff6a00; }
+.text-dark { color: #333333; }
+.text-gray { color: #777777; }
+.mt-15 { margin-top: 15px; }
+
+.btn-solid-orange {
+  --background: #ff6a00; 
+  --background-hover: #e65c00; 
+  --color: #ffffff; 
+  --border-radius: 12px;
+  font-weight: bold;
+  font-size: 1.15rem;
+  height: 50px;
+  --box-shadow: 0 4px 10px rgba(255, 106, 0, 0.3);
+}
+
+/* ESTADOS DE CARGA Y VACÍO */
+.loading-container, .empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666666;
+}
+
+.loading-container ion-spinner {
+  width: 40px;
+  height: 40px;
+  --color: #ff6a00;
+}
+
+.empty-state ion-icon {
+  font-size: 60px;
+  color: #cccccc;
+  margin-bottom: 10px;
+}

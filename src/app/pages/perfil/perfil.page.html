@@ -1,0 +1,100 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home" style="color: #ff6a00;"></ion-back-button>
+    </ion-buttons>
+    <ion-title style="color: #222; font-weight: bold;">Mi Perfil</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  
+  <!-- Pantalla de Carga -->
+  <div *ngIf="cargando" style="display: flex; justify-content: center; align-items: center; height: 100%;">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+  </div>
+
+  <!-- Contenedor del Perfil (Se muestra cuando termina de cargar y hay datos) -->
+  <div class="perfil-container" *ngIf="!cargando && usuarioData">
+
+    <!-- Tarjeta de cabecera con el avatar y nombre del usuario -->
+    <div class="perfil-header-card">
+      <div class="avatar-box">
+        <ion-icon name="person-outline"></ion-icon>
+      </div>
+      <!-- Nombre dinámico -->
+      <h2>{{ usuarioData?.nombre }} {{ usuarioData?.apellidoPaterno }}</h2>
+    </div>
+
+    <!-- Sección de Información Personal -->
+    <div class="info-section">
+      <h3>Datos Personales y de Contacto</h3>
+
+      <ion-card class="data-card">
+        <ion-card-content class="data-content">
+          <div class="data-row">
+            <ion-icon name="id-card-outline"></ion-icon>
+            <div>
+              <span class="label">RUT</span>
+              <p class="value">{{ usuarioData?.rut }}</p>
+            </div>
+          </div>
+
+          <div class="data-row">
+            <ion-icon name="mail-outline"></ion-icon>
+            <div>
+              <span class="label">Correo Personal</span>
+              <p class="value">{{ usuarioData?.correo }}</p>
+            </div>
+          </div>
+
+          <div class="data-row">
+            <ion-icon name="call-outline"></ion-icon>
+            <div>
+              <span class="label">Teléfono Celular</span>
+              <p class="value">{{ usuarioData?.telefono }}</p>
+            </div>
+          </div>
+
+          <div class="data-row">
+            <ion-icon name="location-outline"></ion-icon>
+            <div>
+              <span class="label">Ubicación</span>
+              <p class="value">{{ usuarioData?.ciudad }}, {{ usuarioData?.pais }}</p>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="actions-section">
+      <ion-button expand="block" class="btn-modify" routerLink="/perfil-editar">
+        <ion-icon slot="start" name="create-outline"></ion-icon>
+        Modificar Datos
+      </ion-button>
+
+      <div class="danger-zone">
+        <p>¿Deseas dar de baja tu registro en la plataforma?</p>
+        <ion-button expand="block" class="btn-delete" fill="outline" (click)="borrarCuenta()">
+          <ion-icon slot="start" name="trash-outline"></ion-icon>
+          Borrar Mi Cuenta
+        </ion-button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Mensaje de Error si no se encuentra sesión -->
+  <div *ngIf="!cargando && !usuarioData" style="text-align: center; margin-top: 50px;">
+    <p>No se encontraron datos. Por favor, inicia sesión.</p>
+    <ion-button routerLink="/login">Ir a Iniciar Sesión</ion-button>
+  </div>
+</ion-content>
+
+<!-- FOOTER FIJO -->
+<ion-footer class="ion-no-border">
+  <ion-toolbar class="footer-toolbar">
+    <p class="footer-text">© ExpertiMente 2026</p>
+  </ion-toolbar>
+</ion-footer>

@@ -1,0 +1,184 @@
+/* ==============================
+   HEADER TEMA CLARO
+============================== */
+.header-tema-claro {
+  --background: #ffffff; /* Fondo completamente blanco y claro */
+  --color: #737373; /* Gris claro/suave para el título, reemplazando el negro */
+}
+
+.header-tema-claro ion-title {
+  font-weight: 800;
+  font-size: 1.4rem;
+}
+
+/* Botones e íconos en un naranja claro/suave */
+.header-tema-claro ion-back-button,
+.header-tema-claro ion-button,
+.header-tema-claro ion-icon {
+  color: #ff944d; 
+}
+
+/* Barra de progreso con paleta de colores claros */
+.progreso-tema-claro {
+  --background: #f0f2f5; /* Gris muy claro para la pista */
+  --progress-background: #ff944d; /* Naranja claro para el avance */
+  height: 6px;
+}
+
+
+
+ion-content {
+  --background: #ffffff; 
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  color: #ff6a00;
+  
+  p {
+    margin-top: 15px;
+    font-weight: bold;
+    color: #666;
+  }
+}
+
+.form-container {
+  display: flex;
+  flex-direction: column;
+  padding: 15px 20px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ==============================
+   INDICADORES Y ENCABEZADOS
+============================== */
+.step-indicator {
+  text-align: center;
+  margin: 10px 0 25px;
+  
+  p {
+    color: #666666;
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin: 0;
+  }
+}
+
+.form-section {
+  animation: fadeIn 0.4s ease;
+}
+
+.question-text {
+  color: #ff6a00;
+  font-weight: 800;
+  font-size: 1.6rem;
+  line-height: 1.25;
+  margin: 0 0 10px;
+}
+
+.subtitle {
+  color: #555555;
+  font-size: 1.05rem;
+  margin: 0 0 25px;
+}
+
+/* ==============================
+   OPCIONES (RADIO BUTTONS)
+============================== */
+/* ==============================
+   OPCIONES (RADIO BUTTONS - DISEÑO INTUITIVO)
+============================== */
+ion-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Separación entre tarjetas */
+}
+
+.radio-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e4ed;
+  border-radius: 12px;
+  padding: 15px 20px; /* Área táctil amplia */
+  width: 100%;
+  min-height: 75px;
+  
+  font-size: 1.15rem;
+  color: #333333;
+  --color-checked: #ff6a00; /* Naranja para el círculo seleccionado */
+  
+  transition: all 0.2s ease;
+}
+
+/* Efecto visual suave al seleccionar (como en tu referencia) */
+.radio-card.ion-checked {
+  border-color: #ff6a00;
+  background: rgba(255, 106, 0, 0.02); /* Fondo blanco casi intacto */
+}
+
+/* Forzar salto de línea en el texto */
+.radio-card::part(label) {
+  white-space: normal;
+  line-height: 1.4;
+  margin-right: 15px; /* Espacio para que el texto no toque el círculo */
+}
+
+/* Diseño del círculo a la derecha */
+.radio-card::part(container) {
+  width: 26px;
+  height: 26px;
+  border: 2px solid #e2e4ed; /* Círculo gris claro apagado por defecto */
+}
+
+/* ==============================
+   BOTONES Y FOOTER
+============================== */
+.action-section {
+  margin-top: 30px;
+  margin-bottom: 40px;
+}
+
+.btn-primary {
+  --background: #ff6a00;
+  --background-hover: #e65c00;
+  --color: #ffffff;
+  --border-radius: 12px;
+  font-weight: bold;
+  font-size: 1.25rem;
+  height: 55px;
+  --box-shadow: 0 4px 10px rgba(255, 106, 0, 0.3);
+}
+
+.btn-success {
+  --background: #2dd36f;
+  --color: #ffffff;
+  --border-radius: 12px;
+  font-weight: bold;
+  font-size: 1.25rem;
+  height: 55px;
+  --box-shadow: 0 4px 10px rgba(45, 211, 111, 0.3);
+}
+
+ion-footer {
+  .footer-toolbar {
+    --background: #ffffff;
+    text-align: center;
+    padding-bottom: 10px;
+  }
+
+  .footer-text {
+    margin: 0;
+    color: #999999;
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

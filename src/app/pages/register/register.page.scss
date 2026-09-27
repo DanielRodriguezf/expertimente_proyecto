@@ -1,0 +1,116 @@
+ion-header {
+  ion-toolbar {
+    --background: #f4f5f8;
+  }
+}
+
+ion-content {
+  --background: #f4f5f8; 
+}
+
+.register-container {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 20px 40px;
+}
+
+.step-indicator {
+  text-align: center;
+  margin-bottom: 20px;
+  
+  p {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #ff6a00;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0;
+  }
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px; 
+  animation: fadeIn 0.3s ease-in-out;
+
+  h2 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin: 0 0 5px;
+    color: #222;
+    text-align: center;
+  }
+
+  .subtitle {
+    color: #666;
+    margin: 0 0 15px;
+    font-size: 1.1rem;
+    text-align: center;
+  }
+
+  .info-text {
+    text-align: center;
+    color: #555;
+    font-size: 0.95rem;
+    margin-top: 15px;
+  }
+
+  ion-input {
+    --background: #ffffff;
+    --color: #000000 !important;
+    color: #000000 !important; 
+    --highlight-color-focused: #ff6a00; 
+  }
+
+  .manual-toggle {
+    --color: #000000 !important;
+    margin: 0;
+  }
+
+  .btn-primary {
+    margin-top: 20px;
+    --border-radius: 12px;
+    --background: #ff6a00; 
+    --background-hover: #e65c00; 
+    --color: #ffffff; 
+    font-weight: bold;
+    font-size: 1.2rem;
+    height: 55px;
+    --box-shadow: 0 4px 10px rgba(255, 106, 0, 0.3);
+  }
+
+  .btn-success {
+    margin-top: 20px;
+    --border-radius: 12px;
+    --background: #28a745; 
+    --background-hover: #218838; 
+    --color: #ffffff; 
+    font-weight: bold;
+    font-size: 1.2rem;
+    height: 55px;
+    --box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+  }
+}
+
+/* Estilos del Footer Fijo */
+ion-footer {
+  .footer-toolbar {
+    --background: #f4f5f8;
+    --min-height: 40px;
+    text-align: center;
+    padding-bottom: 10px; /* Margen para zonas seguras de dispositivos móviles */
+  }
+
+  .footer-text {
+    margin: 0;
+    color: #999;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

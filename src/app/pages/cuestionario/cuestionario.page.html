@@ -1,0 +1,95 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="header-tema-claro">
+    <ion-buttons slot="start">
+      @if (pasoActual > 1) {
+        <ion-button (click)="pasoAnterior()">
+          <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+        </ion-button>
+      }
+      @if (pasoActual === 1) {
+        <ion-back-button defaultHref="/search"></ion-back-button>
+      }
+    </ion-buttons>
+    <ion-title>Postulación</ion-title>
+  </ion-toolbar>
+  
+  <ion-progress-bar 
+    [value]="pasoActual / totalPasos" 
+    class="progreso-tema-claro">
+  </ion-progress-bar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  
+  @if (cargando) {
+    <div class="loading-container">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+      <p>Cargando cuestionario...</p>
+    </div>
+  } @else {
+    
+    <div class="form-container">
+      
+      <div class="step-indicator">
+        <p>Pregunta {{ pasoActual }} de {{ totalPasos }}</p>
+      </div>
+
+      <!-- Iteramos todas las preguntas, pero solo mostramos la del paso actual -->
+      @for (pregunta of preguntas; track $index) {
+        
+        @if (pasoActual === $index + 1) {
+          <div class="form-section">
+            
+            <h2 class="question-text">{{ pregunta.texto }}</h2>
+            <p class="subtitle">Selecciona la opción que mejor te represente.</p>
+
+            <ion-radio-group [(ngModel)]="respuestas[$index]">
+              @for (opcion of pregunta.opciones; track opcion.texto) {
+                
+                <!-- El radio button ahora ES la tarjeta completa -->
+                <ion-radio 
+                  [value]="opcion.puntaje" 
+                  justify="space-between" 
+                  alignment="center"
+                  class="radio-card">
+                  {{ opcion.texto }}
+                </ion-radio>
+                
+              }
+            </ion-radio-group>
+
+            <div class="action-section">
+              @if (pasoActual < totalPasos) {
+                <ion-button 
+                  expand="block" 
+                  class="btn-primary" 
+                  [disabled]="respuestas[$index] === undefined"
+                  (click)="siguientePaso($index)">
+                  Siguiente
+                </ion-button>
+              } @else {
+                <ion-button 
+                  expand="block" 
+                  class="btn-success" 
+                  [disabled]="respuestas[$index] === undefined"
+                  (click)="finalizarPostulacion()">
+                  Enviar Postulación
+                </ion-button>
+              }
+            </div>
+
+          </div>
+        }
+        
+      }
+
+    </div>
+  }
+</ion-content>
+
+<!-- FOOTER FIJO -->
+<ion-footer class="ion-no-border">
+  <ion-toolbar class="footer-toolbar">
+    <p class="footer-text">© ExpertiMente 2026</p>
+  </ion-toolbar>
+</ion-footer>
