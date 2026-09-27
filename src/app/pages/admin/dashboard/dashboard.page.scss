@@ -1,0 +1,60 @@
+/* --- Estilos Anteriores (Mantén los que ya tenías) --- */
+/* ... */
+
+/* --- Nuevos Estilos para el Modal y Detalles --- */
+.admin-card {
+  --background: var(--ion-color-step-50, #f4f5f8);
+  --border-radius: 12px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  cursor: pointer; /* Indica que se puede hacer clic */
+  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    --background: var(--ion-color-light, #f0f0f0);
+    transform: translateY(-2px);
+  }
+  
+  /* ... (Mantén los estilos internos de la tarjeta que tenías) ... */
+}
+
+.modal-content {
+  --background: #f4f5f8;
+}
+
+.detalle-card {
+  margin: 0 0 15px 0;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+
+  ion-card-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--ion-color-dark);
+  }
+
+  ion-card-subtitle {
+    color: var(--ion-color-primary);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 0.95rem;
+  color: var(--ion-color-dark);
+
+  ion-icon {
+    font-size: 1.2rem;
+    color: var(--ion-color-medium);
+    margin-right: 10px;
+  }
+}
+
+.action-buttons-container {
+  margin-top: 30px;
+  padding: 0 10px;
+}

@@ -1,0 +1,127 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="navbar">
+    <div class="header-container">
+      <ion-button fill="clear" color="dark" (click)="volver()">
+        <ion-icon name="arrow-back-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+      <h2>{{ isEditMode ? 'Editar Oferta' : 'Nueva Oferta de Trabajo' }}</h2>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="form-wrapper">
+
+    <div class="form-header">
+      <div class="badge-empresa" *ngIf="nombreEmpresa">🏢 {{ nombreEmpresa }}</div>
+      <h1>{{ isEditMode ? 'Modificar datos del puesto' : 'Registra una vacante de empleo' }}</h1>
+      <p>Los campos indicados como opcionales pueden omitirse si prefieres no mostrarlos.</p>
+    </div>
+
+    <form [formGroup]="ofertaForm" (ngSubmit)="guardarOferta()" class="offer-form">
+
+      <!-- TÍTULO DEL PUESTO -->
+      <div class="form-group">
+        <label>Nombre / Cargo de la Vacante <span class="required">*</span></label>
+        <ion-input 
+          formControlName="titulo" 
+          placeholder="Ej: Desarrollador Frontend Angular"
+          fill="outline">
+        </ion-input>
+        <span class="error-text" *ngIf="ofertaForm.get('titulo')?.touched && ofertaForm.get('titulo')?.invalid">
+          Ingresa un título descriptivo (mínimo 4 caracteres).
+        </span>
+      </div>
+
+      <!-- MODALIDAD -->
+      <div class="form-group">
+        <label>Modalidad de Trabajo <span class="required">*</span></label>
+        <ion-select formControlName="modalidad" interface="popover" fill="outline">
+          <ion-select-option value="Remoto">🏠 Home Office / Remoto</ion-select-option>
+          <ion-select-option value="Híbrido">🏢 Híbrido</ion-select-option>
+          <ion-select-option value="Presencial">📍 Presencial</ion-select-option>
+        </ion-select>
+      </div>
+
+      <!-- UBICACIÓN / DIRECCIÓN (OPCIONAL) -->
+      <div class="form-group">
+        <label>Dirección / Ubicación de Oficina <span class="optional">(Opcional)</span></label>
+        <ion-input 
+          formControlName="direccion" 
+          placeholder="Ej: Av. Andrés Bello 2457, Providencia, Santiago"
+          fill="outline">
+        </ion-input>
+      </div>
+
+      <!-- HABILIDADES (OPCIONAL) -->
+      <div class="form-group">
+        <label>Habilidades o Conocimientos Requeridos <span class="optional">(Opcional)</span></label>
+        <ion-input 
+          formControlName="habilidades" 
+          placeholder="Ej: Angular, Firebase, TypeScript, Git, Scrum"
+          fill="outline">
+        </ion-input>
+      </div>
+
+      <!-- DESCRIPCIÓN DEL TRABAJO -->
+      <div class="form-group">
+        <label>Descripción del Trabajo y Funciones <span class="required">*</span></label>
+        <ion-textarea 
+          formControlName="descripcion" 
+          placeholder="Detalla las responsabilidades, requisitos del perfil, horario y beneficios del empleo..."
+          rows="5"
+          fill="outline">
+        </ion-textarea>
+        <span class="error-text" *ngIf="ofertaForm.get('descripcion')?.touched && ofertaForm.get('descripcion')?.invalid">
+          La descripción debe contener al menos 15 caracteres.
+        </span>
+      </div>
+
+      <div class="section-divider">
+        <h3>Datos de Contacto para el Reclutamiento</h3>
+      </div>
+
+      <!-- DATOS DE CONTACTO -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Email de Contacto <span class="required">*</span></label>
+          <ion-input 
+            formControlName="contactoEmail" 
+            type="email"
+            placeholder="reclutamiento@empresa.com"
+            fill="outline">
+          </ion-input>
+          <span class="error-text" *ngIf="ofertaForm.get('contactoEmail')?.touched && ofertaForm.get('contactoEmail')?.invalid">
+            Ingresa un correo electrónico válido.
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label>Teléfono de Contacto <span class="optional">(Opcional)</span></label>
+          <ion-input 
+            formControlName="contactoTelefono" 
+            type="tel"
+            placeholder="+56 9 1234 5678"
+            fill="outline">
+          </ion-input>
+        </div>
+      </div>
+
+      <!-- BOTONES DE ACCIÓN -->
+      <div class="form-actions">
+        <ion-button fill="outline" color="medium" (click)="volver()">
+          Cancelar
+        </ion-button>
+
+        <ion-button type="submit" color="primary" [disabled]="isLoading">
+          <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
+          <span *ngIf="!isLoading">
+            <ion-icon name="save-outline" slot="start"></ion-icon>
+            {{ isEditMode ? 'Guardar Cambios' : 'Publicar Oferta' }}
+          </span>
+        </ion-button>
+      </div>
+
+    </form>
+  </div>
+</ion-content>
