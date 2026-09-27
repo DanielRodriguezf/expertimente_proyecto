@@ -1,0 +1,263 @@
+ion-content {
+  --background: #f8fafc; // Un gris-azulado muy claro y limpio
+}
+
+.split-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+
+  // ==========================================
+  // LADO IZQUIERDO: BRANDING
+  // ==========================================
+  .brand-section {
+    flex: 1;
+    // Gradiente moderno tipo SaaS (Dark Slate a Blue)
+    background: linear-gradient(135deg, #0f172a 0%, #2563eb 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    position: relative;
+    
+    // Elemento decorativo de fondo (círculos difuminados)
+    &::before {
+      content: '';
+      position: absolute;
+      top: -10%;
+      left: -10%;
+      width: 50%;
+      height: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+      border-radius: 50%;
+    }
+
+    .brand-content {
+      max-width: 520px;
+      z-index: 2;
+
+      h1 {
+        font-size: 3.8rem;
+        font-weight: 800;
+        margin-bottom: 1.2rem;
+        letter-spacing: -1.5px;
+        line-height: 1.1;
+      }
+
+      p {
+        font-size: 1.25rem;
+        color: #e2e8f0; // Gris claro para contraste suave
+        margin-bottom: 2.5rem;
+        line-height: 1.6;
+        font-weight: 300;
+      }
+
+      .decoration-line {
+        width: 70px;
+        height: 5px;
+        background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%);
+        border-radius: 4px;
+        box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
+      }
+    }
+  }
+
+  // ==========================================
+  // LADO DERECHO: FORMULARIO
+  // ==========================================
+  .form-section {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #ffffff;
+    padding: 2rem;
+    overflow-y: auto;
+    // Sombra sutil para separar el formulario del área de color
+    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.04);
+    z-index: 5;
+
+    .form-container {
+      width: 100%;
+      max-width: 460px; // Ligeramente más ancho para respirar mejor
+
+      h2 {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #0f172a; // Azul muy oscuro (casi negro)
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.5px;
+      }
+
+      .subtitle {
+        color: #64748b; // Pizarra medio para subtítulos
+        margin-bottom: 2.5rem;
+        font-size: 1.05rem;
+        line-height: 1.5;
+      }
+
+      // Estilos de los inputs
+      .input-group {
+        margin-bottom: 1.4rem;
+
+        ion-input, ion-select {
+          --padding-start: 1.2rem;
+          --padding-end: 1.2rem;
+          --background: #f8fafc;
+          --border-color: #e2e8f0;
+          --border-radius: 12px; // Bordes más redondeados y modernos
+          font-size: 1rem;
+          transition: all 0.3s ease;
+
+          &:focus-within {
+            --border-color: #2563eb;
+            --background: #ffffff;
+          }
+        }
+
+        .error-msg {
+          color: #ef4444;
+          font-size: 0.85rem;
+          font-weight: 500;
+          margin-top: 0.5rem;
+          padding-left: 1.2rem;
+          display: flex;
+          align-items: center;
+          
+          &::before {
+            content: "•";
+            margin-right: 6px;
+          }
+        }
+      }
+
+      // ==========================================
+      // DISEÑO TIPO TARJETA PARA LOS RADIO BUTTONS
+      // ==========================================
+      ion-radio-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+        margin-bottom: 1rem;
+      }
+
+      .radio-option {
+        display: flex;
+        align-items: center;
+        padding: 1.2rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        background-color: #f8fafc;
+        transition: all 0.2s ease-in-out;
+        cursor: pointer;
+        
+        &:hover {
+          border-color: #cbd5e1;
+          background-color: #f1f5f9;
+        }
+
+        ion-radio {
+          margin-right: 1rem;
+          --color: #94a3b8;
+          --color-checked: #2563eb;
+        }
+        
+        label {
+          font-size: 1rem;
+          font-weight: 600;
+          color: #334155;
+          cursor: pointer;
+          width: 100%;
+        }
+      }
+
+      .divider {
+        border: 0;
+        border-top: 2px dashed #e2e8f0; // Divisor punteado más amigable
+        margin: 2rem 0;
+      }
+
+      // ==========================================
+      // BOTONES
+      // ==========================================
+      .action-btn {
+        margin-top: 1.5rem;
+        height: 54px; // Botón un poco más alto
+        font-size: 1.05rem;
+        font-weight: 700;
+        flex: 1;
+        --border-radius: 12px;
+        --box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3); // Sombra azul resplandeciente
+        transition: transform 0.2s ease;
+
+        &:active {
+          transform: scale(0.98);
+        }
+      }
+
+      .button-group {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-end;
+        margin-top: 1rem;
+        
+        ion-button {
+          height: 54px;
+          --border-radius: 12px;
+        }
+
+        // Estilizar el botón "Atrás"
+        ion-button[color="medium"] {
+          --border-width: 2px;
+          --border-color: #e2e8f0;
+          --color: #64748b;
+          font-weight: 600;
+
+          &:hover {
+            --background: #f8fafc;
+          }
+        }
+      }
+
+      // Footer
+      .login-prompt {
+        margin-top: 2.5rem;
+        text-align: center;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 2rem;
+
+        p {
+          color: #64748b;
+          margin-bottom: 0.2rem;
+          font-size: 0.95rem;
+        }
+
+        ion-button {
+          font-weight: 700;
+          font-size: 1rem;
+          --padding-start: 0;
+          --padding-end: 0;
+          --color: #2563eb;
+        }
+      }
+      
+      // Animación más suave
+      .fade-in {
+        animation: smoothFade 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+    }
+  }
+}
+
+@keyframes smoothFade {
+  from { 
+    opacity: 0; 
+    transform: translateY(15px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}

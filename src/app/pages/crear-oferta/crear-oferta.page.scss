@@ -1,0 +1,143 @@
+ion-content {
+  --background: #f8fafc;
+}
+
+.navbar {
+  --background: #ffffff;
+  --border-width: 0 0 1px 0;
+  --border-color: #e2e8f0;
+  padding: 0.2rem 0.5rem;
+
+  .header-container {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+
+    h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 0;
+    }
+  }
+}
+
+.form-wrapper {
+  max-width: 800px;
+  margin: 1.5rem auto;
+  padding: 0 1.2rem 3rem 1.2rem;
+
+  .form-header {
+    margin-bottom: 1.8rem;
+
+    .badge-empresa {
+      display: inline-block;
+      background: #eff6ff;
+      color: #2563eb;
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 0.6rem;
+      border: 1px solid #bfdbfe;
+    }
+
+    h1 {
+      font-size: 1.7rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0 0 0.3rem 0;
+      letter-spacing: -0.5px;
+    }
+
+    p {
+      color: #64748b;
+      margin: 0;
+      font-size: 0.92rem;
+    }
+  }
+
+  .offer-form {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1.8rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+
+    .form-group {
+      margin-bottom: 1.4rem;
+
+      label {
+        display: block;
+        font-weight: 600;
+        font-size: 0.88rem;
+        color: #334155;
+        margin-bottom: 0.4rem;
+
+        .required {
+          color: #dc2626;
+        }
+
+        .optional {
+          color: #94a3b8;
+          font-weight: 400;
+          font-size: 0.8rem;
+        }
+      }
+
+      ion-input, ion-textarea, ion-select {
+        --border-radius: 10px;
+        --border-color: #cbd5e1;
+        --background: #f8fafc;
+        font-size: 0.95rem;
+      }
+
+      .error-text {
+        color: #dc2626;
+        font-size: 0.78rem;
+        margin-top: 0.3rem;
+        display: block;
+      }
+    }
+
+    .section-divider {
+      border-top: 1px solid #e2e8f0;
+      padding-top: 1.2rem;
+      margin-top: 1.5rem;
+      margin-bottom: 1rem;
+
+      h3 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+      }
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+
+      @media (max-width: 600px) {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.8rem;
+      margin-top: 1.8rem;
+      padding-top: 1rem;
+      border-top: 1px solid #f1f5f9;
+
+      ion-button {
+        --border-radius: 10px;
+        font-weight: 700;
+      }
+    }
+  }
+}
