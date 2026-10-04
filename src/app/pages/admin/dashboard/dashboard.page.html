@@ -1,348 +1,357 @@
-<ion-header class="ion-no-border">
-  <ion-toolbar color="primary">
-    <ion-title>Panel de Administración</ion-title>
-  </ion-toolbar>
-  <!-- Pestañas de navegación -->
-  <ion-toolbar color="primary">
-    <ion-segment [value]="segmentoActual" (ionChange)="cambiarSegmento($event)">
-      <ion-segment-button value="empresas">
-        <ion-label>Empresas</ion-label>
-      </ion-segment-button>
-      <ion-segment-button value="ofertas">
-        <ion-label>Ofertas</ion-label>
-      </ion-segment-button>
-      <ion-segment-button value="postulantes">
-        <ion-label>Postulantes</ion-label>
-      </ion-segment-button>
-    </ion-segment>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content class="ion-padding">
-  <ion-list class="bg-transparent">
-
-    <!-- ======================================= -->
-    <!-- PESTAÑA 1: EMPRESAS (RECLUTADORES)      -->
-    <!-- ======================================= -->
-    @if (segmentoActual === 'empresas') {
-      @if (cargandoReclutadores) {
-        <div class="ion-text-center ion-padding estado-vacio">
-          <p>Cargando reclutadores pendientes...</p>
+<ion-split-pane contentId="main-content" class="admin-layout">
+  
+  <!-- ========================================== -->
+  <!-- MENÚ LATERAL (SIDEBAR) -->
+  <!-- ========================================== -->
+  <ion-menu contentId="main-content" type="overlay" class="admin-sidebar">
+    <ion-header class="ion-no-border">
+      <ion-toolbar class="sidebar-header">
+        <div class="logo-container">
+          <ion-icon name="briefcase-outline"></ion-icon>
+          <h2>ExpertiMente</h2>
+          <p>Admin Panel</p>
         </div>
-      } @else {
-        @for (reclutador of reclutadores; track reclutador.id) {
-          <!-- Al hacer clic en el item, se abre el modal -->
-          <ion-item class="admin-card ion-activatable ripple-parent" lines="none" button (click)="abrirModalDetalles(reclutador)">
-            <ion-icon name="business-outline" slot="start" color="primary" class="icono-card"></ion-icon>
-            <ion-label>
-              <h3 class="titulo-principal">{{ reclutador.empresa?.nombre || reclutador.nombre }}</h3>
-              <p class="subtitulo">{{ reclutador.email }}</p>
-            </ion-label>
-            
-            <ion-badge slot="end" color="warning">
-              {{ reclutador.estado | uppercase }}
-            </ion-badge>
-          </ion-item>
-        } @empty {
-          <div class="ion-text-center ion-padding estado-vacio">
-            <p>No hay reclutadores pendientes de revisión.</p>
-          </div>
-        }
-      }
-    }
-
-    <!-- ======================================= -->
-    <!-- PESTAÑA 2: OFERTAS DE TRABAJO           -->
-    <!-- ======================================= -->
-    @if (segmentoActual === 'ofertas') {
-      <div class="ion-text-center ion-padding estado-vacio">
-        <p>Pronto conectaremos las ofertas pendientes aquí.</p>
-      </div>
-    }
-
-    <!-- ======================================= -->
-    <!-- PESTAÑA 3: POSTULANTES                  -->
-    <!-- ======================================= -->
-    @if (segmentoActual === 'postulantes') {
-      @if (cargandoPostulantes) {
-        <div class="ion-text-center ion-padding estado-vacio">
-          <p>Cargando postulantes...</p>
-        </div>
-      } @else {
-        @for (postulante of postulantes; track postulante.id) {
-          <!-- Al hacer clic se abre el modal de postulante -->
-          <ion-item class="admin-card ion-activatable ripple-parent" lines="none" button (click)="abrirModalPostulante(postulante)">
-            <!-- Si tiene foto en la lista, la mostramos en miniatura -->
-            @if (postulante.fotoPerfil) {
-              <ion-avatar slot="start" style="width: 40px; height: 40px; margin-right: 15px;">
-                <img [src]="postulante.fotoPerfil" alt="Foto">
-              </ion-avatar>
-            } @else {
-              <ion-icon name="person-outline" slot="start" color="primary" class="icono-card"></ion-icon>
-            }
-            
-            <ion-label>
-              <h3 class="titulo-principal">{{ postulante.nombre }} {{ postulante.apellidoPaterno }}</h3>
-              <p class="subtitulo">{{ postulante.correo }} • {{ postulante.ciudad }}</p>
-            </ion-label>
-          </ion-item>
-        } @empty {
-          <div class="ion-text-center ion-padding estado-vacio">
-            <p>No hay postulantes registrados en el sistema.</p>
-          </div>
-        }
-      }
-    }
-
-  </ion-list>
-
-  <!-- ======================================= -->
-  <!-- MODAL DE DETALLES DEL RECLUTADOR        -->
-  <!-- ======================================= -->
-  <ion-modal [isOpen]="isModalOpen" (didDismiss)="cerrarModal()">
-    <ng-template>
-      <ion-header class="ion-no-border">
-        <ion-toolbar>
-          <ion-title>Detalles de Solicitud</ion-title>
-          <ion-buttons slot="end">
-            <ion-button (click)="cerrarModal()">Cerrar</ion-button>
-          </ion-buttons>
-        </ion-toolbar>
-      </ion-header>
-      
-      <ion-content class="ion-padding modal-content">
-        @if (reclutadorSeleccionado) {
+      </ion-toolbar>
+    </ion-header>
+    
+    <ion-content class="sidebar-content">
+      <ion-list lines="none">
+        <ion-menu-toggle auto-hide="false">
           
-          <!-- Tarjeta del Reclutador (Usuario) -->
-          <ion-card class="detalle-card">
-            <ion-card-header>
-              <ion-card-subtitle>Datos del Usuario (Reclutador)</ion-card-subtitle>
+          <ion-item button (click)="cambiarVista('reclutadores')" [class.active-item]="vistaActual === 'reclutadores'" detail="false">
+            <ion-icon name="business-outline" slot="start"></ion-icon>
+            <ion-label>Reclutadores</ion-label>
+          </ion-item>
+          
+          <ion-item button (click)="cambiarVista('postulantes')" [class.active-item]="vistaActual === 'postulantes'" detail="false">
+            <ion-icon name="person-outline" slot="start"></ion-icon>
+            <ion-label>Postulantes</ion-label>
+          </ion-item>
+
+          <ion-item button (click)="cambiarVista('empresas')" [class.active-item]="vistaActual === 'empresas'" detail="false">
+            <ion-icon name="business-outline" slot="start"></ion-icon>
+            <ion-label>Empresas</ion-label>
+          </ion-item>
+
+          <ion-item button (click)="cambiarVista('ofertas')" [class.active-item]="vistaActual === 'ofertas'" detail="false">
+            <ion-icon name="document-text-outline" slot="start"></ion-icon>
+            <ion-label>Ofertas</ion-label>
+          </ion-item>
+
+        </ion-menu-toggle>
+      </ion-list>
+    </ion-content>
+  </ion-menu>
+
+  <!-- ========================================== -->
+  <!-- CONTENIDO PRINCIPAL -->
+  <!-- ========================================== -->
+  <div id="main-content" class="main-wrapper">
+    <ion-header class="ion-no-border">
+      <ion-toolbar class="main-header">
+        <ion-buttons slot="start">
+          <ion-menu-button color="dark"></ion-menu-button>
+        </ion-buttons>
+        <ion-title class="header-title">
+          {{ 
+            vistaActual === 'reclutadores' ? 'Gestión de Reclutadores' :
+            vistaActual === 'postulantes' ? 'Listado de Postulantes' :
+            vistaActual === 'empresas' ? 'Directorio de Empresas' :
+            'Control de Ofertas Laborales'
+          }}
+        </ion-title>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="main-body ion-padding">
+      
+      @if (cargando) {
+        <div class="empty-state">
+          <ion-icon name="time-outline"></ion-icon>
+          <p>Cargando información...</p>
+        </div>
+      } @else {
+
+        <!-- SECCIÓN: RECLUTADORES -->
+        @if (vistaActual === 'reclutadores') {
+          <div class="grid-container">
+            @for (reclutador of reclutadores; track reclutador.id) {
+              <ion-card class="data-card" button (click)="abrirModalReclutador(reclutador)">
+                <ion-card-header>
+                  <div class="card-header-flex">
+                    <ion-card-title>{{ reclutador.nombre }}</ion-card-title>
+                    <ion-badge [color]="reclutador.estado === 'aprobado' ? 'success' : reclutador.estado === 'rechazado' ? 'danger' : 'warning'">
+                      {{ reclutador.estado | uppercase }}
+                    </ion-badge>
+                  </div>
+                  <ion-card-subtitle>{{ reclutador.email }}</ion-card-subtitle>
+                </ion-card-header>
+                <ion-card-content>
+                  <div class="info-row"><ion-icon name="business-outline"></ion-icon> <span>{{ reclutador.empresa?.nombre || 'Sin empresa vinculada' }}</span></div>
+                </ion-card-content>
+              </ion-card>
+            } @empty {
+              <div class="empty-state"><p>No hay reclutadores registrados.</p></div>
+            }
+          </div>
+        }
+
+        <!-- SECCIÓN: POSTULANTES -->
+        @if (vistaActual === 'postulantes') {
+          <div class="grid-container">
+            @for (postulante of postulantes; track postulante.id) {
+              <ion-card class="data-card" button (click)="abrirModalPostulante(postulante)">
+                <ion-card-header>
+                  <div class="card-header-flex">
+                    <ion-card-title>{{ postulante.nombre }} {{ postulante.apellidoPaterno }}</ion-card-title>
+                  </div>
+                  <ion-card-subtitle>{{ postulante.correo }}</ion-card-subtitle>
+                </ion-card-header>
+                <ion-card-content>
+                  <div class="info-row"><ion-icon name="location-outline"></ion-icon> <span>{{ postulante.ciudad }}, {{ postulante.comuna }}</span></div>
+                </ion-card-content>
+              </ion-card>
+            } @empty {
+              <div class="empty-state"><p>No hay postulantes registrados.</p></div>
+            }
+          </div>
+        }
+
+        <!-- SECCIÓN: EMPRESAS -->
+        @if (vistaActual === 'empresas') {
+          <div class="grid-container">
+            @for (empresa of empresas; track empresa.id) {
+              <ion-card class="data-card" button (click)="abrirModalEmpresa(empresa)">
+                <ion-card-header>
+                  <ion-card-title>{{ empresa.nombre }}</ion-card-title>
+                  <ion-card-subtitle>RUT: {{ empresa.rut }}</ion-card-subtitle>
+                </ion-card-header>
+                <ion-card-content>
+                  <div class="info-row"><ion-icon name="briefcase-outline"></ion-icon> <span>{{ empresa.rubro }}</span></div>
+                </ion-card-content>
+              </ion-card>
+            } @empty {
+              <div class="empty-state"><p>No hay empresas registradas.</p></div>
+            }
+          </div>
+        }
+
+        <!-- SECCIÓN: OFERTAS -->
+        @if (vistaActual === 'ofertas') {
+          <div class="grid-container">
+            @for (oferta of ofertas; track oferta.id) {
+              <ion-card class="data-card" button (click)="abrirModalOferta(oferta)">
+                <ion-card-header>
+                  <div class="card-header-flex">
+                    <ion-card-title>{{ oferta.titulo }}</ion-card-title>
+                    <ion-badge [color]="oferta.estado === 'Activa' ? 'success' : 'medium'">
+                      {{ oferta.estado | uppercase }}
+                    </ion-badge>
+                  </div>
+                  <ion-card-subtitle>{{ oferta.nombreEmpresa }}</ion-card-subtitle>
+                </ion-card-header>
+                <ion-card-content>
+                  <div class="info-row"><ion-icon name="briefcase-outline"></ion-icon> <span>{{ oferta.areaLaboral }}</span></div>
+                </ion-card-content>
+              </ion-card>
+            } @empty {
+              <div class="empty-state"><p>No hay ofertas publicadas.</p></div>
+            }
+          </div>
+        }
+
+      }
+    </ion-content>
+  </div>
+</ion-split-pane>
+
+
+<!-- ========================================== -->
+<!-- MODAL: RECLUTADOR -->
+<!-- ========================================== -->
+<ion-modal [isOpen]="isModalReclutadorOpen" (didDismiss)="cerrarModalReclutador()">
+  <ng-template>
+    <ion-header class="ion-no-border">
+      <ion-toolbar><ion-title>Detalles del Reclutador</ion-title><ion-buttons slot="end"><ion-button (click)="cerrarModalReclutador()">Cerrar</ion-button></ion-buttons></ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding modal-bg">
+      @if (reclutadorSeleccionado) {
+        <ion-card class="detail-panel">
+          <ion-card-header>
+            <div class="card-header-flex">
               <ion-card-title>{{ reclutadorSeleccionado.nombre }}</ion-card-title>
-            </ion-card-header>
-            <ion-card-content>
-              <div class="info-row">
-                <ion-icon name="mail-outline"></ion-icon>
-                <span>{{ reclutadorSeleccionado.email }}</span>
-              </div>
-              @if (reclutadorSeleccionado.fechaCreacion) {
-                <div class="info-row">
-                  <ion-icon name="time-outline"></ion-icon>
-                  <span><strong>Registrado:</strong> {{ reclutadorSeleccionado.fechaCreacion }}</span>
-                </div>
-              }
-            </ion-card-content>
-          </ion-card>
+              <ion-badge [color]="reclutadorSeleccionado.estado === 'aprobado' ? 'success' : reclutadorSeleccionado.estado === 'rechazado' ? 'danger' : 'warning'">
+                {{ reclutadorSeleccionado.estado | uppercase }}
+              </ion-badge>
+            </div>
+            <ion-card-subtitle>{{ reclutadorSeleccionado.email }}</ion-card-subtitle>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="info-row"><ion-icon name="shield-checkmark-outline"></ion-icon><span><strong>Rol:</strong> {{ reclutadorSeleccionado.rol | uppercase }}</span></div>
+            <div class="info-row"><ion-icon name="time-outline"></ion-icon><span><strong>Registro:</strong> {{ formatearFecha(reclutadorSeleccionado.fechaCreacion) }}</span></div>
+            <div class="info-row"><ion-icon name="business-outline"></ion-icon><span><strong>Empresa vinculada:</strong> {{ reclutadorSeleccionado.empresa?.nombre || 'Ninguna' }}</span></div>
+          </ion-card-content>
+        </ion-card>
 
-          <!-- Tarjeta de la Empresa -->
-          <ion-card class="detalle-card">
-            <ion-card-header>
-              <ion-card-subtitle>Datos de la Empresa Vinculada</ion-card-subtitle>
-              @if (reclutadorSeleccionado.empresa) {
-                <ion-card-title>{{ reclutadorSeleccionado.empresa.nombre }}</ion-card-title>
-              } @else {
-                <ion-card-title>Sin empresa vinculada</ion-card-title>
-              }
-            </ion-card-header>
+        <!-- SOLO MOSTRAR BOTONES SI ESTÁ PENDIENTE -->
+        @if (reclutadorSeleccionado.estado === 'pendiente') {
+          <div class="modal-actions">
+            <ion-button expand="block" color="success" class="ion-margin-bottom" (click)="procesarReclutador('aprobado')">APROBAR RECLUTADOR</ion-button>
+            <ion-button expand="block" color="danger" fill="outline" (click)="procesarReclutador('rechazado')">RECHAZAR SOLICITUD</ion-button>
+          </div>
+        }
+      }
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+<!-- ========================================== -->
+<!-- MODAL: POSTULANTE -->
+<!-- ========================================== -->
+<ion-modal [isOpen]="isModalPostulanteOpen" (didDismiss)="cerrarModalPostulante()">
+  <ng-template>
+    <ion-header class="ion-no-border">
+      <ion-toolbar><ion-title>Perfil del Postulante</ion-title><ion-buttons slot="end"><ion-button (click)="cerrarModalPostulante()">Cerrar</ion-button></ion-buttons></ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding modal-bg">
+      @if (postulanteSeleccionado) {
+        <div class="ion-text-center ion-margin-bottom">
+          @if (postulanteSeleccionado.fotoPerfil) {
+            <ion-avatar class="modal-avatar"><img [src]="postulanteSeleccionado.fotoPerfil"></ion-avatar>
+          } @else {
+            <ion-avatar class="modal-avatar-placeholder"><ion-icon name="person"></ion-icon></ion-avatar>
+          }
+          <h2 class="modal-title">{{ postulanteSeleccionado.nombre }} {{ postulanteSeleccionado.apellidoPaterno }} {{ postulanteSeleccionado.apellidoMaterno }}</h2>
+        </div>
+        
+        <ion-card class="detail-panel">
+          <ion-card-content>
+            <div class="info-row"><ion-icon name="card-outline"></ion-icon><span><strong>RUT:</strong> {{ postulanteSeleccionado.rut }}</span></div>
+            <div class="info-row"><ion-icon name="mail-outline"></ion-icon><span><strong>Email:</strong> {{ postulanteSeleccionado.correo }}</span></div>
+            @if (postulanteSeleccionado.telefono) { <div class="info-row"><ion-icon name="call-outline"></ion-icon><span><strong>Teléfono:</strong> {{ postulanteSeleccionado.telefono }}</span></div> }
+            <div class="info-row"><ion-icon name="calendar-outline"></ion-icon><span><strong>Nacimiento:</strong> {{ postulanteSeleccionado.fechaNacimiento }}</span></div>
+            <div class="info-row"><ion-icon name="location-outline"></ion-icon><span><strong>Ubicación:</strong> {{ postulanteSeleccionado.comuna }}, {{ postulanteSeleccionado.ciudad }}</span></div>
+            @if (postulanteSeleccionado.direccion) { <div class="info-row"><ion-icon name="home-outline"></ion-icon><span><strong>Dirección:</strong> {{ postulanteSeleccionado.direccion }}</span></div> }
+            @if (postulanteSeleccionado.pais) { <div class="info-row"><ion-icon name="globe-outline"></ion-icon><span><strong>País:</strong> {{ postulanteSeleccionado.pais }}</span></div> }
             
+            <div style="border-top: 1px solid #e2e8f0; margin: 15px 0;"></div>
+
+            @if (postulanteSeleccionado.estadoCuenta) { <div class="info-row"><ion-icon name="shield-checkmark-outline"></ion-icon><span><strong>Estado de Cuenta:</strong> {{ postulanteSeleccionado.estadoCuenta | uppercase }}</span></div> }
+            @if (postulanteSeleccionado.fechaRegistro) { <div class="info-row"><ion-icon name="time-outline"></ion-icon><span><strong>Registro:</strong> {{ formatearFecha(postulanteSeleccionado.fechaRegistro) }}</span></div> }
+            @if (postulanteSeleccionado.fechaActualizacionPerfil) { <div class="info-row"><ion-icon name="sync-outline"></ion-icon><span><strong>Última actualización:</strong> {{ formatearFecha(postulanteSeleccionado.fechaActualizacionPerfil) }}</span></div> }
+          </ion-card-content>
+        </ion-card>
+
+        @if (postulanteSeleccionado.cvManual) {
+          <h3 class="section-title">Currículum Manual</h3>
+          <ion-card class="detail-panel">
             <ion-card-content>
-              @if (reclutadorSeleccionado.empresa) {
-                <div class="info-row">
-                  <ion-icon name="card-outline"></ion-icon>
-                  <span><strong>RUT:</strong> {{ reclutadorSeleccionado.empresa.rut }}</span>
-                </div>
-                <div class="info-row">
-                  <ion-icon name="briefcase-outline"></ion-icon>
-                  <span><strong>Rubro:</strong> {{ reclutadorSeleccionado.empresa.rubro }}</span>
-                </div>
-                @if (reclutadorSeleccionado.empresa.tamanoEmpresa) {
-                  <div class="info-row">
-                    <ion-icon name="people-outline"></ion-icon>
-                    <span><strong>Tamaño:</strong> {{ reclutadorSeleccionado.empresa.tamanoEmpresa }} empleados</span>
-                  </div>
-                }
-                <div class="info-row">
-                  <ion-icon name="mail-outline"></ion-icon>
-                  <span><strong>Email Empresa:</strong> {{ reclutadorSeleccionado.empresa.email }}</span>
-                </div>
-                @if (reclutadorSeleccionado.empresa.telefono) {
-                  <div class="info-row">
-                    <ion-icon name="call-outline"></ion-icon>
-                    <span><strong>Teléfono:</strong> {{ reclutadorSeleccionado.empresa.telefono }}</span>
-                  </div>
-                }
-                @if (reclutadorSeleccionado.empresa.sitioWeb) {
-                  <div class="info-row">
-                    <ion-icon name="link-outline"></ion-icon>
-                    <span><strong>Sitio Web:</strong> {{ reclutadorSeleccionado.empresa.sitioWeb }}</span>
-                  </div>
-                }
-                @if (reclutadorSeleccionado.empresa.direccion) {
-                  <div class="info-row">
-                    <ion-icon name="location-outline"></ion-icon>
-                    <span><strong>Dirección:</strong> {{ reclutadorSeleccionado.empresa.direccion }}, {{ reclutadorSeleccionado.empresa.comuna }}, {{ reclutadorSeleccionado.empresa.region }}</span>
-                  </div>
-                }
-                @if (reclutadorSeleccionado.empresa.descripcion) {
-                  <div class="info-row" style="align-items: flex-start; margin-top: 10px;">
-                    <ion-icon name="information-circle-outline" style="margin-top: 2px;"></ion-icon>
-                    <span><strong>Descripción:</strong> {{ reclutadorSeleccionado.empresa.descripcion }}</span>
-                  </div>
-                }
-                @if (reclutadorSeleccionado.empresa.fechaCreacion) {
-                  <div class="info-row" style="margin-top: 15px; color: var(--ion-color-medium); font-size: 0.9em;">
-                    <ion-icon name="time-outline"></ion-icon>
-                    <span>Empresa registrada el: {{ reclutadorSeleccionado.empresa.fechaCreacion }}</span>
-                  </div>
-                }
-              } @else {
-                <p>Este reclutador aún no ha creado o seleccionado una empresa.</p>
-              }
-            </ion-card-content>
-          </ion-card>
-
-          <!-- Botones de Acción -->
-          <div class="action-buttons-container">
-            <ion-button expand="block" color="success" class="ion-margin-bottom" (click)="procesarReclutador('aprobado')">
-              Aprobar Reclutador
-            </ion-button>
-            <ion-button expand="block" color="danger" fill="outline" (click)="procesarReclutador('rechazado')">
-              Rechazar Solicitud
-            </ion-button>
-          </div>
-        }
-      </ion-content>
-    </ng-template>
-  </ion-modal>
-
-
-  <!-- ======================================= -->
-  <!-- MODAL DE DETALLES DEL POSTULANTE        -->
-  <!-- ======================================= -->
-  <ion-modal [isOpen]="isModalPostulanteOpen" (didDismiss)="cerrarModalPostulante()">
-    <ng-template>
-      <ion-header class="ion-no-border">
-        <ion-toolbar>
-          <ion-title>Perfil del Postulante</ion-title>
-          <ion-buttons slot="end">
-            <ion-button (click)="cerrarModalPostulante()">Cerrar</ion-button>
-          </ion-buttons>
-        </ion-toolbar>
-      </ion-header>
-      
-      <ion-content class="ion-padding modal-content">
-        @if (postulanteSeleccionado) {
-          
-          <!-- Encabezado con Foto de Perfil -->
-          <div class="ion-text-center ion-margin-bottom ion-margin-top">
-            @if (postulanteSeleccionado.fotoPerfil) {
-              <ion-avatar style="width: 110px; height: 110px; margin: 0 auto; border: 3px solid var(--ion-color-primary);">
-                <img [src]="postulanteSeleccionado.fotoPerfil" alt="Foto de perfil">
-              </ion-avatar>
-            } @else {
-              <ion-avatar style="width: 110px; height: 110px; margin: 0 auto; background: var(--ion-color-light); display: flex; align-items: center; justify-content: center; border-radius: 50%;">
-                <ion-icon name="person-outline" style="font-size: 50px; color: var(--ion-color-medium);"></ion-icon>
-              </ion-avatar>
-            }
-            <h2 style="font-weight: bold; color: var(--ion-color-dark); margin-top: 15px;">
-              {{ postulanteSeleccionado.nombre }} {{ postulanteSeleccionado.apellidoPaterno }} {{ postulanteSeleccionado.apellidoMaterno }}
-            </h2>
-          </div>
-
-          <!-- Datos Personales Completos -->
-          <ion-card class="detalle-card">
-            <ion-card-header>
-              <ion-card-subtitle>Información Personal</ion-card-subtitle>
-            </ion-card-header>
-            <ion-card-content>
-              <div class="info-row">
-                <ion-icon name="card-outline"></ion-icon>
-                <span><strong>RUT:</strong> {{ postulanteSeleccionado.rut }}</span>
-              </div>
-              <div class="info-row">
-                <ion-icon name="calendar-outline"></ion-icon>
-                <span><strong>Nacimiento:</strong> {{ postulanteSeleccionado.fechaNacimiento }}</span>
-              </div>
-              <div class="info-row">
-                <ion-icon name="mail-outline"></ion-icon>
-                <span>{{ postulanteSeleccionado.correo }}</span>
-              </div>
-              @if (postulanteSeleccionado.telefono) {
-                <div class="info-row">
-                  <ion-icon name="call-outline"></ion-icon>
-                  <span>{{ postulanteSeleccionado.telefono }}</span>
-                </div>
-              }
-              @if (postulanteSeleccionado.direccion) {
-                <div class="info-row">
-                  <ion-icon name="home-outline"></ion-icon>
-                  <span>{{ postulanteSeleccionado.direccion }}</span>
-                </div>
-              }
-              <div class="info-row">
-                <ion-icon name="location-outline"></ion-icon>
-                <span>{{ postulanteSeleccionado.comuna }}, {{ postulanteSeleccionado.ciudad }}</span>
-              </div>
-              @if (postulanteSeleccionado.pais) {
-                <div class="info-row">
-                  <ion-icon name="globe-outline"></ion-icon>
-                  <span>{{ postulanteSeleccionado.pais }}</span>
-                </div>
-              }
-            </ion-card-content>
-          </ion-card>
-
-          <!-- Datos del Curriculum -->
-          <ion-card class="detalle-card">
-            <ion-card-header>
-              <ion-card-subtitle>Curriculum Vitae</ion-card-subtitle>
-            </ion-card-header>
-            <ion-card-content>
+              <div class="info-row"><ion-icon name="briefcase-outline"></ion-icon><span><strong>Áreas de Experiencia:</strong> {{ postulanteSeleccionado.cvManual.areasExperiencia?.join(', ') || 'No especificado' }} ({{ postulanteSeleccionado.cvManual.anosExperiencia }} años)</span></div>
+              <div class="info-row"><ion-icon name="school-outline"></ion-icon><span><strong>Educación:</strong> {{ postulanteSeleccionado.cvManual.nivelEducativo }}</span></div>
               
-              <!-- Si existe CV Manual, lo mostramos -->
-              @if (postulanteSeleccionado.cvManual) {
-                <div class="info-row">
-                  <ion-icon name="briefcase-outline"></ion-icon>
-                  <span><strong>Área:</strong> {{ postulanteSeleccionado.cvManual.areaExperiencia }} ({{ postulanteSeleccionado.cvManual.anosExperiencia }} años)</span>
-                </div>
-                <div class="info-row">
-                  <ion-icon name="document-text-outline"></ion-icon>
-                  <span><strong>Educación:</strong> {{ postulanteSeleccionado.cvManual.nivelEducativo }}</span>
-                </div>
-                <div class="info-row">
-                  <ion-icon name="checkmark-circle-outline"></ion-icon>
-                  <span><strong>Habilidades:</strong> {{ postulanteSeleccionado.cvManual.habilidades }}</span>
-                </div>
+              @if (postulanteSeleccionado.cvManual.habilidades) {
+                <div class="info-row"><ion-icon name="star-outline"></ion-icon><span><strong>Habilidades Generales:</strong> {{ postulanteSeleccionado.cvManual.habilidades }}</span></div>
               }
-
-              <!-- Si existe un archivo adjunto, lo mostramos -->
-              @if (postulanteSeleccionado.cvBase64) {
-                @if (postulanteSeleccionado.cvManual) {
-                  <div style="border-top: 1px solid var(--ion-color-light); margin: 15px 0;"></div>
-                }
-                
-                <div class="info-row">
-                  <ion-icon name="document-text-outline"></ion-icon>
-                  <span><strong>Archivo:</strong> {{ postulanteSeleccionado.cvNombre }}</span>
-                </div>
-                <div class="ion-margin-top">
-                  <ion-button size="small" color="primary" fill="outline" (click)="descargarCV(postulanteSeleccionado.cvBase64, postulanteSeleccionado.cvNombre)">
-                    <ion-icon name="download-outline" slot="start"></ion-icon>
-                    Descargar PDF
-                  </ion-button>
-                </div>
+              @if (postulanteSeleccionado.cvManual.habilidadesBlandas) {
+                <div class="info-row"><ion-icon name="heart-outline"></ion-icon><span><strong>Habilidades Blandas:</strong> {{ postulanteSeleccionado.cvManual.habilidadesBlandas }}</span></div>
               }
-
-              <!-- Si no tiene nada de nada -->
-              @if (!postulanteSeleccionado.cvManual && !postulanteSeleccionado.cvBase64) {
-                <p>Este postulante aún no ha cargado información curricular.</p>
+              @if (postulanteSeleccionado.cvManual.habilidadesTecnicas) {
+                <div class="info-row"><ion-icon name="hardware-chip-outline"></ion-icon><span><strong>Habilidades Técnicas:</strong> {{ postulanteSeleccionado.cvManual.habilidadesTecnicas }}</span></div>
               }
-
             </ion-card-content>
           </ion-card>
-
         }
-      </ion-content>
-    </ng-template>
-  </ion-modal>
 
-</ion-content>
+        @if (postulanteSeleccionado.cvBase64) {
+          <div class="modal-actions">
+            <ion-button expand="block" color="primary" (click)="descargarCV(postulanteSeleccionado.cvBase64, postulanteSeleccionado.cvNombre)">
+              <ion-icon name="download-outline" slot="start"></ion-icon>
+              DESCARGAR {{ postulanteSeleccionado.cvNombre | uppercase }}
+            </ion-button>
+          </div>
+        }
+      }
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+<!-- ========================================== -->
+<!-- MODAL: EMPRESA -->
+<!-- ========================================== -->
+<ion-modal [isOpen]="isModalEmpresaOpen" (didDismiss)="cerrarModalEmpresa()">
+  <ng-template>
+    <ion-header class="ion-no-border">
+      <ion-toolbar><ion-title>Detalle Empresa</ion-title><ion-buttons slot="end"><ion-button (click)="cerrarModalEmpresa()">Cerrar</ion-button></ion-buttons></ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding modal-bg">
+      @if (empresaSeleccionada) {
+        <ion-card class="detail-panel">
+          <ion-card-header><ion-card-title>{{ empresaSeleccionada.nombre }}</ion-card-title></ion-card-header>
+          <ion-card-content>
+            <div class="info-row"><ion-icon name="card-outline"></ion-icon><span><strong>RUT:</strong> {{ empresaSeleccionada.rut }}</span></div>
+            <div class="info-row"><ion-icon name="briefcase-outline"></ion-icon><span><strong>Rubro:</strong> {{ empresaSeleccionada.rubro }}</span></div>
+            <div class="info-row"><ion-icon name="mail-outline"></ion-icon><span><strong>Email:</strong> {{ empresaSeleccionada.email }}</span></div>
+            @if (empresaSeleccionada.telefono) { <div class="info-row"><ion-icon name="call-outline"></ion-icon><span><strong>Teléfono:</strong> {{ empresaSeleccionada.telefono }}</span></div> }
+            @if (empresaSeleccionada.sitioWeb) { <div class="info-row"><ion-icon name="link-outline"></ion-icon><span><strong>Sitio Web:</strong> {{ empresaSeleccionada.sitioWeb }}</span></div> }
+            @if (empresaSeleccionada.tamanoEmpresa) { <div class="info-row"><ion-icon name="people-outline"></ion-icon><span><strong>Tamaño:</strong> {{ empresaSeleccionada.tamanoEmpresa }} empleados</span></div> }
+            <div class="info-row"><ion-icon name="location-outline"></ion-icon><span><strong>Dirección:</strong> {{ empresaSeleccionada.direccion }}, {{ empresaSeleccionada.comuna }}, {{ empresaSeleccionada.region }}</span></div>
+            <div class="info-row" style="margin-top: 15px;"><ion-icon name="information-circle-outline"></ion-icon><span><strong>Descripción:</strong> {{ empresaSeleccionada.descripcion }}</span></div>
+            <div class="info-row" style="margin-top: 15px;"><ion-icon name="time-outline"></ion-icon><span><strong>Registrada el:</strong> {{ formatearFecha(empresaSeleccionada.fechaCreacion) }}</span></div>
+          </ion-card-content>
+        </ion-card>
+      }
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+<!-- ========================================== -->
+<!-- MODAL: OFERTA LABORAL -->
+<!-- ========================================== -->
+<ion-modal [isOpen]="isModalOfertaOpen" (didDismiss)="cerrarModalOferta()">
+  <ng-template>
+    <ion-header class="ion-no-border">
+      <ion-toolbar><ion-title>Gestión de Oferta</ion-title><ion-buttons slot="end"><ion-button (click)="cerrarModalOferta()">Cerrar</ion-button></ion-buttons></ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding modal-bg">
+      @if (ofertaSeleccionada) {
+        <ion-card class="detail-panel">
+          <ion-card-header>
+            <div class="card-header-flex">
+              <ion-card-title>{{ ofertaSeleccionada.titulo }}</ion-card-title>
+              <ion-badge [color]="ofertaSeleccionada.estado === 'Activa' ? 'success' : 'medium'">{{ ofertaSeleccionada.estado | uppercase }}</ion-badge>
+            </div>
+            <ion-card-subtitle>{{ ofertaSeleccionada.nombreEmpresa }}</ion-card-subtitle>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="info-row"><ion-icon name="briefcase-outline"></ion-icon><span><strong>Área:</strong> {{ ofertaSeleccionada.areaLaboral }}</span></div>
+            <div class="info-row"><ion-icon name="business-outline"></ion-icon><span><strong>Modalidad:</strong> {{ ofertaSeleccionada.modalidad }}</span></div>
+            <div class="info-row"><ion-icon name="people-outline"></ion-icon><span><strong>Candidatos:</strong> {{ ofertaSeleccionada.candidatosCount || 0 }}</span></div>
+            <div class="info-row" style="margin-top: 15px;"><ion-icon name="document-text-outline"></ion-icon><span><strong>Descripción:</strong> {{ ofertaSeleccionada.descripcion }}</span></div>
+            
+            @if (ofertaSeleccionada.preguntas && ofertaSeleccionada.preguntas.length > 0) {
+              <div class="preguntas-container ion-margin-top">
+                <h4>Preguntas de Idoneidad</h4>
+                @for (pregunta of ofertaSeleccionada.preguntas; track pregunta.id) {
+                  <div class="pregunta-box">
+                    <p><strong>P: {{ pregunta.texto }}</strong> ({{ pregunta.tipo }})</p>
+                    <ul class="opciones-lista">
+                      @for (opcion of pregunta.opciones; track opcion.texto) {
+                        <li><strong>{{ opcion.texto }}</strong> - {{ opcion.puntaje }} pts</li>
+                      }
+                    </ul>
+                  </div>
+                }
+              </div>
+            }
+          </ion-card-content>
+        </ion-card>
+
+        <div class="modal-actions">
+          <ion-button expand="block" [color]="ofertaSeleccionada.estado === 'Activa' ? 'warning' : 'success'" (click)="alternarEstadoOferta(ofertaSeleccionada)">
+            {{ ofertaSeleccionada.estado === 'Activa' ? 'DESHABILITAR OFERTA' : 'HABILITAR OFERTA' }}
+          </ion-button>
+        </div>
+      }
+    </ion-content>
+  </ng-template>
+</ion-modal>

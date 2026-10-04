@@ -1,31 +1,25 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { 
   IonHeader, IonToolbar, IonTitle, IonContent, 
   IonList, IonItem, IonLabel, IonBadge, 
-  IonButton, IonButtons, IonIcon, IonSegment, IonSegmentButton,
+  IonButton, IonButtons, IonIcon,
   IonModal, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonCardSubtitle,
-  IonAvatar
+  IonAvatar, IonMenu, IonMenuButton, IonSplitPane, IonMenuToggle
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { 
   checkmarkCircleOutline, closeCircleOutline, businessOutline, 
   briefcaseOutline, personOutline, mailOutline, locationOutline, mapOutline, cardOutline,
-  documentTextOutline, downloadOutline, 
-  callOutline, calendarOutline, homeOutline, globeOutline,
-  linkOutline, peopleOutline, informationCircleOutline, timeOutline // <-- Íconos nuevos para la empresa
+  documentTextOutline, downloadOutline, callOutline, calendarOutline, homeOutline, globeOutline,
+  linkOutline, peopleOutline, informationCircleOutline, timeOutline,
+  menuOutline, listOutline, createOutline, documentOutline, helpCircleOutline,
+  shieldCheckmarkOutline, schoolOutline, starOutline,
+  heartOutline, hardwareChipOutline, syncOutline // <-- Íconos nuevos
 } from 'ionicons/icons';
 
 // Importamos el servicio y las interfaces
-import { AdminService, ReclutadorConEmpresa, Postulante } from '../services/admin.service';
-
-// --- INTERFACES PARA FIRESTORE (Las otras pestañas) ---
-export interface Oferta {
-  id?: string;
-  titulo: string;
-  empresa: string;
-  estado: 'pendiente' | 'aprobada' | 'rechazada';
-}
+import { AdminService, ReclutadorConEmpresa, Postulante, Empresa, Oferta } from '../services/admin.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -36,82 +30,116 @@ export interface Oferta {
     CommonModule, 
     IonHeader, IonToolbar, IonTitle, IonContent, 
     IonList, IonItem, IonLabel, IonBadge, 
-    IonButton, IonButtons, IonIcon, IonSegment, IonSegmentButton,
+    IonButton, IonButtons, IonIcon, 
     IonModal, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonCardSubtitle,
-    IonAvatar
+    IonAvatar, IonMenu, IonMenuButton, IonSplitPane, IonMenuToggle
   ]
 })
 export class DashboardPage implements OnInit {
   private adminService = inject(AdminService);
+  private cdr = inject(ChangeDetectorRef);
 
-  segmentoActual: string = 'empresas';
+  // Control del menú lateral
+  vistaActual: 'reclutadores' | 'postulantes' | 'empresas' | 'ofertas' = 'reclutadores';
   
-  // --- Variables para los Reclutadores ---
+  // --- Variables de Datos ---
   reclutadores: ReclutadorConEmpresa[] = [];
-  cargandoReclutadores = true;
-  isModalOpen = false;
-  reclutadorSeleccionado: ReclutadorConEmpresa | null = null;
-
-  // --- Variables para los Postulantes ---
   postulantes: Postulante[] = [];
-  cargandoPostulantes = true;
-  isModalPostulanteOpen = false;
-  postulanteSeleccionado: Postulante | null = null;
-
-  // Arreglo vacío para las ofertas
+  empresas: Empresa[] = [];
   ofertas: Oferta[] = [];
 
+  // --- Estados de Carga ---
+  cargando = false;
+
+  // --- Control de Modales ---
+  isModalReclutadorOpen = false;
+  isModalPostulanteOpen = false;
+  isModalEmpresaOpen = false;
+  isModalOfertaOpen = false;
+
+  // --- Elementos Seleccionados ---
+  reclutadorSeleccionado: ReclutadorConEmpresa | null = null;
+  postulanteSeleccionado: Postulante | null = null;
+  empresaSeleccionada: Empresa | null = null;
+  ofertaSeleccionada: Oferta | null = null;
+
   constructor() {
-    // Registramos los íconos
     addIcons({ 
       checkmarkCircleOutline, closeCircleOutline, businessOutline, 
       briefcaseOutline, personOutline, mailOutline, locationOutline, mapOutline, cardOutline,
-      documentTextOutline, downloadOutline,
-      callOutline, calendarOutline, homeOutline, globeOutline,
-      linkOutline, peopleOutline, informationCircleOutline, timeOutline
+      documentTextOutline, downloadOutline, callOutline, calendarOutline, homeOutline, globeOutline,
+      linkOutline, peopleOutline, informationCircleOutline, timeOutline,
+      menuOutline, listOutline, createOutline, documentOutline, helpCircleOutline,
+      shieldCheckmarkOutline, schoolOutline, starOutline, heartOutline, hardwareChipOutline, syncOutline
     });
   }
 
-  ngOnInit() {
-    this.cargarReclutadoresPendientes();
-    this.cargarPostulantes();
+  ngOnInit() {}
+
+  ionViewWillEnter() {
+    this.cargarDatos(this.vistaActual);
   }
 
-  cambiarSegmento(event: any) {
-    this.segmentoActual = event.detail.value;
+  // ==========================================
+  // NAVEGACIÓN DEL MENÚ
+  // ==========================================
+  cambiarVista(nuevaVista: 'reclutadores' | 'postulantes' | 'empresas' | 'ofertas') {
+    this.vistaActual = nuevaVista;
+    this.cargarDatos(nuevaVista);
+  }
+
+  async cargarDatos(vista: string) {
+    this.cargando = true;
+    this.cdr.detectChanges();
+    
+    try {
+      if (vista === 'reclutadores') {
+        this.reclutadores = await this.adminService.getTodosReclutadores();
+      } else if (vista === 'postulantes') {
+        this.postulantes = await this.adminService.getPostulantes();
+      } else if (vista === 'empresas') {
+        this.empresas = await this.adminService.getTodasEmpresas();
+      } else if (vista === 'ofertas') {
+        this.ofertas = await this.adminService.getTodasOfertas();
+      }
+    } catch (error) {
+      console.error(`Error al cargar ${vista}:`, error);
+    } finally {
+      this.cargando = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  // ==========================================
+  // UTILIDAD: FORMATEAR FECHA DE FIREBASE
+  // ==========================================
+  formatearFecha(fecha: any): string {
+    if (!fecha) return 'No disponible';
+    if (fecha && fecha.seconds) {
+      return new Date(fecha.seconds * 1000).toLocaleDateString('es-CL', {
+        year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+    }
+    return typeof fecha === 'string' ? fecha : fecha.toString();
   }
 
   // ==========================================
   // LÓGICA DE RECLUTADORES
   // ==========================================
-  async cargarReclutadoresPendientes() {
-    this.cargandoReclutadores = true;
-    try {
-      this.reclutadores = await this.adminService.getReclutadoresPendientes();
-    } catch (error) {
-      console.error('Error al cargar reclutadores:', error);
-    } finally {
-      this.cargandoReclutadores = false;
-    }
-  }
-
-  abrirModalDetalles(reclutador: ReclutadorConEmpresa) {
+  abrirModalReclutador(reclutador: ReclutadorConEmpresa) {
     this.reclutadorSeleccionado = reclutador;
-    this.isModalOpen = true;
+    this.isModalReclutadorOpen = true;
   }
-
-  cerrarModal() {
-    this.isModalOpen = false;
+  cerrarModalReclutador() {
+    this.isModalReclutadorOpen = false;
     this.reclutadorSeleccionado = null;
   }
-
   async procesarReclutador(nuevoEstado: 'aprobado' | 'rechazado') {
     if (!this.reclutadorSeleccionado) return;
-    
     try {
       await this.adminService.actualizarEstadoReclutador(this.reclutadorSeleccionado.id, nuevoEstado);
-      this.cerrarModal();
-      this.cargarReclutadoresPendientes();
+      this.cerrarModalReclutador();
+      this.cargarDatos('reclutadores');
     } catch (error) {
       console.error(`Error al marcar como ${nuevoEstado}:`, error);
     }
@@ -120,47 +148,56 @@ export class DashboardPage implements OnInit {
   // ==========================================
   // LÓGICA DE POSTULANTES
   // ==========================================
-  async cargarPostulantes() {
-    this.cargandoPostulantes = true;
-    try {
-      this.postulantes = await this.adminService.getPostulantes();
-    } catch (error) {
-      console.error('Error al cargar postulantes:', error);
-    } finally {
-      this.cargandoPostulantes = false;
-    }
-  }
-
   abrirModalPostulante(postulante: Postulante) {
     this.postulanteSeleccionado = postulante;
     this.isModalPostulanteOpen = true;
   }
-
   cerrarModalPostulante() {
     this.isModalPostulanteOpen = false;
     this.postulanteSeleccionado = null;
   }
-
-  // ==========================================
-  // LÓGICA DE OFERTAS (Para el futuro)
-  // ==========================================
-  aprobarOferta(id: string | undefined) {}
-  rechazarOferta(id: string | undefined) {}
-
-  // ==========================================
-  // DESCARGA DE CURRÍCULUM
-  // ==========================================
   descargarCV(base64: string | undefined, nombreArchivo: string | undefined) {
     if (!base64 || !nombreArchivo) return;
-
-    // Creamos un enlace <a> invisible en el HTML
     const a = document.createElement('a');
-    a.href = base64; // Le pasamos el string del PDF
-    a.download = nombreArchivo; // Le asignamos el nombre original
-    
-    // Lo "clickeamos" virtualmente para iniciar la descarga y luego lo borramos
+    a.href = base64; 
+    a.download = nombreArchivo; 
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+  }
+
+  // ==========================================
+  // LÓGICA DE EMPRESAS
+  // ==========================================
+  abrirModalEmpresa(empresa: Empresa) {
+    this.empresaSeleccionada = empresa;
+    this.isModalEmpresaOpen = true;
+  }
+  cerrarModalEmpresa() {
+    this.isModalEmpresaOpen = false;
+    this.empresaSeleccionada = null;
+  }
+
+  // ==========================================
+  // LÓGICA DE OFERTAS
+  // ==========================================
+  abrirModalOferta(oferta: Oferta) {
+    this.ofertaSeleccionada = oferta;
+    this.isModalOfertaOpen = true;
+  }
+  cerrarModalOferta() {
+    this.isModalOfertaOpen = false;
+    this.ofertaSeleccionada = null;
+  }
+  async alternarEstadoOferta(oferta: Oferta) {
+    try {
+      const nuevoEstado = await this.adminService.alternarEstadoOferta(oferta.id, oferta.estado);
+      if (this.ofertaSeleccionada) {
+        this.ofertaSeleccionada.estado = nuevoEstado;
+      }
+      this.cargarDatos('ofertas');
+    } catch (error) {
+      console.error('Error al alternar el estado de la oferta:', error);
+    }
   }
 }

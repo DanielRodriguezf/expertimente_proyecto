@@ -1,7 +1,26 @@
 import { Injectable, inject } from '@angular/core';
 import { Firestore, collection, getDocs, doc, getDoc, updateDoc } from '@angular/fire/firestore';
 
-// Interfaz combinada para la vista (Actualizada con los nuevos campos de la empresa)
+// --- NUEVA INTERFAZ INDEPENDIENTE PARA EMPRESAS ---
+export interface Empresa {
+  id: string;
+  nombre: string;
+  rut: string;
+  rutNormalizado?: string;
+  rubro: string;
+  email: string;
+  comuna?: string;
+  region?: string;
+  direccion?: string;
+  descripcion?: string;
+  sitioWeb?: string;
+  tamanoEmpresa?: string;
+  telefono?: string;
+  fechaCreacion?: string;
+  creadoPor?: string;
+}
+
+// --- INTERFAZ DE RECLUTADORES (Actualizada) ---
 export interface ReclutadorConEmpresa {
   id: string;
   nombre: string;
@@ -9,28 +28,13 @@ export interface ReclutadorConEmpresa {
   rol: string;
   estado: 'pendiente' | 'aprobado' | 'rechazado';
   fechaCreacion?: string;
-  empresa: {
-    id: string;
-    nombre: string;
-    rut: string;
-    rutNormalizado?: string;
-    rubro: string;
-    email: string;
-    comuna?: string;
-    region?: string;
-    direccion?: string;
-    descripcion?: string;
-    sitioWeb?: string;
-    tamanoEmpresa?: string;
-    telefono?: string;
-    fechaCreacion?: string;
-    creadoPor?: string;
-  } | null;
+  empresa: Empresa | null;
 }
 
-// --- INTERFAZ PARA POSTULANTES (Actualizada) ---
+// --- INTERFAZ PARA POSTULANTES (Con todos los campos de Firebase) ---
 export interface Postulante {
   id: string;
+  uid?: string;
   nombre: string;
   apellidoPaterno: string;
   apellidoMaterno: string;
@@ -42,21 +46,53 @@ export interface Postulante {
   direccion?: string;
   pais?: string;
   fechaNacimiento: string;
-  
-  // Foto de perfil en Base64
+  estadoCuenta?: string;
+  fechaRegistro?: any;
+  fechaActualizacionPerfil?: any;
   fotoPerfil?: string;
-  
-  // Archivo PDF
   cvNombre?: string;
   cvBase64?: string;
-  
-  // Datos manuales
   cvManual?: {
     anosExperiencia: number;
-    areaExperiencia: string;
-    habilidades: string;
+    areasExperiencia?: string[]; // Ahora es un arreglo
+    habilidades?: string;
+    habilidadesBlandas?: string;
+    habilidadesTecnicas?: string;
     nivelEducativo: string;
   };
+}
+
+// --- NUEVAS INTERFACES PARA OFERTAS Y PREGUNTAS ---
+export interface OpcionPregunta {
+  texto: string;
+  puntaje: number;
+}
+
+export interface Pregunta {
+  id: string;
+  texto: string;
+  tipo: string;
+  requerida: boolean;
+  opciones: OpcionPregunta[];
+}
+
+export interface Oferta {
+  id: string;
+  titulo?: string;
+  nombreEmpresa?: string;
+  empresaId?: string;
+  reclutadorId?: string;
+  areaLaboral?: string;
+  modalidad?: string;
+  descripcion?: string;
+  direccion?: string;
+  habilidades?: string;
+  contactoEmail?: string;
+  contactoTelefono?: string;
+  candidatosCount?: number;
+  fechaPublicacion?: string;
+  estado: string; // 'Activa' o 'Inactiva'
+  preguntas?: Pregunta[];
 }
 
 @Injectable({
@@ -67,70 +103,49 @@ export class AdminService {
 
   constructor() { }
 
-  // 1. Obtener todos los reclutadores pendientes
-  async getReclutadoresPendientes(): Promise<ReclutadorConEmpresa[]> {
+  // 1. Obtener TODOS los reclutadores (Aprobados, Rechazados y Pendientes)
+  async getTodosReclutadores(): Promise<ReclutadorConEmpresa[]> {
     const reclutadoresRef = collection(this.firestore, 'reclutadores');
     const snapshot = await getDocs(reclutadoresRef);
     
-    const pendientes: ReclutadorConEmpresa[] = [];
+    const todos: ReclutadorConEmpresa[] = [];
 
     for (const document of snapshot.docs) {
       const data = document.data();
-      // Si no tiene estado definido, o su estado es "pendiente"
       const estadoActual = data['estado'] || 'pendiente';
+      let datosEmpresa = null;
       
-      if (estadoActual === 'pendiente') {
-        let datosEmpresa = null;
+      if (data['empresaId']) {
+        const empresaRef = doc(this.firestore, `empresas/${data['empresaId']}`);
+        const empresaSnap = await getDoc(empresaRef);
         
-        // Si el reclutador tiene una empresa vinculada, vamos a buscar sus datos
-        if (data['empresaId']) {
-          const empresaRef = doc(this.firestore, `empresas/${data['empresaId']}`);
-          const empresaSnap = await getDoc(empresaRef);
-          
-          if (empresaSnap.exists()) {
-            const empData = empresaSnap.data();
-            datosEmpresa = {
-              id: empresaSnap.id,
-              nombre: empData['nombre'],
-              rut: empData['rut'],
-              rutNormalizado: empData['rutNormalizado'],
-              rubro: empData['rubro'],
-              email: empData['email'],
-              comuna: empData['comuna'],
-              region: empData['region'],
-              direccion: empData['direccion'],
-              descripcion: empData['descripcion'],
-              sitioWeb: empData['sitioWeb'],
-              tamanoEmpresa: empData['tamanoEmpresa'],
-              telefono: empData['telefono'],
-              fechaCreacion: empData['fechaCreacion'],
-              creadoPor: empData['creadoPor']
-            };
-          }
+        if (empresaSnap.exists()) {
+          const empData = empresaSnap.data();
+          datosEmpresa = {
+            id: empresaSnap.id,
+            ...empData
+          } as Empresa;
         }
-
-        pendientes.push({
-          id: document.id,
-          nombre: data['nombre'],
-          email: data['email'],
-          rol: data['rol'],
-          estado: 'pendiente',
-          fechaCreacion: data['fechaCreacion'],
-          empresa: datosEmpresa
-        });
       }
+
+      todos.push({
+        id: document.id,
+        nombre: data['nombre'],
+        email: data['email'],
+        rol: data['rol'],
+        estado: estadoActual,
+        fechaCreacion: data['fechaCreacion'],
+        empresa: datosEmpresa
+      });
     }
 
-    return pendientes;
+    return todos;
   }
 
-  // 2. Actualizar el estado en Firestore
+  // 2. Actualizar estado de Reclutador
   async actualizarEstadoReclutador(reclutadorId: string, nuevoEstado: 'aprobado' | 'rechazado') {
     const reclutadorRef = doc(this.firestore, `reclutadores/${reclutadorId}`);
-    // Usamos updateDoc para agregar o modificar el campo "estado"
-    await updateDoc(reclutadorRef, {
-      estado: nuevoEstado
-    });
+    await updateDoc(reclutadorRef, { estado: nuevoEstado });
   }
 
   // 3. Obtener TODOS los Postulantes
@@ -140,10 +155,41 @@ export class AdminService {
     
     return snapshot.docs.map(doc => {
       const data = doc.data();
-      return {
-        id: doc.id,
-        ...data
-      } as Postulante;
+      return { id: doc.id, ...data } as Postulante;
     });
+  }
+
+  // 4. Obtener TODAS las Empresas
+  async getTodasEmpresas(): Promise<Empresa[]> {
+    const empresasRef = collection(this.firestore, 'empresas');
+    const snapshot = await getDocs(empresasRef);
+    
+    return snapshot.docs.map(doc => {
+      const data = doc.data();
+      return { id: doc.id, ...data } as Empresa;
+    });
+  }
+
+  // 5. Obtener TODAS las Ofertas
+  async getTodasOfertas(): Promise<Oferta[]> {
+    const ofertasRef = collection(this.firestore, 'ofertas');
+    const snapshot = await getDocs(ofertasRef);
+    
+    return snapshot.docs.map(doc => {
+      const data = doc.data();
+      return { 
+        id: doc.id, 
+        estado: data['estado'] || 'Activa', // Por defecto Activa si no tiene estado
+        ...data 
+      } as Oferta;
+    });
+  }
+
+  // 6. Cambiar estado de la Oferta (Habilitar/Deshabilitar)
+  async alternarEstadoOferta(ofertaId: string, estadoActual: string) {
+    const nuevoEstado = (estadoActual === 'Activa' || estadoActual === 'Pendiente') ? 'Inactiva' : 'Activa';
+    const ofertaRef = doc(this.firestore, `ofertas/${ofertaId}`);
+    await updateDoc(ofertaRef, { estado: nuevoEstado });
+    return nuevoEstado;
   }
 }
