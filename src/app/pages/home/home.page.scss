@@ -1,0 +1,2572 @@
+:host {
+  display: block;
+  background-color: #f8fafc;
+}
+
+
+/* ==========================================================
+   HEADER
+   ========================================================== */
+
+ion-header {
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+
+  .header-toolbar {
+    --background: #ffffff;
+    --padding-start: 2rem;
+    --padding-end: 2rem;
+    --min-height: 70px;
+  }
+
+  .header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+
+
+      .brand-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin: 0;
+        letter-spacing: -0.5px;
+      }
+
+
+      .company-badge {
+        background-color: #eff6ff;
+        color: #2563eb;
+
+        padding: 0.35rem 0.85rem;
+
+        border-radius: 20px;
+        border: 1px solid #bfdbfe;
+
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+    }
+
+
+    .user-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+
+
+      .user-name {
+        font-weight: 700;
+        color: #1e293b;
+        font-size: 0.95rem;
+      }
+
+
+      .logout-btn {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+
+        color: #ef4444;
+
+        border-radius: 10px;
+
+        padding: 0.5rem;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        cursor: pointer;
+
+        transition: all 0.2s ease;
+
+        outline: none;
+
+
+        &:hover {
+          background: #fee2e2;
+          transform: scale(1.05);
+        }
+
+
+        ion-icon {
+          font-size: 1.3rem;
+          pointer-events: none;
+        }
+      }
+    }
+  }
+}
+
+
+/* ==========================================================
+   CONTENIDO
+   ========================================================== */
+
+.main-content {
+  --background: #f8fafc;
+
+
+  .dashboard-container {
+    max-width: 1200px;
+
+    margin: 0 auto;
+
+    padding: 2rem 1.5rem 4rem 1.5rem;
+  }
+}
+
+
+/* ==========================================================
+   BIENVENIDA
+   ========================================================== */
+
+.welcome-banner {
+  background:
+    linear-gradient(
+      135deg,
+      #1d4ed8 0%,
+      #2563eb 100%
+    );
+
+  border-radius: 20px;
+
+  padding: 2.5rem;
+
+  color: white;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  box-shadow:
+    0
+    10px
+    25px
+    -5px
+    rgba(37, 99, 235, 0.25);
+
+  margin-bottom: 1.25rem;
+
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    gap: 1.5rem;
+
+    padding: 1.8rem;
+  }
+
+
+  .banner-content {
+
+    h1 {
+      font-size: 2rem;
+
+      font-weight: 800;
+
+      margin:
+        0
+        0
+        0.5rem
+        0;
+
+      letter-spacing: -0.5px;
+    }
+
+
+    p {
+      color: #dbeafe;
+
+      margin: 0;
+
+      font-size: 1rem;
+    }
+  }
+
+
+  .action-btn {
+    --background: #ffffff;
+    --color: #1d4ed8;
+    --border-radius: 12px;
+
+    --box-shadow:
+      0
+      4px
+      12px
+      rgba(0, 0, 0, 0.1);
+
+    font-weight: 700;
+
+    font-size: 0.9rem;
+
+    height: 48px;
+
+    margin: 0;
+
+
+    &[disabled] {
+      --background: #e2e8f0;
+      --color: #64748b;
+      --box-shadow: none;
+
+      opacity: 1;
+
+      cursor: not-allowed;
+    }
+
+
+    ion-icon {
+      font-size: 1.2rem;
+    }
+  }
+}
+
+
+/* ==========================================================
+   ESTADO CUENTA
+   ========================================================== */
+
+.account-status {
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: 0.85rem;
+
+  margin-bottom: 2rem;
+
+  padding: 1rem 1.25rem;
+
+  border-radius: 14px;
+
+  border:
+    1px
+    solid
+    transparent;
+
+
+  .account-status-icon {
+    flex-shrink: 0;
+
+    width: 36px;
+    height: 36px;
+
+    border-radius: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 1rem;
+    font-weight: 800;
+  }
+
+
+  strong {
+    display: block;
+
+    margin-bottom: 0.25rem;
+
+    font-size: 0.98rem;
+    font-weight: 800;
+  }
+
+
+  p {
+    margin: 0;
+
+    font-size: 0.9rem;
+
+    line-height: 1.5;
+  }
+
+
+  &.approved {
+    background: #ecfdf5;
+
+    border-color: #86efac;
+
+    color: #166534;
+
+
+    .account-status-icon {
+      background: #dcfce7;
+
+      color: #15803d;
+    }
+  }
+
+
+  &.pending {
+    background: #fffbeb;
+
+    border-color: #fde68a;
+
+    color: #92400e;
+
+
+    .account-status-icon {
+      background: #fef3c7;
+
+      color: #b45309;
+    }
+  }
+}
+
+
+/* ==========================================================
+   ESTADÍSTICAS
+   ========================================================== */
+
+.stats-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      1fr
+    );
+
+  gap: 1.5rem;
+
+  margin-bottom: 2.5rem;
+
+
+  @media (max-width: 600px) {
+
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .stat-card {
+    background: #ffffff;
+
+    border-radius: 16px;
+
+    padding: 1.5rem;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 1.25rem;
+
+    border:
+      1px
+      solid
+      #f1f5f9;
+
+    box-shadow:
+      0
+      4px
+      6px
+      -1px
+      rgba(0, 0, 0, 0.02);
+
+    cursor: pointer;
+
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+
+
+    &:hover {
+      transform:
+        translateY(-2px);
+
+      box-shadow:
+        0
+        10px
+        15px
+        -3px
+        rgba(0, 0, 0, 0.05);
+    }
+
+
+    .icon-wrapper {
+      width: 52px;
+
+      height: 52px;
+
+      border-radius: 12px;
+
+      background-color:
+        #f1f5f9;
+
+      color: #475569;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: center;
+
+
+      &.active-icon {
+        background-color: #dcfce7;
+
+        color: #16a34a;
+      }
+
+
+      ion-icon {
+        font-size: 1.6rem;
+      }
+    }
+
+
+    .stat-info {
+
+      h3 {
+        font-size: 1.8rem;
+
+        font-weight: 800;
+
+        color: #0f172a;
+
+        margin: 0;
+
+        line-height: 1;
+      }
+
+
+      p {
+        color: #64748b;
+
+        margin:
+          0.3rem
+          0
+          0
+          0;
+
+        font-size: 0.9rem;
+
+        font-weight: 500;
+      }
+    }
+  }
+}
+
+
+/* ==========================================================
+   OFERTAS
+   ========================================================== */
+
+.jobs-section {
+  background: #ffffff;
+
+  border-radius: 20px;
+
+  padding: 2rem;
+
+  border:
+    1px
+    solid
+    #f1f5f9;
+
+  box-shadow:
+    0
+    4px
+    6px
+    -1px
+    rgba(0, 0, 0, 0.02);
+
+
+  .section-header {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 1.8rem;
+
+
+    h2 {
+      font-size: 1.4rem;
+
+      font-weight: 800;
+
+      color: #0f172a;
+
+      margin:
+        0
+        0
+        0.25rem
+        0;
+    }
+
+
+    p {
+      color: #64748b;
+
+      margin: 0;
+
+      font-size: 0.9rem;
+    }
+
+
+    .jobs-count {
+      background-color: #f1f5f9;
+
+      color: #475569;
+
+      font-weight: 700;
+
+      padding: 0.35rem 0.85rem;
+
+      border-radius: 12px;
+
+      font-size: 0.85rem;
+    }
+  }
+
+
+  .loading-container,
+  .empty-state {
+    text-align: center;
+
+    padding: 3rem 1rem;
+
+    color: #64748b;
+
+
+    ion-icon {
+      font-size: 3rem;
+
+      color: #94a3b8;
+
+      margin-bottom: 0.5rem;
+    }
+
+
+    h3 {
+      color: #1e293b;
+
+      font-weight: 700;
+
+      margin-bottom: 0.5rem;
+    }
+  }
+
+
+  .job-cards-list {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 1.25rem;
+  }
+
+
+  .job-card {
+    border:
+      1px
+      solid
+      #e2e8f0;
+
+    border-radius: 16px;
+
+    padding: 1.5rem;
+
+    background-color: #ffffff;
+
+    transition: all 0.2s ease;
+
+
+    &.is-active {
+      border-left:
+        5px
+        solid
+        #22c55e;
+    }
+
+
+    &:hover {
+      border-color: #cbd5e1;
+
+      box-shadow:
+        0
+        4px
+        12px
+        rgba(0, 0, 0, 0.03);
+    }
+
+
+    .card-header {
+      display: flex;
+
+      justify-content: space-between;
+
+      align-items: flex-start;
+
+      margin-bottom: 1rem;
+
+
+      .title-status {
+        display: flex;
+
+        align-items: center;
+
+        gap: 0.75rem;
+
+
+        h3 {
+          font-size: 1.2rem;
+
+          font-weight: 700;
+
+          color: #0f172a;
+
+          margin: 0;
+        }
+
+
+        .status-badge {
+          font-size: 0.8rem;
+
+          font-weight: 700;
+
+          padding: 0.3rem 0.75rem;
+
+          border-radius: 20px;
+
+          text-transform: capitalize;
+
+
+          &.activa {
+            background-color: #dcfce7;
+
+            color: #15803d;
+          }
+
+
+          &.inactiva {
+            background-color: #fee2e2;
+
+            color: #b91c1c;
+          }
+        }
+      }
+
+
+      .card-actions {
+        display: flex;
+
+        gap: 0.25rem;
+
+
+        .btn-action {
+          --padding-start: 0.5rem;
+          --padding-end: 0.5rem;
+
+          margin: 0;
+
+
+          &.applicants {
+            --color: #0284c7;
+          }
+
+
+          &.edit {
+            --color: #2563eb;
+          }
+
+
+          &.toggle {
+            --color: #64748b;
+          }
+
+
+          &.delete {
+            --color: #ef4444;
+          }
+
+
+          ion-icon {
+            font-size: 1.3rem;
+          }
+        }
+      }
+    }
+
+
+    .description {
+      color: #334155;
+
+      font-size: 0.95rem;
+
+      line-height: 1.6;
+
+      margin:
+        0
+        0
+        1.25rem
+        0;
+    }
+
+
+    .details-chips {
+      display: flex;
+
+      flex-wrap: wrap;
+
+      gap: 0.6rem;
+
+      margin-bottom: 1rem;
+
+
+      .chip {
+        display: inline-flex;
+
+        align-items: center;
+
+        gap: 0.4rem;
+
+        background-color: #f8fafc;
+
+        border:
+          1px
+          solid
+          #e2e8f0;
+
+        padding: 0.35rem 0.75rem;
+
+        border-radius: 8px;
+
+        font-size: 0.85rem;
+
+        color: #475569;
+
+
+        ion-icon {
+          font-size: 1rem;
+
+          color: #64748b;
+        }
+      }
+    }
+
+
+    .requirements {
+      border-top:
+        1px
+        dashed
+        #e2e8f0;
+
+      padding-top: 0.8rem;
+
+      font-size: 0.85rem;
+
+      color: #64748b;
+
+
+      strong {
+        color: #1e293b;
+      }
+    }
+  }
+}
+
+
+/* ==========================================================
+   MODAL POSTULANTES
+   ========================================================== */
+
+.modal-toolbar {
+  --background: #1e293b;
+  --color: #ffffff;
+}
+
+
+.modal-body {
+  --background: #f8fafc;
+
+
+  .modal-intro {
+    background: #eff6ff;
+
+    border-left:
+      4px
+      solid
+      #2563eb;
+
+    padding: 0.85rem 1rem;
+
+    border-radius: 6px;
+
+    margin-bottom: 1.5rem;
+
+
+    p {
+      margin: 0;
+
+      color: #1e40af;
+
+      font-size: 0.9rem;
+    }
+  }
+
+
+  .loading-container,
+  .empty-state {
+    text-align: center;
+
+    padding: 2rem 1rem;
+
+    color: #64748b;
+  }
+
+
+  .postulantes-list {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 1.25rem;
+  }
+
+
+  .postulante-card {
+    background: #ffffff;
+
+    border:
+      1px
+      solid
+      #e2e8f0;
+
+    border-radius: 12px;
+
+    padding: 1.25rem;
+
+    box-shadow:
+      0
+      2px
+      4px
+      rgba(0, 0, 0, 0.02);
+
+
+    .postulante-header {
+      display: flex;
+
+      justify-content: space-between;
+
+      align-items: flex-start;
+
+      margin-bottom: 0.85rem;
+
+
+      .postulante-info {
+        display: flex;
+
+        align-items: center;
+
+        gap: 0.85rem;
+
+
+        /* FOTO PERFIL */
+
+        .avatar-circle {
+          width: 52px;
+
+          height: 52px;
+
+          min-width: 52px;
+
+          border-radius: 50%;
+
+          background: #e0f2fe;
+
+          color: #0284c7;
+
+          display: flex;
+
+          align-items: center;
+
+          justify-content: center;
+
+          overflow: hidden;
+
+          border:
+            2px
+            solid
+            #e2e8f0;
+
+          box-shadow:
+            0
+            2px
+            5px
+            rgba(15, 23, 42, 0.08);
+
+
+          .postulante-foto {
+            width: 100%;
+
+            height: 100%;
+
+            object-fit: cover;
+
+            display: block;
+          }
+
+
+          ion-icon {
+            font-size: 1.5rem;
+          }
+        }
+
+
+        h4 {
+          margin:
+            0
+            0
+            0.25rem
+            0;
+
+          font-size: 1.05rem;
+
+          font-weight: 700;
+
+          color: #0f172a;
+        }
+
+
+        p {
+          margin: 0;
+
+          font-size: 0.85rem;
+
+          color: #64748b;
+
+          display: flex;
+
+          align-items: center;
+
+          gap: 0.35rem;
+        }
+      }
+
+
+      .badge-estado {
+        font-size: 0.75rem;
+
+        font-weight: 700;
+
+        padding: 0.25rem 0.6rem;
+
+        border-radius: 20px;
+
+        text-transform: capitalize;
+
+
+        &.pendiente {
+          background-color: #fef3c7;
+
+          color: #d97706;
+        }
+
+
+        &.aceptado {
+          background-color: #dcfce7;
+
+          color: #15803d;
+        }
+
+
+        &.rechazado {
+          background-color: #fee2e2;
+
+          color: #b91c1c;
+        }
+      }
+    }
+
+
+    .cv-summary {
+      background: #f8fafc;
+
+      padding: 0.85rem 1rem;
+
+      border-radius: 8px;
+
+      margin-bottom: 1rem;
+
+      border:
+        1px
+        solid
+        #f1f5f9;
+
+
+      p {
+        margin:
+          0
+          0
+          0.4rem
+          0;
+
+        font-size: 0.88rem;
+
+        color: #334155;
+
+        display: flex;
+
+        align-items: center;
+
+        gap: 0.4rem;
+
+
+        &:last-child {
+          margin: 0;
+        }
+
+
+        ion-icon {
+          color: #2563eb;
+        }
+      }
+    }
+
+
+    .postulante-actions {
+      display: flex;
+
+      gap: 0.75rem;
+
+      justify-content: flex-end;
+
+
+      ion-button {
+        font-weight: 600;
+
+        margin: 0;
+      }
+    }
+  }
+}
+
+
+/* ==========================================================
+   TOP 3 CANDIDATOS
+   ========================================================== */
+
+.top-candidatos {
+  margin:
+    24px
+    0
+    32px;
+
+  padding: 20px;
+
+  background: #f8fafc;
+
+  border:
+    1px
+    solid
+    #e5e7eb;
+
+  border-radius: 16px;
+}
+
+
+.top-header {
+  margin-bottom: 18px;
+
+
+  h3 {
+    margin: 0;
+
+    font-size: 1.2rem;
+
+    font-weight: 700;
+
+    color: #0f172a;
+  }
+
+
+  p {
+    margin:
+      5px
+      0
+      0;
+
+    color: #6b7280;
+
+    font-size: 0.9rem;
+
+    line-height: 1.5;
+  }
+}
+
+
+.top-grid {
+  display: grid;
+
+  gap: 12px;
+}
+
+
+.top-card {
+  display: flex;
+
+  align-items: center;
+
+  gap: 14px;
+
+  padding: 14px 16px;
+
+  background: #ffffff;
+
+  border:
+    1px
+    solid
+    #e5e7eb;
+
+  border-radius: 12px;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+
+
+  &:hover {
+    transform:
+      translateY(-1px);
+
+    box-shadow:
+      0
+      6px
+      16px
+      rgba(15, 23, 42, 0.06);
+  }
+
+
+  ion-button {
+    flex-shrink: 0;
+
+    margin: 0;
+
+    font-weight: 600;
+  }
+}
+
+
+.primer-lugar {
+  border-left:
+    5px
+    solid
+    #d4af37;
+}
+
+
+.segundo-lugar {
+  border-left:
+    5px
+    solid
+    #a8a9ad;
+}
+
+
+.tercer-lugar {
+  border-left:
+    5px
+    solid
+    #cd7f32;
+}
+
+
+.medalla {
+  flex-shrink: 0;
+
+  font-size: 2rem;
+}
+
+
+/* FOTO TOP 3 */
+
+.top-avatar {
+  width: 48px;
+
+  height: 48px;
+
+  min-width: 48px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  overflow: hidden;
+
+  background: #e0f2fe;
+
+  color: #0284c7;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border:
+    2px
+    solid
+    #e2e8f0;
+
+
+  img {
+    width: 100%;
+
+    height: 100%;
+
+    object-fit: cover;
+
+    display: block;
+  }
+
+
+  ion-icon {
+    font-size: 1.35rem;
+  }
+}
+
+
+.top-info {
+  flex: 1;
+
+  min-width: 0;
+
+
+  h4 {
+    margin: 2px 0;
+
+    font-weight: 700;
+
+    color: #0f172a;
+  }
+
+
+  p {
+    margin:
+      3px
+      0
+      0;
+
+    color: #6b7280;
+
+    font-size: 0.88rem;
+  }
+}
+
+
+.top-position {
+  font-size: 0.8rem;
+
+  color: #6b7280;
+
+  font-weight: 600;
+}
+
+
+.puntaje-box {
+  min-width: 70px;
+
+  text-align: center;
+
+  flex-shrink: 0;
+}
+
+
+.puntaje-numero {
+  display: block;
+
+  font-size: 1.5rem;
+
+  font-weight: 800;
+
+  color:
+    var(
+      --ion-color-primary
+    );
+}
+
+
+.puntaje-label {
+  font-size: 0.75rem;
+
+  color: #6b7280;
+}
+
+
+.ranking-note {
+  margin:
+    15px
+    0
+    0;
+
+  color: #6b7280;
+
+  font-size: 0.8rem;
+
+  line-height: 1.5;
+
+  text-align: center;
+}
+
+
+.idoneidad-badge {
+  display: inline-block;
+
+  margin:
+    5px
+    0
+    7px;
+
+  padding: 5px 10px;
+
+  border-radius: 20px;
+
+  background: #eef2ff;
+
+  color: #3730a3;
+
+  font-size: 0.8rem;
+
+  font-weight: 500;
+}
+
+
+/* ==========================================================
+   POSTULANTE DESTACADO
+   ========================================================== */
+
+.postulante-destacado {
+  border:
+    2px
+    solid
+    var(
+      --ion-color-primary
+    )
+    !important;
+
+  box-shadow:
+    0
+    0
+    0
+    4px
+    rgba(
+      var(
+        --ion-color-primary-rgb
+      ),
+      0.12
+    ),
+    0
+    10px
+    25px
+    rgba(15, 23, 42, 0.08)
+    !important;
+
+  transform:
+    scale(1.01);
+
+  transition:
+    border 0.3s ease,
+    box-shadow 0.3s ease,
+    transform 0.3s ease;
+}
+
+
+/* ==========================================================
+   BOTONES DOCUMENTOS DEL CANDIDATO
+   ========================================================== */
+
+.candidate-documents {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap: 0.75rem;
+
+  margin:
+    1rem
+    0;
+
+
+  ion-button {
+    --border-radius: 9px;
+
+    min-height: 42px;
+
+    margin: 0;
+
+    font-size: 0.78rem;
+
+    font-weight: 700;
+  }
+
+
+  .btn-document {
+    --border-color: #cbd5e1;
+
+    --color: #334155;
+  }
+
+
+  .btn-questionnaire {
+    --border-color: #93c5fd;
+
+    --color: #2563eb;
+
+    --background-hover: #eff6ff;
+  }
+}
+
+
+/* ==========================================================
+   MODAL CUESTIONARIO
+   ========================================================== */
+
+ion-modal.questionnaire-modal {
+  --width:
+    min(
+      960px,
+      94vw
+    );
+
+  --height: 92vh;
+
+  --max-width: 960px;
+
+  --border-radius: 18px;
+
+  --box-shadow:
+    0
+    24px
+    70px
+    rgba(15, 23, 42, 0.24);
+}
+
+
+/* ==========================================================
+   TOOLBAR CUESTIONARIO
+   ========================================================== */
+
+.questionnaire-toolbar {
+  --background: #ffffff;
+
+  --border-color: #e2e8f0;
+
+  --border-width:
+    0
+    0
+    1px
+    0;
+
+
+  ion-title {
+    color: #0f172a;
+
+    font-size: 1rem;
+
+    font-weight: 800;
+  }
+}
+
+
+/* ==========================================================
+   CONTENIDO MODAL CUESTIONARIO
+   ========================================================== */
+
+.questionnaire-modal-content {
+  --background: #f8fafc;
+
+  --padding-top: 0;
+
+  --padding-bottom: 0;
+
+  --padding-start: 0;
+
+  --padding-end: 0;
+}
+
+
+/* ==========================================================
+   CABECERA CANDIDATO
+   ========================================================== */
+
+.questionnaire-candidate-header {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 1.5rem;
+
+  padding:
+    1.5rem
+    1.7rem;
+
+  border-bottom:
+    1px
+    solid
+    #e2e8f0;
+
+  background: #ffffff;
+}
+
+
+.questionnaire-profile {
+  display: flex;
+
+  align-items: center;
+
+  min-width: 0;
+
+  gap: 1rem;
+}
+
+
+.questionnaire-avatar {
+  width: 62px;
+
+  height: 62px;
+
+  flex-shrink: 0;
+
+  overflow: hidden;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border:
+    3px
+    solid
+    #dbeafe;
+
+  border-radius: 50%;
+
+  background: #eff6ff;
+
+  color: #2563eb;
+
+
+  img {
+    width: 100%;
+
+    height: 100%;
+
+    object-fit: cover;
+  }
+
+
+  ion-icon {
+    font-size: 1.8rem;
+  }
+}
+
+
+.questionnaire-person {
+  min-width: 0;
+
+
+  .questionnaire-eyebrow {
+    display: block;
+
+    margin-bottom: 0.15rem;
+
+    color: #2563eb;
+
+    font-size: 0.65rem;
+
+    font-weight: 850;
+
+    letter-spacing: 0.08em;
+  }
+
+
+  h2 {
+    margin:
+      0
+      0
+      0.25rem;
+
+    color: #0f172a;
+
+    font-size: 1.25rem;
+
+    font-weight: 850;
+
+    letter-spacing: -0.02em;
+  }
+
+
+  p {
+    margin: 0;
+
+    color: #64748b;
+
+    font-size: 0.8rem;
+  }
+}
+
+
+/* ==========================================================
+   PUNTAJE
+   ========================================================== */
+
+.questionnaire-score {
+  flex-shrink: 0;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: flex-end;
+
+  padding:
+    0.65rem
+    0.9rem;
+
+  border:
+    1px
+    solid
+    #bfdbfe;
+
+  border-radius: 11px;
+
+  background: #eff6ff;
+
+
+  span {
+    margin-bottom: 0.15rem;
+
+    color: #64748b;
+
+    font-size: 0.65rem;
+
+    font-weight: 650;
+  }
+
+
+  strong {
+    color: #1d4ed8;
+
+    font-size: 1.05rem;
+
+    font-weight: 850;
+  }
+}
+
+
+/* ==========================================================
+   CONTEXTO OFERTA
+   ========================================================== */
+
+.questionnaire-context {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(0, 1fr)
+    );
+
+  gap: 0.75rem;
+
+  padding:
+    1rem
+    1.7rem;
+
+  border-bottom:
+    1px
+    solid
+    #e2e8f0;
+
+  background: #ffffff;
+
+
+  > div {
+    min-width: 0;
+
+    padding:
+      0.65rem
+      0.75rem;
+
+    border:
+      1px
+      solid
+      #e2e8f0;
+
+    border-radius: 9px;
+
+    background: #f8fafc;
+  }
+
+
+  .context-label {
+    display: block;
+
+    margin-bottom: 0.2rem;
+
+    color: #94a3b8;
+
+    font-size: 0.62rem;
+
+    font-weight: 750;
+
+    text-transform: uppercase;
+  }
+
+
+  strong {
+    display: block;
+
+    overflow: hidden;
+
+    color: #334155;
+
+    font-size: 0.77rem;
+
+    font-weight: 750;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+  }
+}
+
+
+/* ==========================================================
+   ESTADO
+   ========================================================== */
+
+.questionnaire-state {
+  width: fit-content;
+
+  padding:
+    0.15rem
+    0.45rem;
+
+  border-radius: 999px;
+
+
+  &.pendiente {
+    background: #fef3c7;
+
+    color: #b45309;
+  }
+
+
+  &.aceptado {
+    background: #dcfce7;
+
+    color: #15803d;
+  }
+
+
+  &.rechazado {
+    background: #fee2e2;
+
+    color: #b91c1c;
+  }
+}
+
+
+/* ==========================================================
+   ENCABEZADO DE RESPUESTAS
+   ========================================================== */
+
+.responses-heading {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 1rem;
+
+  padding:
+    1.35rem
+    1.7rem
+    0.7rem;
+
+
+  .responses-eyebrow {
+    display: block;
+
+    margin-bottom: 0.2rem;
+
+    color: #2563eb;
+
+    font-size: 0.62rem;
+
+    font-weight: 850;
+
+    letter-spacing: 0.08em;
+  }
+
+
+  h2 {
+    margin:
+      0
+      0
+      0.2rem;
+
+    color: #0f172a;
+
+    font-size: 1.05rem;
+
+    font-weight: 850;
+  }
+
+
+  p {
+    margin: 0;
+
+    color: #64748b;
+
+    font-size: 0.75rem;
+
+    line-height: 1.45;
+  }
+}
+
+
+.answers-count {
+  min-width: 76px;
+
+  flex-shrink: 0;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  padding:
+    0.5rem
+    0.7rem;
+
+  border:
+    1px
+    solid
+    #e2e8f0;
+
+  border-radius: 9px;
+
+  background: #ffffff;
+
+
+  strong {
+    color: #2563eb;
+
+    font-size: 1rem;
+  }
+
+
+  span {
+    color: #94a3b8;
+
+    font-size: 0.6rem;
+  }
+}
+
+
+/* ==========================================================
+   RESPUESTAS
+   ========================================================== */
+
+.questionnaire-responses {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 0.8rem;
+
+  padding:
+    0.6rem
+    1.7rem
+    1.5rem;
+}
+
+
+.response-card {
+  display: grid;
+
+  grid-template-columns:
+    38px
+    minmax(
+      0,
+      1fr
+    );
+
+  gap: 0.9rem;
+
+  padding: 1rem;
+
+  border:
+    1px
+    solid
+    #e2e8f0;
+
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0
+    2px
+    8px
+    rgba(15, 23, 42, 0.025);
+}
+
+
+.response-number {
+  width: 36px;
+
+  height: 36px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 9px;
+
+  background: #eff6ff;
+
+  color: #2563eb;
+
+  font-size: 0.75rem;
+
+  font-weight: 850;
+}
+
+
+.response-content {
+  min-width: 0;
+
+
+  h3 {
+    margin:
+      0.55rem
+      0
+      0.75rem;
+
+    color: #1e293b;
+
+    font-size: 0.91rem;
+
+    font-weight: 750;
+
+    line-height: 1.5;
+  }
+}
+
+
+.response-top {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 0.75rem;
+}
+
+
+.response-type {
+  display: inline-flex;
+
+  width: fit-content;
+
+  padding:
+    0.17rem
+    0.45rem;
+
+  border-radius: 999px;
+
+  background: #f1f5f9;
+
+  color: #64748b;
+
+  font-size: 0.62rem;
+
+  font-weight: 750;
+
+
+  &.selection {
+    background: #ede9fe;
+
+    color: #6d28d9;
+  }
+}
+
+
+.response-points {
+  padding:
+    0.16rem
+    0.42rem;
+
+  border-radius: 999px;
+
+  background: #dcfce7;
+
+  color: #15803d;
+
+  font-size: 0.64rem;
+
+  font-weight: 800;
+}
+
+
+/* ==========================================================
+   RESPUESTA CANDIDATO
+   ========================================================== */
+
+.candidate-answer {
+  padding:
+    0.8rem
+    0.9rem;
+
+  border-left:
+    3px
+    solid
+    #2563eb;
+
+  border-radius:
+    0
+    8px
+    8px
+    0;
+
+  background: #f8fafc;
+
+
+  &.selected-answer {
+    border-left-color: #7c3aed;
+
+    background: #faf5ff;
+  }
+
+
+  .answer-label {
+    display: block;
+
+    margin-bottom: 0.3rem;
+
+    color: #94a3b8;
+
+    font-size: 0.61rem;
+
+    font-weight: 750;
+
+    text-transform: uppercase;
+  }
+
+
+  p {
+    margin: 0;
+
+    color: #334155;
+
+    font-size: 0.82rem;
+
+    line-height: 1.6;
+
+    white-space: pre-wrap;
+
+    overflow-wrap: anywhere;
+  }
+}
+
+
+/* ==========================================================
+   SIN RESPUESTAS
+   ========================================================== */
+
+.no-questionnaire-responses {
+  margin:
+    0.7rem
+    1.7rem
+    1.5rem;
+
+  padding:
+    2rem
+    1rem;
+
+  border:
+    1px
+    dashed
+    #cbd5e1;
+
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  text-align: center;
+
+
+  .empty-questionnaire-icon {
+    margin-bottom: 0.5rem;
+
+    font-size: 1.7rem;
+  }
+
+
+  h3 {
+    margin:
+      0
+      0
+      0.4rem;
+
+    color: #334155;
+
+    font-size: 0.9rem;
+
+    font-weight: 800;
+  }
+
+
+  p {
+    max-width: 560px;
+
+    margin: 0 auto;
+
+    color: #64748b;
+
+    font-size: 0.76rem;
+
+    line-height: 1.55;
+  }
+}
+
+
+/* ==========================================================
+   FOOTER
+   ========================================================== */
+
+.questionnaire-footer {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 1rem;
+
+  margin:
+    0
+    1.7rem
+    1.5rem;
+
+  padding:
+    0.9rem
+    1rem;
+
+  border:
+    1px
+    solid
+    #e2e8f0;
+
+  border-radius: 10px;
+
+  background: #ffffff;
+
+
+  > div {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 2px;
+  }
+
+
+  strong {
+    color: #334155;
+
+    font-size: 0.75rem;
+  }
+
+
+  span {
+    color: #94a3b8;
+
+    font-size: 0.65rem;
+  }
+
+
+  ion-button {
+    --border-radius: 8px;
+
+    margin: 0;
+
+    font-size: 0.7rem;
+
+    font-weight: 700;
+  }
+}
+
+
+/* ==========================================================
+   RESPONSIVE
+   ========================================================== */
+
+@media (max-width: 768px) {
+
+  ion-header {
+
+    .header-toolbar {
+      --padding-start: 1rem;
+      --padding-end: 1rem;
+    }
+
+
+    .header-container {
+
+      .brand-group {
+
+        .brand-title {
+          font-size: 1.25rem;
+        }
+
+
+        .company-badge {
+          display: none;
+        }
+      }
+
+
+      .user-group {
+
+        .user-name {
+          max-width: 130px;
+
+          overflow: hidden;
+
+          white-space: nowrap;
+
+          text-overflow: ellipsis;
+        }
+      }
+    }
+  }
+
+
+  .main-content {
+
+    .dashboard-container {
+      padding:
+        1.25rem
+        1rem
+        3rem;
+    }
+  }
+
+
+  .jobs-section {
+    padding: 1.25rem;
+
+
+    .section-header {
+      align-items: flex-start;
+
+      gap: 1rem;
+
+
+      .jobs-count {
+        white-space: nowrap;
+      }
+    }
+
+
+    .job-card {
+
+      .card-header {
+        flex-direction: column;
+
+        gap: 1rem;
+
+
+        .card-actions {
+          width: 100%;
+
+          justify-content: flex-end;
+        }
+      }
+    }
+  }
+
+
+  .modal-body {
+
+    .postulante-card {
+
+      .postulante-header {
+        flex-direction: column;
+
+        gap: 0.75rem;
+
+
+        .badge-estado {
+          align-self: flex-start;
+        }
+      }
+
+
+      .postulante-actions {
+        flex-direction: column;
+
+
+        ion-button {
+          width: 100%;
+        }
+      }
+    }
+  }
+}
+
+
+@media (max-width: 760px) {
+
+  ion-modal.questionnaire-modal {
+    --width: 100%;
+
+    --height: 100%;
+
+    --border-radius: 0;
+  }
+
+
+  .questionnaire-candidate-header {
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    padding: 1rem;
+  }
+
+
+  .questionnaire-score {
+    width: 100%;
+
+    align-items: flex-start;
+  }
+
+
+  .questionnaire-context {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(
+          0,
+          1fr
+        )
+      );
+
+    padding:
+      0.8rem
+      1rem;
+  }
+
+
+  .responses-heading {
+    padding:
+      1rem
+      1rem
+      0.6rem;
+  }
+
+
+  .questionnaire-responses {
+    padding:
+      0.5rem
+      1rem
+      1rem;
+  }
+
+
+  .no-questionnaire-responses {
+    margin:
+      0.5rem
+      1rem
+      1rem;
+  }
+
+
+  .questionnaire-footer {
+    margin:
+      0
+      1rem
+      1rem;
+  }
+
+
+  .candidate-documents {
+    grid-template-columns:
+      1fr;
+  }
+}
+
+
+@media (max-width: 700px) {
+
+  .top-candidatos {
+    padding: 16px;
+  }
+
+
+  .top-card {
+    align-items: flex-start;
+
+    flex-wrap: wrap;
+  }
+
+
+  .top-avatar {
+    width: 44px;
+
+    height: 44px;
+
+    min-width: 44px;
+  }
+
+
+  .top-info {
+    min-width:
+      calc(
+        100% - 130px
+      );
+  }
+
+
+  .puntaje-box {
+    margin-left: 48px;
+  }
+
+
+  .top-card ion-button {
+    width: 100%;
+  }
+}
+
+
+@media (max-width: 500px) {
+
+  .account-status {
+    padding:
+      0.85rem
+      1rem;
+  }
+
+
+  .stats-grid {
+    gap: 1rem;
+  }
+
+
+  .jobs-section {
+
+    .section-header {
+      flex-direction: column;
+    }
+
+
+    .job-card {
+      padding: 1rem;
+    }
+  }
+
+
+  .modal-body {
+
+    .postulante-card {
+
+      .postulante-header {
+
+        .postulante-info {
+          align-items: flex-start;
+
+
+          .avatar-circle {
+            width: 48px;
+
+            height: 48px;
+
+            min-width: 48px;
+          }
+        }
+      }
+    }
+  }
+}
+
+
+@media (max-width: 480px) {
+
+  .questionnaire-context {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .response-card {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .response-number {
+    width: 30px;
+
+    height: 30px;
+  }
+
+
+  .responses-heading {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+
+  .answers-count {
+    align-items: flex-start;
+
+    width: 100%;
+  }
+
+
+  .questionnaire-footer {
+    align-items: stretch;
+
+    flex-direction: column;
+
+
+    ion-button {
+      width: 100%;
+    }
+  }
+}

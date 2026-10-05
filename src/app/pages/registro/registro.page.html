@@ -1,0 +1,913 @@
+<ion-content>
+
+  <div class="split-layout">
+
+
+    <!-- ========================================== -->
+    <!-- BRANDING -->
+    <!-- ========================================== -->
+
+    <div class="brand-section">
+
+      <div class="brand-content">
+
+        <h1>
+          Únete a ExpertiMente
+        </h1>
+
+        <p>
+          Conecta con el mejor talento
+          gestionando tus ofertas desde
+          un solo lugar.
+        </p>
+
+        <div class="decoration-line">
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- FORMULARIO -->
+    <!-- ========================================== -->
+
+    <div class="form-section">
+
+      <div class="form-container">
+
+
+        <!-- ====================================== -->
+        <!-- INDICADOR -->
+        <!-- ====================================== -->
+
+        <div class="step-indicator">
+
+          <span
+            [class.active]="
+              pasoActual === 1
+            "
+            [class.completed]="
+              pasoActual > 1
+            ">
+
+            1
+
+          </span>
+
+
+          <div class="step-line">
+          </div>
+
+
+          <span
+            [class.active]="
+              pasoActual === 2
+            ">
+
+            2
+
+          </span>
+
+        </div>
+
+
+        <h2>
+
+          {{
+            pasoActual === 1
+              ? 'Tu Perfil Profesional'
+              : 'Datos de tu Empresa'
+          }}
+
+        </h2>
+
+
+        <p class="subtitle">
+
+          {{
+            pasoActual === 1
+              ? 'Paso 1 de 2: Completa tus datos como reclutador.'
+              : 'Paso 2 de 2: Vincula tu perfil a una empresa.'
+          }}
+
+        </p>
+
+
+        <form
+          [formGroup]="registroForm">
+
+
+          <!-- ==================================== -->
+          <!-- PASO 1 -->
+          <!-- ==================================== -->
+
+          <div
+            *ngIf="
+              pasoActual === 1
+            "
+            formGroupName="usuario"
+            class="fade-in">
+
+
+            <div class="section-label">
+
+              Datos personales
+
+            </div>
+
+
+            <div class="two-column-grid">
+
+
+              <!-- NOMBRE -->
+
+              <div class="input-group">
+
+                <ion-input
+                  label="Nombre *"
+                  labelPlacement="floating"
+                  fill="outline"
+                  type="text"
+                  formControlName="nombre">
+                </ion-input>
+
+
+                <div
+                  class="error-msg"
+                  *ngIf="
+                    registroForm
+                      .get('usuario.nombre')
+                      ?.touched
+                    &&
+                    registroForm
+                      .get('usuario.nombre')
+                      ?.invalid
+                  ">
+
+                  Ingresa tu nombre.
+
+                </div>
+
+              </div>
+
+
+              <!-- APELLIDO -->
+
+              <div class="input-group">
+
+                <ion-input
+                  label="Apellido *"
+                  labelPlacement="floating"
+                  fill="outline"
+                  type="text"
+                  formControlName="apellido">
+                </ion-input>
+
+
+                <div
+                  class="error-msg"
+                  *ngIf="
+                    registroForm
+                      .get('usuario.apellido')
+                      ?.touched
+                    &&
+                    registroForm
+                      .get('usuario.apellido')
+                      ?.invalid
+                  ">
+
+                  Ingresa tu apellido.
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <!-- EMAIL -->
+
+            <div class="input-group">
+
+              <ion-input
+                label="Correo electrónico *"
+                labelPlacement="floating"
+                fill="outline"
+                type="email"
+                formControlName="email">
+              </ion-input>
+
+
+              <div
+                class="error-msg"
+                *ngIf="
+                  registroForm
+                    .get('usuario.email')
+                    ?.touched
+                  &&
+                  registroForm
+                    .get('usuario.email')
+                    ?.invalid
+                ">
+
+                Ingresa un correo electrónico válido.
+
+              </div>
+
+            </div>
+
+
+            <!-- TELÉFONO -->
+
+            <div class="input-group">
+
+              <ion-input
+                label="Teléfono *"
+                labelPlacement="floating"
+                fill="outline"
+                type="tel"
+                placeholder="+56 9 1234 5678"
+                formControlName="telefono">
+              </ion-input>
+
+
+              <div
+                class="error-msg"
+                *ngIf="
+                  registroForm
+                    .get('usuario.telefono')
+                    ?.touched
+                  &&
+                  registroForm
+                    .get('usuario.telefono')
+                    ?.invalid
+                ">
+
+                Ingresa un teléfono válido.
+
+              </div>
+
+            </div>
+
+
+            <hr class="divider">
+
+
+            <!-- ================================== -->
+            <!-- INFORMACIÓN PROFESIONAL -->
+            <!-- ================================== -->
+
+            <div class="section-label">
+
+              Información profesional
+
+            </div>
+
+
+            <!-- CARGO -->
+
+            <div class="input-group">
+
+              <ion-input
+                label="Cargo / Rol en la empresa *"
+                labelPlacement="floating"
+                fill="outline"
+                type="text"
+                placeholder="Ej: Reclutador TI, RR.HH., Gerente"
+                formControlName="cargoEmpresa">
+              </ion-input>
+
+
+              <div
+                class="error-msg"
+                *ngIf="
+                  registroForm
+                    .get('usuario.cargoEmpresa')
+                    ?.touched
+                  &&
+                  registroForm
+                    .get('usuario.cargoEmpresa')
+                    ?.invalid
+                ">
+
+                Indica tu cargo o rol en la empresa.
+
+              </div>
+
+            </div>
+
+
+            <!-- ================================== -->
+            <!-- LINKEDIN / CV -->
+            <!-- ================================== -->
+
+            <div class="professional-proof-box">
+
+
+              <div class="professional-proof-header">
+
+                <strong>
+                  Verificación profesional
+                </strong>
+
+                <span>
+                  Completa LinkedIn o adjunta tu CV.
+                </span>
+
+              </div>
+
+
+              <!-- LINKEDIN -->
+
+              <div class="input-group">
+
+                <ion-input
+                  label="Perfil de LinkedIn"
+                  labelPlacement="floating"
+                  fill="outline"
+                  type="url"
+                  placeholder="linkedin.com/in/tu-perfil"
+                  formControlName="linkedin"
+                  (ionBlur)="normalizarLinkedin()">
+                </ion-input>
+
+
+                <div
+                  class="error-msg"
+                  *ngIf="
+                    registroForm
+                      .get('usuario.linkedin')
+                      ?.touched
+                    &&
+                    registroForm
+                      .get('usuario.linkedin')
+                      ?.hasError('linkedinInvalido')
+                  ">
+
+                  Ingresa una dirección válida de LinkedIn.
+
+                </div>
+
+              </div>
+
+
+              <div class="or-divider">
+
+                <span>
+                  o
+                </span>
+
+              </div>
+
+
+              <!-- CV -->
+
+              <div class="cv-upload-box">
+
+                <div>
+
+                  <strong>
+                    Currículum en PDF
+                  </strong>
+
+                  <p>
+                    Opcional si ya agregaste LinkedIn.
+                    Máximo 600 KB.
+                  </p>
+
+                </div>
+
+
+                <label
+                  class="file-button"
+                  [class.disabled]="
+                    procesandoCV
+                  ">
+
+                  <input
+                    type="file"
+                    accept="application/pdf,.pdf"
+                    [disabled]="procesandoCV"
+                    (change)="seleccionarCV($event)">
+
+
+                  {{
+                    procesandoCV
+                      ? 'Procesando...'
+                      : 'Seleccionar PDF'
+                  }}
+
+                </label>
+
+              </div>
+
+
+              <!-- PDF SELECCIONADO -->
+
+              <div
+                class="selected-file"
+                *ngIf="nombreCV">
+
+                <div>
+
+                  <strong>
+                    PDF adjunto
+                  </strong>
+
+                  <span>
+                    {{ nombreCV }}
+                  </span>
+
+                </div>
+
+
+                <button
+                  type="button"
+                  (click)="eliminarCV()">
+
+                  Quitar
+
+                </button>
+
+              </div>
+
+
+              <!-- ERROR LINKEDIN / CV -->
+
+              <div
+                class="error-msg proof-error"
+                *ngIf="
+                  registroForm
+                    .get('usuario')
+                    ?.touched
+                  &&
+                  registroForm
+                    .get('usuario')
+                    ?.hasError('linkedinOCvRequerido')
+                ">
+
+                Debes agregar al menos LinkedIn
+                o tu currículum.
+
+              </div>
+
+            </div>
+
+
+            <!-- DESCRIPCIÓN -->
+
+            <div class="input-group">
+
+              <ion-textarea
+                label="Descripción profesional (Opcional)"
+                labelPlacement="floating"
+                fill="outline"
+                rows="3"
+                maxlength="400"
+                placeholder="Cuéntanos brevemente sobre tu experiencia profesional."
+                formControlName="descripcionProfesional">
+              </ion-textarea>
+
+
+              <div class="field-help">
+
+                Máximo 400 caracteres.
+
+              </div>
+
+            </div>
+
+
+            <hr class="divider">
+
+
+            <!-- ================================== -->
+            <!-- SEGURIDAD -->
+            <!-- ================================== -->
+
+            <div class="section-label">
+
+              Seguridad
+
+            </div>
+
+
+            <!-- PASSWORD -->
+
+            <div class="input-group">
+
+              <ion-input
+                label="Contraseña *"
+                labelPlacement="floating"
+                fill="outline"
+                type="password"
+                formControlName="password">
+              </ion-input>
+
+
+              <div
+                class="error-msg"
+                *ngIf="
+                  registroForm
+                    .get('usuario.password')
+                    ?.touched
+                  &&
+                  registroForm
+                    .get('usuario.password')
+                    ?.invalid
+                ">
+
+                La contraseña debe tener
+                al menos 6 caracteres.
+
+              </div>
+
+            </div>
+
+
+            <!-- CONFIRMAR -->
+
+            <div class="input-group">
+
+              <ion-input
+                label="Confirmar contraseña *"
+                labelPlacement="floating"
+                fill="outline"
+                type="password"
+                formControlName="confirmPassword">
+              </ion-input>
+
+
+              <div
+                class="error-msg"
+                *ngIf="
+                  registroForm
+                    .get('usuario')
+                    ?.hasError('passwordMismatch')
+                  &&
+                  registroForm
+                    .get('usuario.confirmPassword')
+                    ?.touched
+                ">
+
+                Las contraseñas no coinciden.
+
+              </div>
+
+            </div>
+
+
+            <ion-button
+              type="button"
+              expand="block"
+              shape="round"
+              color="primary"
+              class="action-btn"
+              [disabled]="procesandoCV"
+              (click)="siguientePaso()">
+
+              Siguiente Paso
+
+            </ion-button>
+
+          </div>
+
+
+          <!-- ==================================== -->
+          <!-- PASO 2 -->
+          <!-- ==================================== -->
+
+          <div
+            *ngIf="
+              pasoActual === 2
+            "
+            formGroupName="empresa"
+            class="fade-in">
+
+
+            <div class="section-label">
+
+              Organización
+
+            </div>
+
+
+            <!-- TIPO EMPRESA -->
+
+            <ion-radio-group
+              formControlName="modoRegistro">
+
+
+              <div class="radio-option">
+
+                <ion-radio
+                  value="existente">
+                </ion-radio>
+
+                <label>
+
+                  Vincularme a una empresa registrada
+
+                </label>
+
+              </div>
+
+
+              <div class="radio-option">
+
+                <ion-radio
+                  value="nueva">
+                </ion-radio>
+
+                <label>
+
+                  Registrar una nueva empresa
+
+                </label>
+
+              </div>
+
+            </ion-radio-group>
+
+
+            <hr class="divider">
+
+
+            <!-- ================================= -->
+            <!-- EMPRESA EXISTENTE -->
+            <!-- ================================= -->
+
+            <div
+              *ngIf="
+                modoRegistro ===
+                'existente'
+              "
+              class="fade-in input-group">
+
+
+              <ion-select
+                label="Selecciona la Empresa *"
+                labelPlacement="floating"
+                fill="outline"
+                formControlName="empresaId"
+                [disabled]="cargandoEmpresas">
+
+
+                <ion-select-option
+                  *ngFor="
+                    let emp
+                    of empresasExistentes
+                  "
+                  [value]="emp.id">
+
+                  {{ emp.nombre }}
+
+                  <span *ngIf="emp.rut">
+
+                    — {{ emp.rut }}
+
+                  </span>
+
+                </ion-select-option>
+
+              </ion-select>
+
+
+              <div class="field-help">
+
+                Si tu empresa ya está registrada,
+                solo debes seleccionarla.
+
+              </div>
+
+            </div>
+
+
+            <!-- ================================= -->
+            <!-- EMPRESA NUEVA -->
+            <!-- ================================= -->
+
+            <div
+              *ngIf="
+                modoRegistro ===
+                'nueva'
+              "
+              class="fade-in">
+
+
+              <div class="new-company-note">
+
+                Solo pedimos los datos esenciales
+                para crear la empresa.
+
+              </div>
+
+
+              <!-- NOMBRE -->
+
+              <div class="input-group">
+
+                <ion-input
+                  label="Nombre / Razón Social *"
+                  labelPlacement="floating"
+                  fill="outline"
+                  type="text"
+                  formControlName="nombreEmpresa">
+                </ion-input>
+
+              </div>
+
+
+              <!-- RUT -->
+
+              <div class="input-group">
+
+                <ion-input
+                  label="RUT de la Empresa *"
+                  labelPlacement="floating"
+                  fill="outline"
+                  type="text"
+                  placeholder="76.123.456-7"
+                  formControlName="rutEmpresa"
+                  (ionBlur)="formatearRutEmpresa()">
+                </ion-input>
+
+
+                <div
+                  class="error-msg"
+                  *ngIf="
+                    registroForm
+                      .get('empresa.rutEmpresa')
+                      ?.touched
+                    &&
+                    registroForm
+                      .get('empresa.rutEmpresa')
+                      ?.hasError('required')
+                  ">
+
+                  El RUT de la empresa
+                  es obligatorio.
+
+                </div>
+
+
+                <div
+                  class="error-msg"
+                  *ngIf="
+                    registroForm
+                      .get('empresa.rutEmpresa')
+                      ?.touched
+                    &&
+                    registroForm
+                      .get('empresa.rutEmpresa')
+                      ?.hasError('rutInvalido')
+                  ">
+
+                  Ingresa un RUT chileno válido.
+
+                </div>
+
+              </div>
+
+
+              <!-- RUBRO -->
+
+              <div class="input-group">
+
+                <ion-input
+                  label="Rubro / Actividad *"
+                  labelPlacement="floating"
+                  fill="outline"
+                  type="text"
+                  placeholder="Ej: Tecnología, Retail, Consultoría"
+                  formControlName="rubro">
+                </ion-input>
+
+              </div>
+
+
+              <!-- EMAIL -->
+
+              <div class="input-group">
+
+                <ion-input
+                  label="Email Corporativo *"
+                  labelPlacement="floating"
+                  fill="outline"
+                  type="email"
+                  placeholder="contacto@empresa.cl"
+                  formControlName="emailEmpresa">
+                </ion-input>
+
+              </div>
+
+
+              <!-- WEB -->
+
+              <div class="input-group">
+
+                <ion-input
+                  label="Sitio Web (Opcional)"
+                  labelPlacement="floating"
+                  fill="outline"
+                  type="url"
+                  placeholder="https://www.empresa.cl"
+                  formControlName="sitioWeb">
+                </ion-input>
+
+              </div>
+
+            </div>
+
+
+            <!-- ================================= -->
+            <!-- BOTONES -->
+            <!-- ================================= -->
+
+            <div class="button-group">
+
+
+              <ion-button
+                type="button"
+                fill="outline"
+                shape="round"
+                color="medium"
+                (click)="volverPasoAnterior()">
+
+                Atrás
+
+              </ion-button>
+
+
+              <ion-button
+                type="button"
+                expand="block"
+                shape="round"
+                color="primary"
+                class="action-btn"
+                [disabled]="isLoading"
+                (click)="onSubmit()">
+
+
+                <ion-spinner
+                  *ngIf="isLoading"
+                  name="crescent">
+                </ion-spinner>
+
+
+                <span
+                  *ngIf="
+                    !isLoading
+                  ">
+
+                  Completar Registro
+
+                </span>
+
+              </ion-button>
+
+            </div>
+
+          </div>
+
+        </form>
+
+
+        <!-- ====================================== -->
+        <!-- LOGIN -->
+        <!-- ====================================== -->
+
+        <div
+          class="login-prompt"
+          *ngIf="
+            pasoActual === 1
+          ">
+
+          <p>
+
+            ¿Ya tienes una cuenta?
+
+          </p>
+
+
+          <ion-button
+            type="button"
+            fill="clear"
+            color="primary"
+            (click)="irALogin()">
+
+            Inicia sesión aquí
+
+          </ion-button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</ion-content>

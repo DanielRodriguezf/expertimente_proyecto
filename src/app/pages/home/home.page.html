@@ -1,0 +1,1645 @@
+<ion-header class="ion-no-border">
+
+  <ion-toolbar class="header-toolbar">
+
+    <div class="header-container">
+
+      <div class="brand-group">
+
+        <h1 class="brand-title">
+          ExpertiMente
+        </h1>
+
+        <span
+          class="company-badge"
+          *ngIf="nombreEmpresa">
+
+          {{ nombreEmpresa }}
+
+        </span>
+
+      </div>
+
+
+      <div class="user-group">
+
+        <ng-container
+          *ngIf="
+            !isLoading;
+            else stateLoading
+          ">
+
+          <span class="user-name">
+            {{ nombreReclutador }}
+          </span>
+
+        </ng-container>
+
+
+        <ng-template #stateLoading>
+
+          <span class="user-name">
+            Cargando...
+          </span>
+
+        </ng-template>
+
+
+        <button
+          type="button"
+          class="logout-btn"
+          (click)="cerrarSesion()"
+          title="Cerrar sesión">
+
+          <ion-icon
+            name="log-out-outline">
+          </ion-icon>
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </ion-toolbar>
+
+</ion-header>
+
+
+<ion-content
+  [fullscreen]="true"
+  class="main-content">
+
+
+  <div class="dashboard-container">
+
+
+    <!-- ================================================== -->
+    <!-- BIENVENIDA -->
+    <!-- ================================================== -->
+
+    <div class="welcome-banner">
+
+      <div class="banner-content">
+
+        <h1>
+          ¡Hola, {{ primerNombre }}! 👋
+        </h1>
+
+        <p>
+          Gestiona tus vacantes de empleo
+          y revisa las publicaciones activas
+          en tiempo real.
+        </p>
+
+      </div>
+
+
+      <ion-button
+        class="action-btn"
+        (click)="crearOferta()"
+        [disabled]="!puedePublicarOfertas">
+
+        <ion-icon
+          slot="start"
+          [name]="
+            puedePublicarOfertas
+              ? 'add-outline'
+              : 'lock-closed-outline'
+          ">
+        </ion-icon>
+
+        {{
+          puedePublicarOfertas
+            ? 'REGISTRAR OFERTA DE TRABAJO'
+            : 'CUENTA EN ESPERA'
+        }}
+
+      </ion-button>
+
+    </div>
+
+
+    <!-- ================================================== -->
+    <!-- ESTADO CUENTA -->
+    <!-- ================================================== -->
+
+    <div
+      class="account-status approved"
+      *ngIf="puedePublicarOfertas">
+
+      <div class="account-status-icon">
+        ✓
+      </div>
+
+      <div>
+
+        <strong>
+          Cuenta activa
+        </strong>
+
+        <p>
+          Tu cuenta de reclutador está aprobada.
+          Puedes registrar y gestionar ofertas
+          de trabajo en ExpertiMente.
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <div
+      class="account-status pending"
+      *ngIf="!puedePublicarOfertas">
+
+      <div class="account-status-icon">
+        ⏳
+      </div>
+
+      <div>
+
+        <strong>
+          Cuenta en espera de aprobación
+        </strong>
+
+        <p>
+          Tu cuenta está siendo revisada.
+          Puedes acceder a tu panel,
+          pero no podrás publicar ofertas
+          hasta que el administrador
+          active tu cuenta.
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <!-- ================================================== -->
+    <!-- ESTADÍSTICAS -->
+    <!-- ================================================== -->
+
+    <div class="stats-grid">
+
+      <div
+        class="stat-card"
+        (click)="scrollAOfertas()">
+
+        <div class="icon-wrapper active-icon">
+
+          <ion-icon
+            name="briefcase-outline">
+          </ion-icon>
+
+        </div>
+
+        <div class="stat-info">
+
+          <h3>
+            {{ totalOfertasActivas }}
+          </h3>
+
+          <p>
+            Ofertas Activas
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div
+        class="stat-card"
+        (click)="scrollAOfertas()">
+
+        <div class="icon-wrapper">
+
+          <ion-icon
+            name="briefcase-outline">
+          </ion-icon>
+
+        </div>
+
+        <div class="stat-info">
+
+          <h3>
+            {{ ofertas.length }}
+          </h3>
+
+          <p>
+            Total de Publicaciones
+          </p>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- ================================================== -->
+    <!-- OFERTAS -->
+    <!-- ================================================== -->
+
+    <div
+      id="seccion-ofertas"
+      class="jobs-section">
+
+
+      <div class="section-header">
+
+        <div>
+
+          <h2>
+            Mis Ofertas de Trabajo
+          </h2>
+
+          <p>
+            Todas las vacantes publicadas
+            en la plataforma
+          </p>
+
+        </div>
+
+
+        <span class="jobs-count">
+
+          {{ ofertas.length }}
+          publicaciones
+
+        </span>
+
+      </div>
+
+
+      <div
+        class="loading-container"
+        *ngIf="isLoading">
+
+        <ion-spinner
+          name="crescent"
+          color="primary">
+        </ion-spinner>
+
+        <p>
+          Cargando tus vacantes...
+        </p>
+
+      </div>
+
+
+      <div
+        class="empty-state"
+        *ngIf="
+          !isLoading &&
+          ofertas.length === 0
+        ">
+
+        <ion-icon
+          name="briefcase-outline">
+        </ion-icon>
+
+        <h3>
+          No tienes ofertas creadas aún
+        </h3>
+
+
+        <p *ngIf="puedePublicarOfertas">
+
+          Comienza publicando tu primera
+          vacante de trabajo.
+
+        </p>
+
+
+        <p *ngIf="!puedePublicarOfertas">
+
+          Tu cuenta está en espera de aprobación.
+          Podrás crear ofertas cuando
+          el administrador active tu cuenta.
+
+        </p>
+
+
+        <ion-button
+          (click)="crearOferta()"
+          [disabled]="!puedePublicarOfertas">
+
+          <ion-icon
+            slot="start"
+            [name]="
+              puedePublicarOfertas
+                ? 'add-outline'
+                : 'lock-closed-outline'
+            ">
+          </ion-icon>
+
+          {{
+            puedePublicarOfertas
+              ? 'Crear Oferta'
+              : 'Cuenta en espera'
+          }}
+
+        </ion-button>
+
+      </div>
+
+
+      <div
+        class="job-cards-list"
+        *ngIf="
+          !isLoading &&
+          ofertas.length > 0
+        ">
+
+
+        <div
+          class="job-card"
+          *ngFor="let oferta of ofertas"
+          [class.is-active]="
+            oferta.estado === 'Activa'
+          ">
+
+
+          <div class="card-header">
+
+            <div class="title-status">
+
+              <h3>
+                {{ oferta.titulo }}
+              </h3>
+
+
+              <span
+                class="status-badge"
+                [ngClass]="
+                  oferta.estado.toLowerCase()
+                ">
+
+                ● {{ oferta.estado }}
+
+              </span>
+
+            </div>
+
+
+            <div class="card-actions">
+
+
+              <ion-button
+                fill="clear"
+                class="btn-action applicants"
+                (click)="verPostulantes(oferta)"
+                title="Ver Postulantes">
+
+                <ion-icon
+                  slot="icon-only"
+                  name="people-outline">
+                </ion-icon>
+
+              </ion-button>
+
+
+              <ion-button
+                fill="clear"
+                class="btn-action edit"
+                (click)="editarOferta(oferta.id)"
+                title="Editar">
+
+                <ion-icon
+                  slot="icon-only"
+                  name="create-outline">
+                </ion-icon>
+
+              </ion-button>
+
+
+              <ion-button
+                fill="clear"
+                class="btn-action toggle"
+                (click)="cambiarEstadoOferta(oferta)"
+                [title]="
+                  oferta.estado === 'Activa'
+                    ? 'Desactivar'
+                    : 'Activar'
+                ">
+
+                <ion-icon
+                  slot="icon-only"
+                  name="power-outline">
+                </ion-icon>
+
+              </ion-button>
+
+
+              <ion-button
+                fill="clear"
+                class="btn-action delete"
+                (click)="
+                  confirmarEliminarOferta(
+                    oferta.id
+                  )
+                "
+                title="Eliminar">
+
+                <ion-icon
+                  slot="icon-only"
+                  name="trash-outline">
+                </ion-icon>
+
+              </ion-button>
+
+            </div>
+
+          </div>
+
+
+          <div
+            class="details-chips"
+            *ngIf="
+              oferta.cargoNombre ||
+              oferta.areaLaboral
+            ">
+
+            <span
+              class="chip"
+              *ngIf="oferta.cargoNombre">
+
+              <ion-icon
+                name="person-outline">
+              </ion-icon>
+
+              {{ oferta.cargoNombre }}
+
+            </span>
+
+
+            <span
+              class="chip"
+              *ngIf="oferta.areaLaboral">
+
+              <ion-icon
+                name="briefcase-outline">
+              </ion-icon>
+
+              {{ oferta.areaLaboral }}
+
+            </span>
+
+          </div>
+
+
+          <p class="description">
+            {{ oferta.descripcion }}
+          </p>
+
+
+          <div class="details-chips">
+
+
+            <span
+              class="chip"
+              *ngIf="oferta.modalidad">
+
+              <ion-icon
+                name="briefcase-outline">
+              </ion-icon>
+
+              {{ oferta.modalidad }}
+
+            </span>
+
+
+            <span
+              class="chip"
+              *ngIf="oferta.direccion">
+
+              <ion-icon
+                name="location-outline">
+              </ion-icon>
+
+              {{ oferta.direccion }}
+
+            </span>
+
+
+            <span
+              class="chip"
+              *ngIf="oferta.contactoEmail">
+
+              <ion-icon
+                name="mail-outline">
+              </ion-icon>
+
+              {{ oferta.contactoEmail }}
+
+            </span>
+
+
+            <span
+              class="chip"
+              *ngIf="oferta.contactoTelefono">
+
+              <ion-icon
+                name="call-outline">
+              </ion-icon>
+
+              {{ oferta.contactoTelefono }}
+
+            </span>
+
+          </div>
+
+
+          <div
+            class="requirements"
+            *ngIf="oferta.habilidades">
+
+            <strong>
+              Requisitos:
+            </strong>
+
+            {{ oferta.habilidades }}
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ====================================================== -->
+  <!-- MODAL POSTULANTES -->
+  <!-- ====================================================== -->
+
+  <ion-modal
+    [isOpen]="isModalPostulantesOpen"
+    (didDismiss)="cerrarModalPostulantes()">
+
+
+    <ng-template>
+
+
+      <ion-header>
+
+        <ion-toolbar class="modal-toolbar">
+
+          <ion-title>
+
+            Postulantes:
+            {{ ofertaSeleccionada?.titulo }}
+
+          </ion-title>
+
+
+          <ion-buttons slot="end">
+
+            <ion-button
+              (click)="cerrarModalPostulantes()">
+
+              <ion-icon
+                slot="icon-only"
+                name="close-outline">
+              </ion-icon>
+
+            </ion-button>
+
+          </ion-buttons>
+
+        </ion-toolbar>
+
+      </ion-header>
+
+
+      <ion-content
+        class="ion-padding modal-body">
+
+
+        <div class="modal-intro">
+
+          <p>
+
+            Total postulantes registrados:
+
+            <strong>
+              {{ postulantesList.length }}
+            </strong>
+
+          </p>
+
+        </div>
+
+
+        <div
+          class="loading-container"
+          *ngIf="cargandoPostulantes">
+
+          <ion-spinner
+            name="crescent"
+            color="primary">
+          </ion-spinner>
+
+          <p>
+            Cargando postulaciones...
+          </p>
+
+        </div>
+
+
+        <div
+          class="empty-state"
+          *ngIf="
+            !cargandoPostulantes &&
+            postulantesList.length === 0
+          ">
+
+          <ion-icon
+            name="document-text-outline">
+          </ion-icon>
+
+          <h3>
+            Aún no hay postulaciones
+          </h3>
+
+          <p>
+            Los candidatos aparecerán aquí
+            cuando postulen.
+          </p>
+
+        </div>
+
+
+        <!-- ================================================== -->
+        <!-- TOP 3 -->
+        <!-- ================================================== -->
+
+        <div
+          class="top-candidatos"
+          *ngIf="
+            !cargandoPostulantes &&
+            top3Postulantes.length > 0
+          ">
+
+
+          <div class="top-header">
+
+            <h3>
+              🏆 Candidatos destacados
+            </h3>
+
+            <p>
+              Los tres mayores puntajes
+              de idoneidad obtenidos
+              para esta oferta.
+            </p>
+
+          </div>
+
+
+          <div class="top-grid">
+
+
+            <div
+              class="top-card"
+              *ngFor="
+                let candidato
+                of top3Postulantes;
+                let i = index
+              "
+              [ngClass]="{
+                'primer-lugar': i === 0,
+                'segundo-lugar': i === 1,
+                'tercer-lugar': i === 2
+              }">
+
+
+              <div class="medalla">
+
+                <span *ngIf="i === 0">
+                  🥇
+                </span>
+
+                <span *ngIf="i === 1">
+                  🥈
+                </span>
+
+                <span *ngIf="i === 2">
+                  🥉
+                </span>
+
+              </div>
+
+
+              <div class="top-avatar">
+
+                <img
+                  *ngIf="candidato.fotoPerfil"
+                  [src]="candidato.fotoPerfil"
+                  [alt]="
+                    'Foto de ' +
+                    candidato.nombres +
+                    ' ' +
+                    candidato.apellidos
+                  ">
+
+
+                <ion-icon
+                  *ngIf="!candidato.fotoPerfil"
+                  name="person-outline">
+                </ion-icon>
+
+              </div>
+
+
+              <div class="top-info">
+
+                <span class="top-position">
+                  #{{ i + 1 }}
+                </span>
+
+
+                <h4>
+
+                  {{ candidato.nombres }}
+
+                  {{ candidato.apellidos }}
+
+                </h4>
+
+
+                <ng-container
+                  *ngIf="
+                    candidato.cvManual as cv
+                  ">
+
+                  <p
+                    *ngIf="
+                      cv.areaExperiencia
+                    ">
+
+                    {{ cv.areaExperiencia }}
+
+                  </p>
+
+                </ng-container>
+
+              </div>
+
+
+              <div class="puntaje-box">
+
+                <span class="puntaje-numero">
+
+                  {{
+                    candidato
+                      .puntajeInoeidad
+                  }}
+
+                </span>
+
+                <span class="puntaje-label">
+                  pts
+                </span>
+
+              </div>
+
+
+              <ion-button
+                type="button"
+                size="small"
+                fill="outline"
+                color="primary"
+                (click)="
+                  verDatosPostulanteRanking(
+                    candidato
+                  )
+                ">
+
+                <ion-icon
+                  name="person-outline"
+                  slot="start">
+                </ion-icon>
+
+                Ver datos
+
+              </ion-button>
+
+            </div>
+
+          </div>
+
+
+          <p class="ranking-note">
+
+            El puntaje es una herramienta
+            de apoyo.
+
+            La decisión final corresponde
+            al reclutador.
+
+          </p>
+
+        </div>
+
+
+        <!-- ================================================== -->
+        <!-- LISTA COMPLETA -->
+        <!-- ================================================== -->
+
+        <div
+          class="postulantes-list"
+          *ngIf="
+            !cargandoPostulantes &&
+            postulantesList.length > 0
+          ">
+
+
+          <div
+            class="postulante-card"
+            *ngFor="
+              let p of postulantesList
+            "
+            [id]="
+              'postulante-' +
+              p.postulacionId
+            ">
+
+
+            <div class="postulante-header">
+
+
+              <div class="postulante-info">
+
+
+                <div class="avatar-circle">
+
+                  <img
+                    *ngIf="p.fotoPerfil"
+                    [src]="p.fotoPerfil"
+                    [alt]="
+                      'Foto de ' +
+                      p.nombres +
+                      ' ' +
+                      p.apellidos
+                    "
+                    class="postulante-foto">
+
+
+                  <ion-icon
+                    *ngIf="!p.fotoPerfil"
+                    name="person-outline">
+                  </ion-icon>
+
+                </div>
+
+
+                <div>
+
+
+                  <h4>
+
+                    {{ p.nombres }}
+
+                    {{ p.apellidos }}
+
+                  </h4>
+
+
+                  <div
+                    class="idoneidad-badge"
+                    *ngIf="
+                      p.puntajeInoeidad !==
+                      undefined
+                    ">
+
+                    Puntaje de idoneidad:
+
+                    <strong>
+
+                      {{
+                        p.puntajeInoeidad
+                      }}
+
+                      pts
+
+                    </strong>
+
+                  </div>
+
+
+                  <p class="postulante-email">
+
+                    <ion-icon
+                      name="mail-outline">
+                    </ion-icon>
+
+                    {{ p.correo }}
+
+                  </p>
+
+
+                  <p
+                    class="postulante-phone"
+                    *ngIf="p.telefono">
+
+                    <ion-icon
+                      name="call-outline">
+                    </ion-icon>
+
+                    {{ p.telefono }}
+
+                  </p>
+
+                </div>
+
+              </div>
+
+
+              <span
+                class="badge-estado"
+                [ngClass]="
+                  p.estado.toLowerCase()
+                ">
+
+                {{ p.estado }}
+
+              </span>
+
+            </div>
+
+
+            <div
+              class="cv-summary"
+              *ngIf="p.cvManual as cv">
+
+
+              <p>
+
+                <strong>
+
+                  <ion-icon
+                    name="school-outline">
+                  </ion-icon>
+
+                  Estudios:
+
+                </strong>
+
+                {{
+                  cv.nivelEducativo
+                  ||
+                  'No especificado'
+                }}
+
+              </p>
+
+
+              <p>
+
+                <strong>
+
+                  <ion-icon
+                    name="briefcase-outline">
+                  </ion-icon>
+
+                  Oficio/Área:
+
+                </strong>
+
+                {{
+                  cv.areaExperiencia
+                  ||
+                  'No especificado'
+                }}
+
+              </p>
+
+
+              <p>
+
+                <strong>
+
+                  <ion-icon
+                    name="time-outline">
+                  </ion-icon>
+
+                  Experiencia:
+
+                </strong>
+
+                {{
+                  cv.anosExperiencia
+                  ??
+                  '0'
+                }}
+
+                años
+
+              </p>
+
+
+              <p
+                *ngIf="
+                  cv.habilidades
+                ">
+
+                <strong>
+
+                  <ion-icon
+                    name="star-outline">
+                  </ion-icon>
+
+                  Habilidades:
+
+                </strong>
+
+                {{ cv.habilidades }}
+
+              </p>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- DOCUMENTOS / CUESTIONARIO -->
+            <!-- ================================================= -->
+
+            <div class="candidate-documents">
+
+
+              <ion-button
+                *ngIf="p.cvBase64"
+                fill="outline"
+                class="btn-document"
+                (click)="verCV(p.cvBase64)">
+
+                <ion-icon
+                  slot="start"
+                  name="document-text-outline">
+                </ion-icon>
+
+                Ver Currículum
+
+              </ion-button>
+
+
+              <ion-button
+                fill="outline"
+                color="primary"
+                class="btn-questionnaire"
+                (click)="verRespuestasCuestionario(p)">
+
+                <ion-icon
+                  slot="start"
+                  name="school-outline">
+                </ion-icon>
+
+                Ver respuestas completas
+
+              </ion-button>
+
+            </div>
+
+
+            <div class="postulante-actions">
+
+
+              <ion-button
+                color="success"
+                fill="solid"
+                size="small"
+                [disabled]="
+                  p.estado ===
+                  'Aceptado'
+                "
+                (click)="
+                  cambiarEstadoPostulante(
+                    p,
+                    'Aceptado'
+                  )
+                ">
+
+                <ion-icon
+                  slot="start"
+                  name="checkmark-circle-outline">
+                </ion-icon>
+
+                {{
+                  p.estado ===
+                    'Aceptado'
+                    ? 'Aceptado'
+                    : 'Aceptar Candidato'
+                }}
+
+              </ion-button>
+
+
+              <ion-button
+                color="danger"
+                fill="outline"
+                size="small"
+                [disabled]="
+                  p.estado ===
+                  'Rechazado'
+                "
+                (click)="
+                  cambiarEstadoPostulante(
+                    p,
+                    'Rechazado'
+                  )
+                ">
+
+                <ion-icon
+                  slot="start"
+                  name="close-circle-outline">
+                </ion-icon>
+
+                {{
+                  p.estado ===
+                    'Rechazado'
+                    ? 'Rechazado'
+                    : 'Rechazar'
+                }}
+
+              </ion-button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </ion-content>
+
+    </ng-template>
+
+  </ion-modal>
+
+
+  <!-- ====================================================== -->
+  <!-- MODAL RESPUESTAS CUESTIONARIO -->
+  <!-- ====================================================== -->
+
+  <ion-modal
+    class="questionnaire-modal"
+    [isOpen]="isModalRespuestasOpen"
+    (didDismiss)="cerrarModalRespuestas()">
+
+
+    <ng-template>
+
+
+      <ion-header class="ion-no-border">
+
+        <ion-toolbar class="questionnaire-toolbar">
+
+          <ion-title>
+            Respuestas del cuestionario
+          </ion-title>
+
+
+          <ion-buttons slot="end">
+
+            <ion-button
+              (click)="cerrarModalRespuestas()">
+
+              <ion-icon
+                name="close-outline"
+                slot="icon-only">
+              </ion-icon>
+
+            </ion-button>
+
+          </ion-buttons>
+
+        </ion-toolbar>
+
+      </ion-header>
+
+
+      <ion-content
+        class="questionnaire-modal-content">
+
+
+        <ng-container
+          *ngIf="
+            postulanteRespuestasSeleccionado
+              as candidato
+          ">
+
+
+          <!-- =============================================== -->
+          <!-- PERFIL -->
+          <!-- =============================================== -->
+
+          <section
+            class="questionnaire-candidate-header">
+
+
+            <div class="questionnaire-profile">
+
+
+              <div class="questionnaire-avatar">
+
+                <img
+                  *ngIf="candidato.fotoPerfil"
+                  [src]="candidato.fotoPerfil"
+                  [alt]="
+                    'Foto de ' +
+                    candidato.nombres +
+                    ' ' +
+                    candidato.apellidos
+                  ">
+
+
+                <ion-icon
+                  *ngIf="!candidato.fotoPerfil"
+                  name="person-outline">
+                </ion-icon>
+
+              </div>
+
+
+              <div class="questionnaire-person">
+
+                <span
+                  class="questionnaire-eyebrow">
+
+                  CANDIDATO
+
+                </span>
+
+
+                <h2>
+
+                  {{ candidato.nombres }}
+
+                  {{ candidato.apellidos }}
+
+                </h2>
+
+
+                <p>
+                  {{ candidato.correo }}
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <div
+              class="questionnaire-score"
+              *ngIf="
+                candidato.puntajeInoeidad !==
+                undefined
+              ">
+
+              <span>
+                Puntaje de idoneidad
+              </span>
+
+              <strong>
+
+                {{
+                  candidato.puntajeInoeidad
+                }}
+
+                pts
+
+              </strong>
+
+            </div>
+
+          </section>
+
+
+          <!-- =============================================== -->
+          <!-- CONTEXTO -->
+          <!-- =============================================== -->
+
+          <section class="questionnaire-context">
+
+
+            <div>
+
+              <span class="context-label">
+                Oferta
+              </span>
+
+              <strong>
+
+                {{
+                  candidato.ofertaTitulo
+                  ||
+                  ofertaSeleccionada?.titulo
+                  ||
+                  'Oferta de empleo'
+                }}
+
+              </strong>
+
+            </div>
+
+
+            <div
+              *ngIf="
+                candidato.cargoNombre ||
+                ofertaSeleccionada?.cargoNombre
+              ">
+
+              <span class="context-label">
+                Cargo
+              </span>
+
+              <strong>
+
+                {{
+                  candidato.cargoNombre
+                  ||
+                  ofertaSeleccionada?.cargoNombre
+                }}
+
+              </strong>
+
+            </div>
+
+
+            <div
+              *ngIf="
+                candidato.areaLaboral ||
+                ofertaSeleccionada?.areaLaboral
+              ">
+
+              <span class="context-label">
+                Área
+              </span>
+
+              <strong>
+
+                {{
+                  candidato.areaLaboral
+                  ||
+                  ofertaSeleccionada?.areaLaboral
+                }}
+
+              </strong>
+
+            </div>
+
+
+            <div>
+
+              <span class="context-label">
+                Estado
+              </span>
+
+              <strong
+                class="questionnaire-state"
+                [ngClass]="
+                  candidato.estado.toLowerCase()
+                ">
+
+                {{ candidato.estado }}
+
+              </strong>
+
+            </div>
+
+          </section>
+
+
+          <!-- =============================================== -->
+          <!-- ENCABEZADO RESPUESTAS -->
+          <!-- =============================================== -->
+
+          <section class="responses-heading">
+
+
+            <div>
+
+              <span class="responses-eyebrow">
+                EVALUACIÓN
+              </span>
+
+              <h2>
+                Respuestas completas
+              </h2>
+
+              <p>
+                Revisa las respuestas entregadas por el
+                postulante durante su proceso de postulación.
+              </p>
+
+            </div>
+
+
+            <div
+              class="answers-count"
+              *ngIf="
+                candidato.respuestas
+                  as respuestas
+              ">
+
+              <strong>
+                {{ respuestas.length }}
+              </strong>
+
+              <span>
+                respuestas
+              </span>
+
+            </div>
+
+          </section>
+
+
+          <!-- =============================================== -->
+          <!-- RESPUESTAS -->
+          <!-- =============================================== -->
+
+          <ng-container
+            *ngIf="
+              candidato.respuestas
+                as respuestas
+            ">
+
+
+            <div
+              class="questionnaire-responses"
+              *ngIf="
+                respuestas.length > 0;
+                else sinRespuestas
+              ">
+
+
+              <article
+                class="response-card"
+                *ngFor="
+                  let respuesta of respuestas;
+                  let i = index
+                ">
+
+
+                <div class="response-number">
+                  {{ i + 1 }}
+                </div>
+
+
+                <div class="response-content">
+
+
+                  <div class="response-top">
+
+                    <span
+                      class="response-type"
+                      [class.selection]="
+                        respuesta.tipo ===
+                        'seleccion'
+                      ">
+
+                      {{
+                        respuesta.tipo ===
+                          'seleccion'
+                          ? 'Selección'
+                          : 'Respuesta escrita'
+                      }}
+
+                    </span>
+
+
+                    <span
+                      class="response-points"
+                      *ngIf="
+                        respuesta.puntajeObtenido !==
+                        undefined
+                      ">
+
+                      +{{
+                        respuesta.puntajeObtenido
+                      }}
+                      pts
+
+                    </span>
+
+                  </div>
+
+
+                  <h3>
+                    {{ respuesta.preguntaTexto }}
+                  </h3>
+
+
+                  <div
+                    class="candidate-answer"
+                    [class.selected-answer]="
+                      respuesta.tipo ===
+                      'seleccion'
+                    ">
+
+                    <span class="answer-label">
+                      Respuesta del candidato
+                    </span>
+
+                    <p>
+
+                      {{
+                        respuesta.respuesta
+                        ||
+                        'Sin respuesta registrada'
+                      }}
+
+                    </p>
+
+                  </div>
+
+                </div>
+
+              </article>
+
+            </div>
+
+          </ng-container>
+
+
+          <!-- =============================================== -->
+          <!-- SIN RESPUESTAS -->
+          <!-- =============================================== -->
+
+          <ng-template #sinRespuestas>
+
+            <div
+              class="no-questionnaire-responses">
+
+              <div
+                class="empty-questionnaire-icon">
+
+                📋
+
+              </div>
+
+
+              <h3>
+                No hay respuestas registradas
+              </h3>
+
+
+              <p>
+                Esta postulación no contiene respuestas
+                detalladas del cuestionario.
+                Las postulaciones antiguas pueden no tener
+                todavía el campo de respuestas guardado
+                en Firebase.
+              </p>
+
+            </div>
+
+          </ng-template>
+
+
+          <!-- =============================================== -->
+          <!-- PIE -->
+          <!-- =============================================== -->
+
+          <div class="questionnaire-footer">
+
+            <div>
+
+              <strong>
+                Resultado de evaluación
+              </strong>
+
+              <span>
+                El puntaje sirve como apoyo para la decisión
+                final del reclutador.
+              </span>
+
+            </div>
+
+
+            <ion-button
+              type="button"
+              fill="outline"
+              color="medium"
+              (click)="cerrarModalRespuestas()">
+
+              Cerrar
+
+            </ion-button>
+
+          </div>
+
+        </ng-container>
+
+      </ion-content>
+
+    </ng-template>
+
+  </ion-modal>
+
+</ion-content>
