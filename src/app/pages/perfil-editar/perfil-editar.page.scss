@@ -1,0 +1,158 @@
+/* --- HEADER Y BARRA DE PROGRESO --- */
+ion-header {
+  background-color: var(--ion-color-light); 
+}
+
+.header-toolbar {
+  --background: var(--ion-color-light);
+  --border-width: 0;
+}
+
+.custom-back-btn {
+  color: var(--ion-color-primary-shade);
+}
+
+.header-title {
+  color: var(--ion-color-primary-shade);
+  font-weight: 800;
+  font-size: 1.25rem;
+}
+
+.custom-progress-bar {
+  --background: rgba(var(--ion-color-primary-rgb), 0.15); /* Fondo base */
+  --progress-background: var(--ion-color-primary); /* Relleno verde */
+  height: 4px;
+}
+
+/* --- ESTRUCTURA GENERAL --- */
+.edit-content {
+  --background: var(--ion-color-light); /* Fondo crema */
+}
+
+.edit-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 15px 15px 40px;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  
+  ion-spinner {
+    color: var(--ion-color-primary);
+    transform: scale(1.5);
+  }
+}
+
+/* --- INDICADOR DE PASOS --- */
+.step-indicator {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+
+  .step-badge {
+    background: rgba(var(--ion-color-secondary-rgb), 0.15);
+    color: var(--ion-color-secondary-shade);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+}
+
+/* --- TARJETA DE FORMULARIO --- */
+.form-card {
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(79, 157, 20, 0.08); /* Sombra botánica */
+  padding: 25px 20px;
+}
+
+.section-title {
+  color: var(--ion-color-primary-shade);
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin: 0 0 5px 0;
+  text-align: center;
+}
+
+.section-subtitle {
+  color: var(--ion-color-medium-shade);
+  font-size: 0.95rem;
+  margin: 0 0 25px 0;
+  text-align: center;
+}
+
+/* --- INPUTS --- */
+.input-wrapper {
+  margin-bottom: 20px;
+
+  .input-hint {
+    font-size: 0.8rem;
+    color: var(--ion-color-medium);
+    margin: 5px 0 0 5px;
+  }
+}
+
+.modern-input {
+  --background: rgba(var(--ion-color-primary-rgb), 0.02);
+  --border-color: rgba(var(--ion-color-primary-rgb), 0.2);
+  --border-radius: 12px;
+  --color: var(--ion-color-dark);
+  --placeholder-color: var(--ion-color-medium);
+}
+
+.disabled-input {
+  opacity: 0.8;
+  
+  .modern-input {
+    --background: rgba(var(--ion-color-medium-rgb), 0.05);
+    --color: var(--ion-color-medium-shade);
+  }
+}
+
+/* --- BOTONES DE ACCIÓN --- */
+.action-section {
+  margin-top: 30px;
+}
+
+.btn-primary-custom {
+  --background: linear-gradient(135deg, var(--ion-color-secondary-shade) 0%, var(--ion-color-primary-shade) 100%);
+  --border-radius: 16px;
+  --box-shadow: 0 6px 15px rgba(var(--ion-color-primary-rgb), 0.25);
+  --color: #ffffff;
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.3px;
+  min-height: 50px;
+}
+
+/* --- ANIMACIONES --- */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- FOOTER --- */
+ion-footer {
+  .footer-toolbar {
+    --background: var(--ion-color-light);
+    text-align: center;
+    
+    .footer-text {
+      color: var(--ion-color-medium);
+      font-size: 0.85rem;
+      margin: 10px 0 20px 0;
+      font-weight: 500;
+    }
+  }
+}

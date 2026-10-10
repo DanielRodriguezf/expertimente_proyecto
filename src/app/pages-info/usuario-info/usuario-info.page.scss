@@ -1,0 +1,219 @@
+/* --- HEADER Y PROGRESS BAR --- */
+ion-header {
+  background-color: var(--ion-color-light); 
+}
+
+.header-toolbar {
+  --background: var(--ion-color-light);
+  --border-width: 0;
+}
+
+.custom-back-btn {
+  color: var(--ion-color-primary-shade);
+}
+
+.header-title {
+  color: var(--ion-color-primary-shade);
+  font-weight: 800;
+  font-size: 1.25rem;
+}
+
+.custom-progress-bar {
+  --background: rgba(var(--ion-color-primary-rgb), 0.15);
+  --progress-background: var(--ion-color-primary);
+  height: 6px;
+}
+
+/* --- ESTRUCTURA GENERAL --- */
+.main-content {
+  --background: var(--ion-color-light);
+}
+
+.register-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 10px 15px 30px;
+}
+
+/* Indicador de paso (Ej: Paso 1 de 5) */
+.step-indicator {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 15px;
+
+  .step-badge {
+    background: rgba(var(--ion-color-primary-rgb), 0.1);
+    color: var(--ion-color-primary-shade);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+}
+
+/* Tarjeta Blanca Principal */
+.form-card {
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(79, 157, 20, 0.08); /* Sombra botánica */
+  padding: 25px 20px;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- TEXTOS --- */
+.question-text {
+  color: var(--ion-color-primary-shade);
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin: 0 0 5px 0;
+}
+
+.subtitle {
+  color: var(--ion-color-medium-shade);
+  font-size: 0.95rem;
+  margin: 0 0 20px 0;
+}
+
+/* --- RADIOS (PASO 1) --- */
+.radio-group-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.radio-item {
+  --background: rgba(var(--ion-color-primary-rgb), 0.02);
+  --border-radius: 12px;
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.1);
+  --padding-start: 15px;
+  --inner-padding-end: 15px;
+}
+
+.custom-radio {
+  --color: var(--ion-color-medium);
+  --color-checked: var(--ion-color-primary);
+  font-weight: 500;
+  padding: 12px 0;
+  width: 100%;
+}
+
+/* --- INPUTS Y TEXTAREAS --- */
+.input-with-button {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.input-wrapper {
+  margin-bottom: 20px;
+}
+
+.modern-input, .modern-textarea {
+  --background: rgba(var(--ion-color-primary-rgb), 0.02);
+  --border-color: rgba(var(--ion-color-primary-rgb), 0.2);
+  --border-radius: 12px;
+  --color: var(--ion-color-dark);
+  --placeholder-color: var(--ion-color-medium);
+}
+
+.input-centered-text {
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.btn-add {
+  --background: rgba(var(--ion-color-primary-rgb), 0.15);
+  --color: var(--ion-color-primary-shade);
+  --border-radius: 12px;
+  --box-shadow: none;
+  margin: 0;
+  height: 56px;
+  width: 56px;
+}
+
+/* --- CHIPS --- */
+.chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 25px;
+}
+
+/* Chip de elementos agregados */
+.custom-chip-primary {
+  --background: var(--ion-color-primary);
+  --color: #ffffff;
+  font-weight: 600;
+  
+  ion-icon {
+    color: #ffffff;
+    font-size: 1.2rem;
+  }
+}
+
+/* Chips de sugerencias */
+.suggestions-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ion-color-primary-shade);
+  margin: 0 0 10px 0;
+}
+
+.suggestion-chip {
+  --background: transparent;
+  border: 1px solid var(--ion-color-primary);
+  --color: var(--ion-color-primary-shade);
+  font-weight: 600;
+
+  ion-icon {
+    color: var(--ion-color-primary);
+  }
+}
+
+/* --- BOTÓN DE ACCIÓN --- */
+.action-section {
+  margin-top: 5px;
+}
+
+.btn-primary-custom {
+  --background: linear-gradient(135deg, var(--ion-color-secondary-shade) 0%, var(--ion-color-primary-shade) 100%);
+  --border-radius: 16px;
+  --box-shadow: 0 6px 15px rgba(var(--ion-color-primary-rgb), 0.25);
+  --color: #ffffff;
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.3px;
+  min-height: 50px;
+}
+
+/* --- ANIMACIONES --- */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- FOOTER --- */
+ion-footer {
+  .footer-toolbar {
+    --background: var(--ion-color-light);
+    text-align: center;
+    
+    .footer-text {
+      color: var(--ion-color-medium);
+      font-size: 0.85rem;
+      margin: 10px 0 20px 0;
+      font-weight: 500;
+    }
+  }
+}

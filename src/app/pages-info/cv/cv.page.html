@@ -1,0 +1,87 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home" class="menu-btn-custom"></ion-back-button>
+    </ion-buttons>
+    <ion-title class="app-title">Mi Currículum</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="cv-content">
+  <div class="cv-container">
+
+    <div class="form-section">
+      <div class="section-header">
+        <h2 class="section-title">Sube tu Currículum</h2>
+        <p class="section-subtitle">Si tienes tu currículum en formato PDF en tu teléfono, súbelo aquí.</p>
+      </div>
+
+      <!-- CV PREVIAMENTE SUBIDO -->
+      @if (tieneCVSubido) {
+        <ion-card class="form-card">
+          <ion-card-content>
+            <ion-item lines="none" class="transparent-item">
+              <div slot="start" class="icon-box doc-box">
+                <ion-icon name="document-text-outline"></ion-icon>
+              </div>
+              <ion-label>
+                <h3 class="action-title">Currículum Guardado</h3>
+                <p class="action-desc">{{ nombreCVSaved }}</p>
+              </ion-label>
+            </ion-item>
+            
+            <div class="button-row mt-15">
+              <ion-button expand="block" fill="outline" class="btn-outline-danger" (click)="eliminarCVGuardado()">
+                <ion-icon slot="start" name="trash-outline"></ion-icon> Quitar
+              </ion-button>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      }
+
+      <!-- ZONA DE CARGA DE ARCHIVO -->
+      <ion-card class="form-card">
+        <ion-card-content>
+          <div class="drop-zone">
+            <input type="file" #fileInput (change)="alSeleccionarArchivo($event)" accept="application/pdf" class="hidden-input">
+            
+            <ion-icon name="cloud-upload-outline" class="upload-icon"></ion-icon>
+            <h4 class="drop-title">{{ tieneCVSubido ? 'Reemplazar Archivo' : 'Selecciona tu PDF' }}</h4>
+            <p class="drop-desc">Formato PDF (Máx. 600KB)</p>
+            
+            <ion-button fill="solid" class="btn-secondary-custom" (click)="abrirSelectorArchivo()" shape="round">
+              Buscar Archivo
+            </ion-button>
+          </div>
+
+          <!-- ARCHIVO PENDIENTE DE GUARDAR -->
+          @if (archivoSeleccionadoNombre) {
+            <ion-item lines="none" class="pending-file">
+              <ion-icon name="checkmark-circle" class="icon-green" slot="start"></ion-icon>
+              <ion-label>
+                <h4 class="pending-title">{{ archivoSeleccionadoNombre }}</h4>
+                <p class="pending-desc">Listo para guardar</p>
+              </ion-label>
+              <ion-button fill="clear" class="btn-clear-danger" slot="end" (click)="quitarArchivoPendiente()">
+                <ion-icon name="trash-outline"></ion-icon>
+              </ion-button>
+            </ion-item>
+          }
+        </ion-card-content>
+      </ion-card>
+
+      <!-- BOTÓN GUARDAR -->
+      <ion-button expand="block" class="btn-primary-custom" [disabled]="!archivoBase64" (click)="guardarDatos()">
+        Guardar Archivo
+      </ion-button>
+    </div>
+
+  </div>
+</ion-content>
+
+<!-- FOOTER FIJO -->
+<ion-footer class="ion-no-border">
+  <ion-toolbar class="footer-toolbar">
+    <p class="footer-text">© ExpertiMente 2026</p>
+  </ion-toolbar>
+</ion-footer>

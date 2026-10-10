@@ -1,0 +1,167 @@
+/* --- NAVBAR (HEADER) --- */
+ion-header {
+  ion-toolbar {
+    /* Gradiente verde inspirado en tu imagen */
+    --background: linear-gradient(135deg, var(--ion-color-secondary-shade) 0%, var(--ion-color-tertiary-tint) 100%);
+    --border-width: 0;
+    --min-height: 65px;
+  }
+}
+
+.menu-btn-custom {
+  color: #ffffff; 
+}
+
+.app-title {
+  color: #ffffff; 
+  font-weight: 600;
+  font-size: 1.25rem;
+  letter-spacing: 0.5px; 
+}
+
+/* --- FONDO GENERAL --- */
+ion-content {
+  --background: var(--ion-color-light); 
+}
+
+.home-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 25px 20px;
+}
+
+/* --- SECCIÓN DE BIENVENIDA --- */
+.welcome-section {
+  padding: 15px 5px 35px;
+  position: relative;
+}
+
+.welcome-title {
+  font-size: 2.1rem;
+  font-weight: 800;
+  /* Verde muy oscuro, cero negro */
+  color: var(--ion-color-primary-shade);
+  margin: 0 0 8px 0;
+  line-height: 1.2;
+  position: relative;
+  z-index: 1;
+}
+
+.welcome-subtitle {
+  font-size: 1.05rem;
+  /* Verde medio/oliva para subtítulos */
+  color: var(--ion-color-medium-shade);
+  margin: 0;
+  line-height: 1.5;
+  max-width: 85%;
+  position: relative;
+  z-index: 1;
+}
+
+/* --- SECCIÓN DE ACCIONES --- */
+.actions-section {
+  .section-title {
+    padding-left: 5px;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--ion-color-primary-shade); /* Verde oscuro */
+    margin-bottom: 16px;
+  }
+
+  .action-card {
+    border-radius: 20px; /* Bordes más redondeados como en tu diseño */
+    margin: 0 0 18px 0;
+    background: #ffffff;
+    /* Sombra tintada ligeramente de verde en lugar de gris */
+    box-shadow: 0 8px 24px rgba(79, 157, 20, 0.08); 
+    transition: transform 0.2s ease;
+
+    &:active {
+      transform: scale(0.97); 
+    }
+
+    .action-item {
+      --background: transparent;
+      padding: 12px 5px;
+      
+      --detail-icon-color: var(--ion-color-medium-tint); 
+      --detail-icon-opacity: 0.8;
+      --detail-icon-font-size: 20px;
+
+      .icon-box {
+        padding: 14px;
+        border-radius: 14px;
+        margin-right: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        ion-icon {
+          font-size: 26px;
+        }
+
+        &.doc-box {
+          background: rgba(var(--ion-color-primary-rgb), 0.12); 
+          color: var(--ion-color-primary-shade);
+        }
+      }
+
+      .action-title {
+        font-weight: 800;
+        font-size: 1.1rem;
+        /* Verde oscuro */
+        color: var(--ion-color-primary-shade);
+        margin-bottom: 5px;
+      }
+
+      .action-desc {
+        font-size: 0.9rem;
+        /* Verde oliva medio */
+        color: var(--ion-color-medium);
+        margin: 0;
+        line-height: 1.35;
+      }
+    }
+  }
+
+  /* TARJETA DESTACADA: BUSCAR EMPLEO */
+  .primary-action-card {
+    background: linear-gradient(135deg, var(--ion-color-secondary-shade) 0%, var(--ion-color-primary-shade) 100%);
+    box-shadow: 0 10px 24px rgba(var(--ion-color-primary-rgb), 0.25);
+
+    .primary-item {
+      --detail-icon-color: #ffffff; 
+      --detail-icon-opacity: 0.9;
+      
+      .search-box {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(5px);
+        color: #ffffff;
+      }
+
+      .text-white {
+        color: #ffffff !important;
+      }
+
+      .action-desc.text-white {
+        opacity: 0.9;
+      }
+    }
+  }
+}
+
+/* --- FOOTER --- */
+ion-footer {
+  .footer-toolbar {
+    --background: var(--ion-color-light);
+    text-align: center;
+    
+    .footer-text {
+      /* Verde medio en vez de gris oscuro */
+      color: var(--ion-color-medium);
+      font-size: 0.85rem;
+      margin: 10px 0 20px 0;
+      font-weight: 500;
+    }
+  }
+}

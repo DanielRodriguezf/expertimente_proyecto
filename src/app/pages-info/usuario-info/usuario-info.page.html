@@ -1,0 +1,221 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      @if (pasoActual > 1) {
+        <ion-button (click)="pasoAnterior()">
+          <ion-icon slot="icon-only" name="arrow-back-outline" class="custom-back-btn"></ion-icon>
+        </ion-button>
+      }
+      @if (pasoActual === 1) {
+        <ion-back-button defaultHref="/home" class="custom-back-btn"></ion-back-button>
+      }
+    </ion-buttons>
+    <ion-title class="header-title">Mi Experiencia</ion-title>
+  </ion-toolbar>
+  
+  <ion-progress-bar 
+    [value]="pasoActual / totalPasos" 
+    class="custom-progress-bar">
+  </ion-progress-bar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="main-content">
+  <div class="register-container fade-in">
+
+    <div class="step-indicator">
+      <span class="step-badge">Paso {{ pasoActual }} de {{ totalPasos }}</span>
+    </div>
+
+    <div class="form-card">
+      <div class="form-card-content">
+
+        <!-- PASO 1: NIVEL EDUCATIVO -->
+        @if (pasoActual === 1) {
+          <div class="form-section">
+            <h2 class="question-text">¿Cuál es tu nivel de estudios?</h2>
+            <p class="subtitle">Selecciona hasta qué nivel llegaste.</p>
+
+            <ion-radio-group [(ngModel)]="datosManuales.nivelEducativo">
+              <div class="radio-group-container">
+                <ion-item class="radio-item" lines="none">
+                  <ion-radio value="Educación Básica" justify="space-between" class="custom-radio">Educación Básica</ion-radio>
+                </ion-item>
+                <ion-item class="radio-item" lines="none">
+                  <ion-radio value="Educación Media" justify="space-between" class="custom-radio">Educación Media</ion-radio>
+                </ion-item>
+                <ion-item class="radio-item" lines="none">
+                  <ion-radio value="Técnico Superior" justify="space-between" class="custom-radio">Técnico Nivel Superior</ion-radio>
+                </ion-item>
+                <ion-item class="radio-item" lines="none">
+                  <ion-radio value="Universidad" justify="space-between" class="custom-radio">Universidad / Profesional</ion-radio>
+                </ion-item>
+                <ion-item class="radio-item" lines="none">
+                  <ion-radio value="Otro" justify="space-between" class="custom-radio">Otro</ion-radio>
+                </ion-item>
+              </div>
+            </ion-radio-group>
+
+            <div class="action-section">
+              <ion-button expand="block" class="btn-primary-custom" (click)="siguientePaso()">
+                Continuar
+              </ion-button>
+            </div>
+          </div>
+        }
+
+        <!-- PASO 2: ÁREA DE EXPERIENCIA -->
+        @if (pasoActual === 2) {
+          <div class="form-section">
+            <h2 class="question-text">¿En qué has trabajado principalmente?</h2>
+            <p class="subtitle">Dinos los oficios o cargos donde tienes más experiencia. Puedes agregar varios.</p>
+
+            <div class="input-with-button">
+              <ion-input
+                label="Ingrese un cargo"
+                labelPlacement="floating"
+                fill="outline"
+                type="text"
+                placeholder="Ej. Conserje, Ventas, Soporte..."
+                class="modern-input"
+                [(ngModel)]="nuevaArea"
+                (keyup.enter)="agregarArea()">
+              </ion-input>
+              <ion-button class="btn-add" (click)="agregarArea()">
+                <ion-icon name="add-outline" slot="icon-only"></ion-icon>
+              </ion-button>
+            </div>
+
+            <div class="chips-container">
+              @for (area of datosManuales.areasExperiencia; track $index) {
+                <ion-chip class="custom-chip-primary">
+                  <ion-label>{{ area }}</ion-label>
+                  <ion-icon name="close-outline" (click)="eliminarArea($index)"></ion-icon>
+                </ion-chip>
+              }
+            </div>
+
+            <div class="action-section">
+              <ion-button expand="block" class="btn-primary-custom" (click)="siguientePaso()">
+                Continuar
+              </ion-button>
+            </div>
+          </div>
+        }
+
+        <!-- PASO 3: AÑOS DE EXPERIENCIA -->
+        @if (pasoActual === 3) {
+          <div class="form-section">
+            <h2 class="question-text">¿Cuántos años de experiencia tienes?</h2>
+            <p class="subtitle">Anota el número de años aproximado.</p>
+
+            <div class="input-wrapper">
+              <ion-input
+                label="Años de experiencia"
+                labelPlacement="floating"
+                fill="outline"
+                type="number"
+                placeholder="Ej. 5"
+                class="modern-input input-centered-text"
+                [(ngModel)]="datosManuales.anosExperiencia">
+              </ion-input>
+            </div>
+
+            <div class="action-section">
+              <ion-button expand="block" class="btn-primary-custom" (click)="siguientePaso()">
+                Continuar
+              </ion-button>
+            </div>
+          </div>
+        }
+
+        <!-- PASO 4: HABILIDADES BLANDAS -->
+        @if (pasoActual === 4) {
+          <div class="form-section">
+            <h2 class="question-text">Habilidades Blandas</h2>
+            <p class="subtitle">¿Cuáles son tus fortalezas personales?</p>
+
+            <div class="input-wrapper">
+              <ion-textarea
+                label="Tus fortalezas personales"
+                labelPlacement="floating"
+                fill="outline"
+                rows="4"
+                placeholder="Escribe aquí..."
+                class="modern-textarea"
+                [(ngModel)]="datosManuales.habilidadesBlandas"
+                (ngModelChange)="actualizarSugerenciasBlandas()">
+              </ion-textarea>
+            </div>
+
+            @if (sugerenciasBlandas.length > 0) {
+              <p class="suggestions-label">Sugerencias (Toca para agregar):</p>
+              <div class="chips-container">
+                @for (hab of sugerenciasBlandas; track hab) {
+                  <ion-chip class="suggestion-chip" (click)="agregarHabilidadBlanda(hab)">
+                    <ion-label>{{ hab }}</ion-label>
+                    <ion-icon name="add-outline"></ion-icon>
+                  </ion-chip>
+                }
+              </div>
+            }
+
+            <div class="action-section">
+              <ion-button expand="block" class="btn-primary-custom" (click)="siguientePaso()">
+                Continuar
+              </ion-button>
+            </div>
+          </div>
+        }
+
+        <!-- PASO 5: HABILIDADES TÉCNICAS -->
+        @if (pasoActual === 5) {
+          <div class="form-section">
+            <h2 class="question-text">Habilidades Técnicas</h2>
+            <p class="subtitle">¿Qué herramientas o conocimientos prácticos dominas?</p>
+
+            <div class="input-wrapper">
+              <ion-textarea
+                label="Tus habilidades técnicas"
+                labelPlacement="floating"
+                fill="outline"
+                rows="4"
+                placeholder="Escribe aquí..."
+                class="modern-textarea"
+                [(ngModel)]="datosManuales.habilidadesTecnicas"
+                (ngModelChange)="actualizarSugerenciasTecnicas()">
+              </ion-textarea>
+            </div>
+
+            @if (sugerenciasTecnicas.length > 0) {
+              <p class="suggestions-label">Sugerencias (Toca para agregar):</p>
+              <div class="chips-container">
+                @for (hab of sugerenciasTecnicas; track hab) {
+                  <ion-chip class="suggestion-chip" (click)="agregarHabilidadTecnica(hab)">
+                    <ion-label>{{ hab }}</ion-label>
+                    <ion-icon name="add-outline"></ion-icon>
+                  </ion-chip>
+                }
+              </div>
+            }
+
+            <div class="action-section">
+              <!-- Cambiado a btn-primary-custom para uniformidad gráfica con el resto de la app -->
+              <ion-button expand="block" class="btn-primary-custom" (click)="siguientePaso()">
+                Terminar y Guardar
+              </ion-button>
+            </div>
+          </div>
+        }
+
+      </div>
+    </div>
+
+  </div>
+</ion-content>
+
+<!-- FOOTER FIJO -->
+<ion-footer class="ion-no-border">
+  <ion-toolbar class="footer-toolbar">
+    <p class="footer-text">© ExpertiMente 2026</p>
+  </ion-toolbar>
+</ion-footer>

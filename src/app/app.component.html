@@ -1,0 +1,58 @@
+<ion-app>
+    
+  <!-- Menú Lateral -->
+  <ion-menu contentId="main-content" type="overlay" [disabled]="!sesionActiva">
+    
+    <ion-content class="menu-content">
+      <!-- Encabezado de perfil -->
+      <div class="menu-header">
+        <div class="menu-avatar">
+          <!-- Si el usuario tiene foto de perfil -->
+          <img *ngIf="usuarioData?.fotoPerfil" [src]="usuarioData.fotoPerfil" class="avatar-image" />
+          
+          <!-- Si NO tiene foto, mostramos el ícono -->
+          <ion-icon *ngIf="!usuarioData?.fotoPerfil" name="person-outline"></ion-icon>
+        </div>
+        <!-- Nombre Dinámico -->
+        <h2>{{ usuarioData ? usuarioData.nombre + ' ' + usuarioData.apellidoPaterno : 'Cargando...' }}</h2>
+      </div>
+
+      <!-- Opciones de navegación -->
+      <ion-list lines="none" class="menu-list">
+        <ion-item *ngFor="let p of appPages" (click)="seleccionarOpcion(p)" class="menu-item" button>
+          
+          <ion-icon slot="start" [name]="p.icon"
+            [style.opacity]="(p.requiereDatos && !tieneDatosCompletos()) ? '0.4' : '1'">
+          </ion-icon>
+          
+          <ion-label [style.opacity]="(p.requiereDatos && !tieneDatosCompletos()) ? '0.4' : '1'">
+            {{ p.title }}
+          </ion-label>
+
+          <!-- Candado visual -->
+          <ion-icon *ngIf="p.requiereDatos && !tieneDatosCompletos()" 
+                    slot="end" 
+                    name="lock-closed-outline" 
+                    class="lock-icon">
+          </ion-icon>
+
+        </ion-item>
+      </ion-list>
+    </ion-content>
+
+    <!-- FOOTER FIJO DEL MENÚ (Cerrar Sesión) -->
+    <ion-footer class="ion-no-border menu-footer-container">
+      <div class="menu-footer">
+        <ion-item (click)="cerrarSesion()" lines="none" class="menu-item logout-item" button>
+          <ion-icon slot="start" name="log-out-outline"></ion-icon>
+          <ion-label>Cerrar Sesión</ion-label>
+        </ion-item>
+      </div>
+    </ion-footer>
+
+  </ion-menu>
+
+  <!-- Contenido Principal de la App -->
+  <ion-router-outlet id="main-content"></ion-router-outlet>
+
+</ion-app>

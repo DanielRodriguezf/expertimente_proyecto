@@ -1,0 +1,110 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      @if (pasoActual > 1) {
+        <ion-button (click)="pasoAnterior()" class="custom-back-btn">
+          <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+        </ion-button>
+      }
+      @if (pasoActual === 1) {
+        <ion-back-button defaultHref="/search" class="custom-back-btn"></ion-back-button>
+      }
+    </ion-buttons>
+    <ion-title class="header-title">Postulación</ion-title>
+  </ion-toolbar>
+  
+  <ion-progress-bar 
+    [value]="pasoActual / totalPasos" 
+    class="custom-progress-bar">
+  </ion-progress-bar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="questionnaire-content">
+  
+  <!-- CONTENEDOR RESPONSIVE AÑADIDO AQUÍ -->
+  <div class="responsive-wrapper">
+    
+    @if (cargando) {
+      <div class="loading-container">
+        <ion-spinner name="crescent" class="custom-spinner"></ion-spinner>
+        <p class="loading-text">Cargando cuestionario...</p>
+      </div>
+    } @else {
+      
+      <div class="form-container">
+        
+        <div class="step-indicator">
+          <span class="step-badge">Pregunta {{ pasoActual }} de {{ totalPasos }}</span>
+        </div>
+
+        <!-- Iteramos todas las preguntas, pero solo mostramos la del paso actual -->
+        @for (pregunta of preguntas; track $index) {
+          
+          @if (pasoActual === $index + 1) {
+            <div class="form-section">
+              
+              <h2 class="question-text">{{ pregunta.texto }}</h2>
+
+              <!-- Validación ajustada al modelo de Firestore: tipo === 'texto' -->
+              @if (pregunta.tipo === 'texto') {
+                <p class="subtitle text-sub">Escribe tu respuesta a continuación.</p>
+                
+                <ion-textarea 
+                  [(ngModel)]="respuestas[$index]"
+                  class="textarea-card"
+                  placeholder="Ingresa tu respuesta aquí..."
+                  auto-grow="true"
+                  rows="4">
+                </ion-textarea>
+              } @else {
+                <p class="subtitle text-sub">Selecciona la opción que mejor te represente.</p>
+
+                <ion-radio-group [(ngModel)]="respuestas[$index]">
+                  @for (opcion of pregunta.opciones; track opcion.texto) {
+                    
+                    <ion-radio 
+                      [value]="opcion.puntaje" 
+                      justify="space-between" 
+                      alignment="start" 
+                      class="radio-card">
+                      {{ opcion.texto }}
+                    </ion-radio>
+                  }
+                </ion-radio-group>
+              }
+
+              <div class="action-section">
+                @if (pasoActual < totalPasos) {
+                  <ion-button 
+                    expand="block" 
+                    class="btn-primary-custom" 
+                    [disabled]="isRespuestaInvalida($index)"
+                    (click)="siguientePaso($index)">
+                    Siguiente
+                  </ion-button>
+                } @else {
+                  <ion-button 
+                    expand="block" 
+                    class="btn-primary-custom" 
+                    [disabled]="isRespuestaInvalida($index)"
+                    (click)="finalizarPostulacion()">
+                    Enviar Postulación
+                  </ion-button>
+                }
+              </div>
+
+            </div>
+          }
+          
+        }
+
+      </div>
+    }
+  </div>
+</ion-content>
+
+<ion-footer class="ion-no-border">
+  <ion-toolbar class="footer-toolbar">
+    <p class="footer-text">© ExpertiMente 2026</p>
+  </ion-toolbar>
+</ion-footer>

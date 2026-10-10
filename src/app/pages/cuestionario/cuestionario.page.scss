@@ -1,0 +1,248 @@
+/* --- HEADER Y BARRA DE PROGRESO --- */
+ion-header {
+  background-color: var(--ion-color-light); 
+}
+
+.header-toolbar {
+  --background: var(--ion-color-light);
+  --border-width: 0;
+}
+
+.custom-back-btn {
+  color: var(--ion-color-primary-shade);
+}
+
+.header-title {
+  color: var(--ion-color-primary-shade);
+  font-weight: 800;
+  font-size: 1.25rem;
+}
+
+.custom-progress-bar {
+  --background: rgba(var(--ion-color-primary-rgb), 0.15);
+  --progress-background: var(--ion-color-primary);
+  height: 6px;
+  border-radius: 0 0 4px 4px;
+}
+
+/* --- FONDO GENERAL Y CONTENEDOR RESPONSIVE --- */
+.questionnaire-content {
+  --background: var(--ion-color-light); 
+}
+
+.responsive-wrapper {
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 10px;
+}
+
+.form-container {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px 10px 35px;
+  transition: all 0.3s ease;
+}
+
+/* --- ESTADO DE CARGA --- */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  width: 100%;
+  
+  .custom-spinner {
+    color: var(--ion-color-primary);
+    transform: scale(1.5);
+    margin-bottom: 15px;
+  }
+
+  .loading-text {
+    color: var(--ion-color-medium-shade);
+    font-size: 1rem;
+    font-weight: 500;
+  }
+}
+
+/* --- INDICADOR DE PASOS --- */
+.step-indicator {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.step-badge {
+  background: rgba(var(--ion-color-secondary-rgb), 0.15);
+  color: var(--ion-color-secondary-shade);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: inline-block;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* --- TEXTOS DE LA PREGUNTA --- */
+.form-section {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.question-text {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--ion-color-primary-shade);
+  margin: 0 0 10px 0;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.subtitle.text-sub {
+  font-size: 1rem;
+  color: var(--ion-color-medium-shade);
+  text-align: left; 
+  margin: 0 0 25px 0;
+  line-height: 1.5;
+}
+
+/* --- INPUTS Y CONTROLES (TEXTAREA / RADIO) --- */
+.textarea-card {
+  --background: #ffffff;
+  --color: var(--ion-color-primary-shade);
+  --placeholder-color: var(--ion-color-medium-tint);
+  --padding-start: 15px;
+  --padding-end: 15px;
+  --padding-top: 15px;
+  --padding-bottom: 15px;
+  --border-radius: 16px;
+  margin-bottom: 25px;
+  box-shadow: 0 6px 20px rgba(79, 157, 20, 0.08);
+  font-size: 1rem;
+}
+
+.radio-card {
+  --background: #ffffff;
+  --background-checked: rgba(var(--ion-color-primary-rgb), 0.05); 
+  --border-radius: 16px;
+  --color: var(--ion-color-primary-shade);
+  --color-checked: var(--ion-color-primary-shade);
+  margin-bottom: 12px;
+  padding: 18px 16px;
+  font-weight: 600;
+  font-size: 1.05rem;
+  box-shadow: 0 6px 16px rgba(79, 157, 20, 0.06);
+  transition: all 0.2s ease;
+  
+  white-space: normal; 
+  line-height: 1.4; 
+  align-items: flex-start; 
+  
+  --border-color: var(--ion-color-medium-tint);
+  --border-color-checked: var(--ion-color-primary);
+  --inner-border-color-checked: var(--ion-color-primary);
+
+  &::part(container) {
+    border-radius: 16px;
+    margin-top: 2px;
+  }
+
+  &::part(label) {
+    white-space: normal;
+    margin-right: 15px; 
+  }
+}
+/* --- BOTONES DE ACCIÓN --- */
+.action-section {
+  margin-top: 30px;
+  
+  .btn-primary-custom {
+    --background: linear-gradient(135deg, var(--ion-color-secondary-shade) 0%, var(--ion-color-primary-shade) 100%);
+    --border-radius: 16px;
+    --box-shadow: 0 6px 15px rgba(var(--ion-color-primary-rgb), 0.25);
+    --color: #ffffff;
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: 0.3px;
+    min-height: 50px;
+  }
+}
+
+/* --- FOOTER --- */
+ion-footer {
+  .footer-toolbar {
+    --background: var(--ion-color-light);
+    text-align: center;
+    
+    .footer-text {
+      color: var(--ion-color-medium);
+      font-size: 0.85rem;
+      margin: 10px 0 20px 0;
+      font-weight: 500;
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================
+   MEDIA QUERIES PARA TABLET / ESCRITORIO
+   ========================================= */
+@media (min-width: 768px) {
+  
+  /* En PC cambiamos el fondo general para dar contraste a la tarjeta blanca */
+  .questionnaire-content {
+    --background: #f4f6f8; 
+  }
+
+  .responsive-wrapper {
+    padding: 40px 20px;
+    align-items: center; /* Centra el formulario verticalmente si sobra espacio */
+  }
+
+  /* Transformamos el contenedor en una "tarjeta" blanca flotante */
+  .form-container {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 40px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06); 
+  }
+
+  .question-text {
+    font-size: 1.8rem; /* Pregunta más grande */
+    margin-bottom: 15px;
+  }
+
+  .subtitle.text-sub {
+    font-size: 1.15rem;
+    margin-bottom: 35px;
+  }
+
+  .radio-card {
+    padding: 22px 24px;
+    font-size: 1.15rem;
+    
+    /* Efecto hover elegante solo para PC */
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(79, 157, 20, 0.12);
+    }
+  }
+
+  .textarea-card {
+    font-size: 1.1rem;
+    --padding-start: 20px;
+    --padding-end: 20px;
+  }
+
+  .action-section .btn-primary-custom {
+    font-size: 1.15rem;
+    min-height: 55px; /* Botón ligeramente más alto y cómodo de cliquear */
+  }
+}

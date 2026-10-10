@@ -1,0 +1,205 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="light">
+    <ion-buttons slot="start">
+      <ion-button (click)="pasoAnterior()" *ngIf="pasoActual > 1" color="primary">
+        <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+      </ion-button>
+      <ion-back-button defaultHref="/login" *ngIf="pasoActual === 1" color="primary"></ion-back-button>
+    </ion-buttons>
+    <ion-title class="header-title">Crear Cuenta</ion-title>
+  </ion-toolbar>
+  
+  <ion-progress-bar 
+    [value]="pasoActual / totalPasos" 
+    color="primary"
+    class="custom-progress-bar">
+  </ion-progress-bar>
+</ion-header>
+
+<ion-content [fullscreen]="true" color="light">
+  <div class="register-container">
+
+    <div class="step-indicator">
+      <p>Paso {{ pasoActual }} de {{ totalPasos }}</p>
+    </div>
+
+    <div class="form-section" *ngIf="pasoActual === 1">
+      <h2>Tu Identidad</h2>
+      <p class="subtitle">Queremos conocerte mejor.</p>
+
+      <ion-input
+        label="RUT (con guión)"
+        labelPlacement="floating"
+        fill="outline"
+        type="text"
+        [(ngModel)]="usuario.rut"
+        color="primary">
+      </ion-input>
+
+      <ion-input
+        label="Nombre"
+        labelPlacement="floating"
+        fill="outline"
+        type="text"
+        [(ngModel)]="usuario.nombre"
+        color="primary">
+      </ion-input>
+
+      <ion-input
+        label="Apellido Paterno"
+        labelPlacement="floating"
+        fill="outline"
+        type="text"
+        [(ngModel)]="usuario.apellidoPaterno"
+        color="primary">
+      </ion-input>
+
+      <ion-input
+        label="Apellido Materno"
+        labelPlacement="floating"
+        fill="outline"
+        type="text"
+        [(ngModel)]="usuario.apellidoMaterno"
+        color="primary">
+      </ion-input>
+
+      <ion-input
+        label="Fecha de Nacimiento"
+        labelPlacement="floating"
+        fill="outline"
+        type="date"
+        [(ngModel)]="usuario.fechaNacimiento"
+        color="primary">
+      </ion-input>
+
+      <ion-button expand="block" class="btn-primary" (click)="siguientePaso()" color="medium">
+        Continuar
+      </ion-button>
+    </div>
+
+    <div class="form-section" *ngIf="pasoActual === 2">
+      <h2>Tu Ubicación</h2>
+      <p class="subtitle">¿Desde dónde nos acompañas?</p>
+
+      <ion-input
+        label="País"
+        labelPlacement="floating"
+        fill="outline"
+        type="text"
+        [(ngModel)]="usuario.pais"
+        color="primary">
+      </ion-input>
+
+      <ion-input
+        label="Ciudad"
+        labelPlacement="floating"
+        fill="outline"
+        type="text"
+        [(ngModel)]="usuario.ciudad"
+        color="primary">
+      </ion-input>
+
+      <ion-input
+        label="Comuna"
+        labelPlacement="floating"
+        fill="outline"
+        type="text"
+        [(ngModel)]="usuario.comuna"
+        color="primary">
+      </ion-input>
+
+      <ion-input
+        label="Dirección"
+        labelPlacement="floating"
+        fill="outline"
+        type="text"
+        [(ngModel)]="usuario.direccion"
+        color="primary">
+      </ion-input>
+
+      <ion-button expand="block" class="btn-primary" (click)="siguientePaso()" color="medium">
+        Continuar
+      </ion-button>
+    </div>
+
+    <div class="form-section" *ngIf="pasoActual === 3">
+      <h2>Datos de Contacto</h2>
+      <p class="subtitle">¡Para que las empresas puedan llamarte!</p>
+
+      <ion-input
+        label="Correo electronico personal"
+        labelPlacement="floating"
+        fill="outline"
+        type="email"
+        [(ngModel)]="usuario.correo"
+        color="primary">
+      </ion-input>
+
+      <ion-input
+        label="Teléfono Celular"
+        labelPlacement="floating"
+        fill="outline"
+        type="tel"
+        [(ngModel)]="usuario.telefono"
+        color="primary">
+      </ion-input>
+
+      <ion-button expand="block" class="btn-primary" (click)="siguientePaso()" color="medium">
+        Continuar
+      </ion-button>
+    </div>
+
+    <div class="form-section" *ngIf="pasoActual === 4">
+      <h2>Seguridad</h2>
+      <p class="subtitle">Crea una contraseña segura para tu cuenta.</p>
+
+      <ion-input
+        label="Contraseña"
+        labelPlacement="floating"
+        fill="outline"
+        [type]="showPassword ? 'text' : 'password'"
+        [(ngModel)]="usuario.password"
+        color="primary">
+        <ion-button 
+          fill="clear" 
+          slot="end" 
+          class="manual-toggle" 
+          (click)="togglePassword()">
+          <ion-icon slot="icon-only" [name]="showPassword ? 'eye-off-outline' : 'eye-outline'" color="medium"></ion-icon>
+        </ion-button>
+      </ion-input>
+
+      <ion-input
+        label="Verificar contraseña"
+        labelPlacement="floating"
+        fill="outline"
+        [type]="showPasswordConfirm ? 'text' : 'password'"
+        [(ngModel)]="usuario.passwordConfirm"
+        color="primary">
+        <ion-button 
+          fill="clear" 
+          slot="end" 
+          class="manual-toggle" 
+          (click)="togglePasswordConfirm()">
+          <ion-icon slot="icon-only" [name]="showPasswordConfirm ? 'eye-off-outline' : 'eye-outline'" color="medium"></ion-icon>
+        </ion-button>
+      </ion-input>
+
+      <p *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </p>
+
+      <ion-button expand="block" class="btn-success" (click)="registrarUsuario()" [disabled]="cargando">
+        {{ cargando ? 'Creando cuenta...' : 'Crear Cuenta' }}
+      </ion-button>
+      <p class="info-text">Más adelante te pediremos tu currículum y experiencia laboral.</p>
+    </div>
+
+  </div>
+</ion-content>
+
+<ion-footer class="ion-no-border">
+  <ion-toolbar class="footer-toolbar">
+    <p class="footer-text">© ExpertiMente 2026</p>
+  </ion-toolbar>
+</ion-footer>

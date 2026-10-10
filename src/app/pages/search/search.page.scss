@@ -1,0 +1,219 @@
+/* --- HEADER Y TOOLBARS --- */
+ion-header {
+  background-color: var(--ion-color-light); /* Fondo beige continuo */
+}
+
+.header-toolbar {
+  --background: var(--ion-color-light);
+  --border-width: 0;
+}
+
+.searchbar-toolbar {
+  --background: var(--ion-color-light);
+  padding: 0 10px 10px 10px;
+}
+
+.custom-back-btn {
+  /* Verde intenso para el botón de retroceso */
+  color: var(--ion-color-primary-shade); 
+}
+
+.header-title {
+  /* Verde oscuro para el título, cero negro */
+  color: var(--ion-color-primary-shade);
+  font-weight: 800;
+  font-size: 1.25rem;
+}
+
+/* --- BARRA DE BÚSQUEDA --- */
+.custom-searchbar {
+  --background: #ffffff;
+  --color: var(--ion-color-primary-shade); /* Texto de búsqueda en verde oscuro */
+  --placeholder-color: var(--ion-color-medium);
+  --icon-color: var(--ion-color-primary); /* Lupa en verde */
+  --clear-button-color: var(--ion-color-medium);
+  --border-radius: 16px;
+  --box-shadow: 0 4px 12px rgba(79, 157, 20, 0.08); /* Sombra verde sutil */
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+/* --- CONTENEDOR GENERAL --- */
+ion-content {
+  --background: var(--ion-color-light);
+}
+
+.feed-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 10px 15px 25px;
+}
+
+/* --- ESTADOS DE CARGA Y VACÍO --- */
+.loading-container, .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 50px 20px;
+  text-align: center;
+  
+  .custom-spinner {
+    color: var(--ion-color-primary);
+    transform: scale(1.5);
+    margin-bottom: 15px;
+  }
+
+  ion-icon {
+    font-size: 60px;
+    color: var(--ion-color-medium-tint);
+    margin-bottom: 15px;
+  }
+
+  .loading-text, .empty-title, .empty-desc {
+    margin: 0;
+  }
+
+  .empty-title {
+    color: var(--ion-color-primary-shade);
+    font-weight: 800;
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+  }
+
+  .loading-text, .empty-desc {
+    color: var(--ion-color-medium-shade);
+    font-size: 1rem;
+  }
+}
+
+/* --- TARJETAS DE OFERTA DE EMPLEO --- */
+.job-card {
+  border-radius: 20px; /* Consistente con el Home */
+  background: #ffffff;
+  margin: 0 0 16px 0;
+  box-shadow: 0 8px 24px rgba(79, 157, 20, 0.08); /* Sombra verdosa */
+  
+  ion-card-content {
+    padding: 18px;
+  }
+}
+
+.badge-container {
+  margin-bottom: 10px;
+}
+
+.badge-modalidad {
+  /* Fondo verde muy claro con texto en verde medio */
+  background: rgba(var(--ion-color-secondary-rgb), 0.15);
+  color: var(--ion-color-secondary-shade);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: inline-block;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.job-title {
+  color: var(--ion-color-primary-shade);
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin: 0 0 4px 0;
+  line-height: 1.2;
+}
+
+.job-company {
+  color: var(--ion-color-medium);
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 15px 0;
+}
+
+.job-info-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+
+  .icon-green {
+    color: var(--ion-color-primary);
+    font-size: 1.2rem;
+    margin-right: 8px;
+    flex-shrink: 0;
+  }
+
+  .text-main {
+    color: var(--ion-color-primary-shade);
+    font-weight: 500;
+  }
+
+  .text-sub {
+    color: var(--ion-color-medium-shade);
+  }
+
+  .truncate-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.mt-15 {
+  margin-top: 20px;
+}
+
+.filter-toolbar {
+  --background: transparent;
+  padding: 0 10px;
+}
+
+.filter-item {
+  --background: transparent;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 5px;
+}
+
+.badge-container {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap; // Por si hay pantallas muy chicas
+}
+
+.badge-area {
+  background-color: #e0f2fe; // Un tono azul claro por defecto
+  color: #0284c7;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* --- BOTÓN DE DETALLES --- */
+.btn-primary-custom {
+  /* El mismo gradiente del Home */
+  --background: linear-gradient(135deg, var(--ion-color-secondary-shade) 0%, var(--ion-color-primary-shade) 100%);
+  --border-radius: 14px;
+  --box-shadow: 0 6px 15px rgba(var(--ion-color-primary-rgb), 0.25);
+  --color: #ffffff;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  margin-bottom: 0;
+}
+
+/* --- FOOTER --- */
+ion-footer {
+  .footer-toolbar {
+    --background: var(--ion-color-light);
+    text-align: center;
+    
+    .footer-text {
+      color: var(--ion-color-medium);
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+  }
+}

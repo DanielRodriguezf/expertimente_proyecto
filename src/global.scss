@@ -1,0 +1,175 @@
+@import "@ionic/angular/css/core.css";
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import "@ionic/angular/css/display.css";
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap');
+
+/* =======================================================
+   TOAST GLOBAL ACCESIBLE (EXPERTIMENTE)
+======================================================= */
+ion-toast.toast-expertimente {
+  --border-radius: 16px !important;
+  --box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25) !important;
+  font-family: 'Inter', sans-serif !important;
+  font-weight: bold !important;
+  font-size: 1.15rem !important; 
+  text-align: center !important;
+}
+
+/* Colores personalizados (Blindados contra Modo Oscuro) */
+ion-toast.toast-expertimente.ion-color-success {
+  --background: #25b63d !important; 
+  --color: #ffffff !important;
+  /* Corregido: La sombra ahora emite un brillo verde acorde al fondo, no naranja */
+  --box-shadow: 0 8px 20px rgba(37, 182, 61, 0.4) !important;
+}
+
+ion-toast.toast-expertimente.ion-color-warning {
+  --background: #30d630 !important;
+  --color: #222222 !important;
+  --box-shadow: 0 8px 20px rgba(48, 214, 48, 0.4) !important;
+}
+
+ion-toast.toast-expertimente.ion-color-danger {
+  --background: #eb445a !important;
+  --color: #ffffff !important;
+  --box-shadow: 0 8px 20px rgba(235, 68, 90, 0.4) !important;
+}
+
+/* Contenedor: Animación unificada para caja y texto */
+ion-toast.toast-expertimente::part(container) {
+  animation: popInBounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  padding: 15px 20px !important;
+  min-width: 240px !important;
+  max-width: 85vw !important;
+}
+
+/* Ícono ajustado */
+ion-toast.toast-expertimente::part(icon) {
+  font-size: 3.5rem !important;
+  margin-bottom: 10px !important;
+  margin-inline-end: 0 !important; /* Centra el ícono eliminando el margen derecho por defecto de Ionic */
+}
+
+/* Texto ajustado */
+ion-toast.toast-expertimente::part(message) {
+  padding: 0 !important;
+  line-height: 1.3 !important;
+  color: inherit !important; /* Hereda el color blindado de arriba */
+}
+
+/* --- KEYFRAMES DE ANIMACIÓN --- */
+@keyframes popInBounce {
+  0% { 
+    transform: scale(0.6); 
+    opacity: 0; 
+  }
+  70% { 
+    transform: scale(1.05); 
+    opacity: 1; 
+  }
+  100% { 
+    transform: scale(1); 
+    opacity: 1; 
+  }
+}
+
+
+/* =======================================================
+   LOADING ACCESIBLE (EXPERTIMENTE)
+======================================================= */
+ion-loading.loading-expertimente {
+  --background: #ffffff !important;
+  --spinner-color: #205727 !important; /* Verde oscuro corporativo */
+  --backdrop-opacity: 0.7 !important;
+}
+
+/* Diseño de la caja blanca penetrando el Shadow DOM */
+ion-loading.loading-expertimente::part(wrapper) {
+  background: #ffffff !important;
+  border-radius: 20px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25) !important;
+  padding: 30px 20px !important;
+  border: 2px solid #229c28 !important;
+}
+
+/* Diseño del texto penetrando el Shadow DOM */
+ion-loading.loading-expertimente::part(message) {
+  color: #222222 !important; /* Alto contraste sobre fondo blanco */
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 800 !important;
+  font-size: 1.2rem !important;
+  text-align: center !important;
+  margin-top: 15px !important;
+  line-height: 1.4 !important;
+}
+
+
+/* =======================================================
+   ALERTAS GLOBALES (EXPERTIMENTE)
+======================================================= */
+/* Alertas Personalizadas Forzadas a Tema Claro */
+ion-alert.alerta-expertimente {
+  --background: #ffffff !important;
+  --backdrop-opacity: 0.6 !important;
+}
+
+ion-alert.alerta-expertimente .alert-wrapper {
+  background: #ffffff !important;
+  border-radius: 20px !important;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+}
+
+ion-alert.alerta-expertimente .alert-head h2.alert-title {
+  color: #21a32c !important; /* Verde destacado */
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 800 !important;
+  font-size: 1.4rem !important;
+  text-align: center !important;
+}
+
+ion-alert.alerta-expertimente .alert-message {
+  color: #444444 !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 1.1rem !important;
+  text-align: center !important;
+  margin-top: 5px !important;
+}
+
+ion-alert.alerta-expertimente .alert-button-group {
+  padding: 15px 10px 10px !important;
+  gap: 10px !important;
+  display: flex !important;
+  justify-content: center !important;
+}
+
+/* Botón Cancelar */
+ion-alert.alerta-expertimente button.alert-button[role="cancel"] {
+  color: #666666 !important;
+  font-weight: bold !important;
+  background-color: #f4f5f8 !important;
+  border-radius: 10px !important;
+  flex: 1 !important;
+  margin: 0 !important;
+  transition: background-color 0.2s ease !important;
+}
+
+/* Botón Destructivo / Acción / Confirmar */
+ion-alert.alerta-expertimente button.alert-button:not([role="cancel"]) {
+  color: #ffffff !important;
+  font-weight: bold !important;
+  background-color: #105020 !important;
+  border-radius: 10px !important;
+  flex: 1 !important;
+  margin: 0 !important;
+  transition: background-color 0.2s ease !important;
+}

@@ -1,0 +1,253 @@
+/* --- NAVBAR (HEADER) --- */
+ion-header {
+  ion-toolbar {
+    /* Gradiente verde inspirado en tu imagen */
+    --background: linear-gradient(135deg, var(--ion-color-secondary-shade) 0%, var(--ion-color-tertiary-tint) 100%);
+    --border-width: 0;
+    --min-height: 65px;
+  }
+}
+
+.menu-btn-custom {
+  color: #ffffff; 
+}
+
+.app-title {
+  color: #ffffff; 
+  font-weight: 600;
+  font-size: 1.25rem;
+  letter-spacing: 0.5px; 
+}
+
+/* --- ESTRUCTURA GENERAL --- */
+.profile-content {
+  --background: var(--ion-color-light); /* Fondo beige crema */
+}
+
+.cv-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 25px 20px;
+}
+
+/* --- ENCABEZADOS DE SECCIÓN --- */
+.section-header {
+  margin-bottom: 30px;
+  padding: 0 5px;
+  
+  .section-title {
+    color: var(--ion-color-primary-shade);
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin: 0 0 5px 0;
+    text-align: center;
+  }
+  
+  .section-subtitle {
+    color: var(--ion-color-medium-shade);
+    font-size: 1rem;
+    margin: 0 5;
+  }
+}
+
+/* --- TARJETA DE PROGRESO --- */
+.progress-card {
+  border-radius: 20px;
+  background: #ffffff;
+  margin: 0 0 25px 0;
+  box-shadow: 0 8px 24px rgba(79, 157, 20, 0.08); /* Sombra botánica suave */
+  
+  ion-card-content {
+    padding: 20px;
+  }
+
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 12px;
+    
+    .progress-title {
+      font-weight: 700;
+      color: var(--ion-color-primary-shade);
+      font-size: 1.1rem;
+    }
+    
+    .progress-percentage {
+      font-weight: 800;
+      color: var(--ion-color-primary);
+      font-size: 1.2rem;
+    }
+  }
+
+  .custom-progress {
+    --background: rgba(var(--ion-color-primary-rgb), 0.15); /* Fondo base de la barra */
+    --progress-background: var(--ion-color-primary); /* Relleno verde vibrante */
+    height: 8px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+  }
+
+  .progress-hint {
+    color: var(--ion-color-medium);
+    font-size: 0.9rem;
+    margin: 0;
+  }
+}
+
+/* --- BANNER DE ÉXITO (100% COMPLETADO) --- */
+.success-banner {
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--ion-color-secondary-shade) 0%, var(--ion-color-primary-shade) 100%);
+  margin: 0 0 25px 0;
+  box-shadow: 0 8px 24px rgba(var(--ion-color-primary-rgb), 0.3);
+  color: #ffffff;
+  
+  .success-content {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .trophy-container {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    padding: 12px;
+    margin-right: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .trophy-icon {
+      font-size: 2rem;
+      color: #ffffff;
+    }
+  }
+
+  .success-text {
+    h3 {
+      margin: 0 0 4px 0;
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: #ffffff;
+    }
+    p {
+      margin: 0;
+      font-size: 0.9rem;
+      opacity: 0.9;
+      line-height: 1.3;
+    }
+  }
+}
+
+/* --- LISTA DE MENÚS (TARJETAS INTERACTIVAS) --- */
+.sections-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.menu-card {
+  border-radius: 18px;
+  background: #ffffff;
+  margin: 0;
+  box-shadow: 0 4px 12px rgba(79, 157, 20, 0.05); /* Sombra muy sutil */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  /* Si la tarjeta está completada, le damos un toque visual mínimo */
+  &.completed-card {
+    border: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
+    box-shadow: 0 6px 16px rgba(var(--ion-color-primary-rgb), 0.1);
+  }
+
+  .card-flex-row {
+    display: flex;
+    align-items: center;
+    padding: 18px 15px;
+  }
+
+  /* Icono izquierdo */
+  .icon-box {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    background: rgba(var(--ion-color-medium-rgb), 0.1); /* Gris muy claro por defecto */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    flex-shrink: 0;
+
+    ion-icon {
+      font-size: 1.5rem;
+      color: var(--ion-color-medium); /* Icono gris si está pendiente */
+    }
+    
+    /* Cuando la sección está lista, el icono se vuelve verde */
+    &.icon-box-success {
+      background: rgba(var(--ion-color-primary-rgb), 0.15);
+      ion-icon {
+        color: var(--ion-color-primary);
+      }
+    }
+  }
+
+  /* Textos centrales */
+  .text-content {
+    flex: 1;
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--ion-color-primary-shade);
+      margin: 0 0 4px 0;
+    }
+
+    .card-status {
+      font-size: 0.9rem;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      
+      &.status-pending {
+        color: var(--ion-color-medium-shade);
+      }
+      
+      &.status-success {
+        color: var(--ion-color-primary);
+        font-weight: 600;
+
+        ion-icon {
+          margin-right: 4px;
+          font-size: 1.1rem;
+        }
+      }
+    }
+  }
+
+  /* Flecha de navegación derecha */
+  .nav-icon {
+    font-size: 1.3rem;
+    color: var(--ion-color-medium-tint);
+    margin-left: 10px;
+  }
+}
+
+/* --- FOOTER --- */
+ion-footer {
+  .footer-toolbar {
+    --background: var(--ion-color-light);
+    text-align: center;
+    
+    .footer-text {
+      color: var(--ion-color-medium);
+      font-size: 0.85rem;
+      margin: 10px 0 20px 0;
+      font-weight: 500;
+    }
+  }
+}

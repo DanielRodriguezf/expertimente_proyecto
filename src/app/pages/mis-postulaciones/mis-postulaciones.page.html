@@ -1,0 +1,180 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      <!-- Flecha nativa para volver al HOME -->
+      <ion-back-button defaultHref="/home" text="" class="custom-back-btn"></ion-back-button>
+    </ion-buttons>
+    
+    <ion-title class="header-title">Mis Postulaciones</ion-title>
+  </ion-toolbar>
+
+  <ion-toolbar class="header-toolbar">
+    <ion-segment [value]="filtroActual" (ionChange)="segmentChanged($event)" mode="md" class="segment-custom" scrollable="true">
+      <ion-segment-button value="revision">
+        <ion-label>En revisión</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="aceptadas">
+        <ion-label>Aceptadas</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="rechazadas">
+        <ion-label>Rechazadas</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+  
+  @if (totalPasos > 0) {
+    <ion-progress-bar 
+      [value]="pasoActual / totalPasos" 
+      class="custom-progress-bar">
+    </ion-progress-bar>
+  }
+</ion-header>
+
+<ion-content [fullscreen]="true" class="postulaciones-content ion-padding-bottom">
+  
+  <div class="responsive-wrapper">
+    <div class="cv-container">
+
+      <!-- SPINNER DE CARGA -->
+      @if (cargando) {
+        <div class="loading-container">
+          <ion-spinner name="crescent" class="custom-spinner"></ion-spinner>
+          <p class="loading-text">Cargando tus postulaciones...</p>
+        </div>
+      } 
+      <!-- ESTADO VACÍO -->
+      @else if (postulacionesFiltradas.length === 0) {
+        <div class="form-section fade-in">
+          <ion-card class="form-card text-center-card empty-card">
+            <ion-card-content>
+              <div class="empty-icon-box">
+                <ion-icon name="folder-open-outline"></ion-icon>
+              </div>
+              <h2 class="question-title">Aún no hay resultados</h2>
+              <p class="question-subtitle">
+                No tienes postulaciones "{{ filtroActual === 'revision' ? 'En revisión' : (filtroActual === 'aceptadas' ? 'Aceptadas' : 'Rechazadas') }}" por ahora.
+              </p>
+              
+              <ion-button expand="block" class="btn-primary-custom mt-20" routerLink="/search">
+                <ion-icon slot="start" name="search-outline"></ion-icon>
+                Buscar Empleo Ahora
+              </ion-button>
+            </ion-card-content>
+          </ion-card>
+        </div>
+      } 
+      <!-- WIZARD DE POSTULACIONES -->
+      @else {
+        <div class="step-indicator fade-in">
+          <span class="step-badge">Postulación {{ pasoActual }} de {{ totalPasos }}</span>
+        </div>
+
+        <div class="form-section fade-in">
+          <!-- Tarjeta dinámica: Cambia sus bordes y fondo según el filtro -->
+          <ion-card class="form-card text-center-card" 
+                    [class.card-accepted]="filtroActual === 'aceptadas'"
+                    [class.card-rejected]="filtroActual === 'rechazadas'">
+            <ion-card-content class="card-content-centered">
+              
+              <!-- Etiqueta visible si la notificación es nueva -->
+              @if (itemActual?.leido === false) {
+                <div class="unread-badge">
+                  <ion-icon name="information-circle"></ion-icon> ¡Nueva actualización!
+                </div>
+              }
+
+              <!-- Banner de Aceptación Premium -->
+              @if (filtroActual === 'aceptadas') {
+                <div class="accepted-banner shadow-pulse">
+                  <ion-icon name="checkmark-circle"></ion-icon>
+                  <div class="banner-text">
+                    <strong>¡Excelentes noticias! </strong>
+                    <span>Fuiste aceptado en este puesto</span>
+                  </div>
+                </div>
+              }
+
+              <!-- Banner de Rechazo -->
+              @if (filtroActual === 'rechazadas') {
+                <div class="rejected-banner">
+                  <ion-icon name="close-circle-outline"></ion-icon>
+                  <div class="banner-text">
+                    <strong>Proceso finalizado</strong>
+                    <span>No fuiste seleccionado esta vez</span>
+                  </div>
+                </div>
+              }
+
+              <!-- Ícono por defecto (En revisión) -->
+              @if (filtroActual === 'revision') {
+                <div class="card-main-icon">
+                  <div class="icon-circle">
+                    <ion-icon name="briefcase-outline"></ion-icon>
+                  </div>
+                </div>
+              }
+
+              <h2 class="job-title">{{ itemActual?.tituloOferta }}</h2>
+              <h3 class="company-subtitle">
+                <ion-icon name="business-outline"></ion-icon> {{ itemActual?.nombreEmpresa }}
+              </h3>
+
+              <!-- Caja de Estado Dinámica -->
+              <div class="status-box">
+                <p class="status-label">Estado de tu postulación:</p>
+                <p class="status-value" 
+                   [class.text-accepted]="filtroActual === 'aceptadas'"
+                   [class.text-rejected]="filtroActual === 'rechazadas'"
+                   [class.text-review]="filtroActual === 'revision'">
+                  {{ filtroActual === 'aceptadas' ? '¡Aceptado con éxito!' : (filtroActual === 'rechazadas' ? '❌ Rechazada' : '⏳ En revisión') }}
+                </p>
+              </div>
+
+              <!-- Aviso de contacto -->
+              @if (filtroActual === 'aceptadas') {
+                <div class="contact-box-hint">
+                  <ion-icon name="call-outline"></ion-icon>
+                  <p>Pronto la empresa se pondrá en contacto contigo a través de tu teléfono o correo registrado.</p>
+                </div>
+              }
+
+            </ion-card-content>
+          </ion-card>
+
+          <!-- BOTONES DE NAVEGACIÓN -->
+          @if (totalPasos > 1) {
+            <div class="nav-buttons-row">
+              @if (pasoActual > 1) {
+                <ion-button expand="block" fill="outline" class="btn-outline-primary" (click)="pasoAnterior()">
+                  <ion-icon slot="start" name="chevron-back-outline"></ion-icon>
+                  Anterior
+                </ion-button>
+              }
+              @if (pasoActual < totalPasos) {
+                <ion-button expand="block" class="btn-primary-custom" (click)="siguientePaso()">
+                  Siguiente
+                  <ion-icon slot="end" name="chevron-forward-outline"></ion-icon>
+                </ion-button>
+              }
+            </div>
+          }
+
+          <!-- ACCIONES INFERIORES: BÚSQUEDA -->
+          <div class="bottom-actions mt-20">
+            <ion-button expand="block" fill="clear" class="btn-clear-primary mt-12" routerLink="/search">
+              <ion-icon slot="start" name="search-outline"></ion-icon>
+              Buscar Más Empleos
+            </ion-button>
+          </div>
+
+        </div>
+      }
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer class="ion-no-border">
+  <ion-toolbar class="footer-toolbar">
+    <p class="footer-text">© ExpertiMente 2026</p>
+  </ion-toolbar>
+</ion-footer>
