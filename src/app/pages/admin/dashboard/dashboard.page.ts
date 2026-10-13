@@ -1,11 +1,13 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { 
   IonHeader, IonToolbar, IonTitle, IonContent, 
   IonList, IonItem, IonLabel, IonBadge, 
   IonButton, IonButtons, IonIcon,
   IonModal, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonCardSubtitle,
-  IonAvatar, IonMenu, IonMenuButton, IonSplitPane, IonMenuToggle
+  IonAvatar, IonMenu, IonMenuButton, IonSplitPane, IonMenuToggle, AlertController,
+  IonSelect, IonSelectOption 
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { 
@@ -15,11 +17,11 @@ import {
   linkOutline, peopleOutline, informationCircleOutline, timeOutline,
   menuOutline, listOutline, createOutline, documentOutline, helpCircleOutline,
   shieldCheckmarkOutline, schoolOutline, starOutline,
-  heartOutline, hardwareChipOutline, syncOutline // <-- Íconos nuevos
+  heartOutline, hardwareChipOutline, syncOutline, trashOutline, logoLinkedin,
+  filterOutline, swapVerticalOutline 
 } from 'ionicons/icons';
 
-// Importamos el servicio y las interfaces
-import { AdminService, ReclutadorConEmpresa, Postulante, Empresa, Oferta } from '../services/admin.service';
+import { AdminService, ReclutadorConEmpresa, Postulante, Oferta } from '../services/admin.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -28,39 +30,43 @@ import { AdminService, ReclutadorConEmpresa, Postulante, Empresa, Oferta } from 
   standalone: true,
   imports: [
     CommonModule, 
+    FormsModule, 
     IonHeader, IonToolbar, IonTitle, IonContent, 
     IonList, IonItem, IonLabel, IonBadge, 
     IonButton, IonButtons, IonIcon, 
     IonModal, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonCardSubtitle,
-    IonAvatar, IonMenu, IonMenuButton, IonSplitPane, IonMenuToggle
+    IonAvatar, IonMenu, IonMenuButton, IonSplitPane, IonMenuToggle,
+    IonSelect, IonSelectOption 
   ]
 })
 export class DashboardPage implements OnInit {
   private adminService = inject(AdminService);
   private cdr = inject(ChangeDetectorRef);
+  private alertController = inject(AlertController);
 
-  // Control del menú lateral
-  vistaActual: 'reclutadores' | 'postulantes' | 'empresas' | 'ofertas' = 'reclutadores';
+  vistaActual: 'reclutadores' | 'postulantes' | 'ofertas' = 'reclutadores';
   
-  // --- Variables de Datos ---
   reclutadores: ReclutadorConEmpresa[] = [];
   postulantes: Postulante[] = [];
-  empresas: Empresa[] = [];
   ofertas: Oferta[] = [];
 
-  // --- Estados de Carga ---
+  reclutadoresMostrados: ReclutadorConEmpresa[] = [];
+  ofertasMostradas: Oferta[] = [];
+
+  filtroReclutadores: string = 'todos';
+  ordenReclutadores: string = 'reciente';
+
+  filtroOfertas: string = 'todas';
+  ordenOfertas: string = 'reciente';
+
   cargando = false;
 
-  // --- Control de Modales ---
   isModalReclutadorOpen = false;
   isModalPostulanteOpen = false;
-  isModalEmpresaOpen = false;
   isModalOfertaOpen = false;
 
-  // --- Elementos Seleccionados ---
   reclutadorSeleccionado: ReclutadorConEmpresa | null = null;
   postulanteSeleccionado: Postulante | null = null;
-  empresaSeleccionada: Empresa | null = null;
   ofertaSeleccionada: Oferta | null = null;
 
   constructor() {
@@ -70,7 +76,8 @@ export class DashboardPage implements OnInit {
       documentTextOutline, downloadOutline, callOutline, calendarOutline, homeOutline, globeOutline,
       linkOutline, peopleOutline, informationCircleOutline, timeOutline,
       menuOutline, listOutline, createOutline, documentOutline, helpCircleOutline,
-      shieldCheckmarkOutline, schoolOutline, starOutline, heartOutline, hardwareChipOutline, syncOutline
+      shieldCheckmarkOutline, schoolOutline, starOutline, heartOutline, hardwareChipOutline, syncOutline,
+      trashOutline, logoLinkedin, filterOutline, swapVerticalOutline
     });
   }
 
@@ -80,10 +87,7 @@ export class DashboardPage implements OnInit {
     this.cargarDatos(this.vistaActual);
   }
 
-  // ==========================================
-  // NAVEGACIÓN DEL MENÚ
-  // ==========================================
-  cambiarVista(nuevaVista: 'reclutadores' | 'postulantes' | 'empresas' | 'ofertas') {
+  cambiarVista(nuevaVista: 'reclutadores' | 'postulantes' | 'ofertas') {
     this.vistaActual = nuevaVista;
     this.cargarDatos(nuevaVista);
   }
@@ -97,8 +101,6 @@ export class DashboardPage implements OnInit {
         this.reclutadores = await this.adminService.getTodosReclutadores();
       } else if (vista === 'postulantes') {
         this.postulantes = await this.adminService.getPostulantes();
-      } else if (vista === 'empresas') {
-        this.empresas = await this.adminService.getTodasEmpresas();
       } else if (vista === 'ofertas') {
         this.ofertas = await this.adminService.getTodasOfertas();
       }
@@ -106,13 +108,45 @@ export class DashboardPage implements OnInit {
       console.error(`Error al cargar ${vista}:`, error);
     } finally {
       this.cargando = false;
+      this.aplicarFiltros();
       this.cdr.detectChanges();
     }
   }
 
-  // ==========================================
-  // UTILIDAD: FORMATEAR FECHA DE FIREBASE
-  // ==========================================
+  aplicarFiltros() {
+    let rec = [...this.reclutadores];
+    if (this.filtroReclutadores !== 'todos') {
+      rec = rec.filter(r => r.estado === this.filtroReclutadores);
+    }
+    rec.sort((a, b) => {
+      if (this.ordenReclutadores === 'alfabetico') return a.nombre.localeCompare(b.nombre);
+      const timeA = this.obtenerTimestamp(a.fechaCreacion);
+      const timeB = this.obtenerTimestamp(b.fechaCreacion);
+      return this.ordenReclutadores === 'reciente' ? timeB - timeA : timeA - timeB;
+    });
+    this.reclutadoresMostrados = rec;
+
+    let ofe = [...this.ofertas];
+    if (this.filtroOfertas !== 'todas') {
+      ofe = ofe.filter(o => o.estado === this.filtroOfertas);
+    }
+    ofe.sort((a, b) => {
+      if (this.ordenOfertas === 'alfabetico') return (a.titulo || '').localeCompare(b.titulo || '');
+      if (this.ordenOfertas === 'empresa') return (a.nombreEmpresa || '').localeCompare(b.nombreEmpresa || '');
+      const timeA = this.obtenerTimestamp(a.fechaPublicacion);
+      const timeB = this.obtenerTimestamp(b.fechaPublicacion);
+      return this.ordenOfertas === 'reciente' ? timeB - timeA : timeA - timeB;
+    });
+    this.ofertasMostradas = ofe;
+  }
+
+  obtenerTimestamp(fecha: any): number {
+    if (!fecha) return 0;
+    if (fecha.seconds) return fecha.seconds * 1000;
+    const parsed = Date.parse(fecha);
+    return isNaN(parsed) ? 0 : parsed;
+  }
+
   formatearFecha(fecha: any): string {
     if (!fecha) return 'No disponible';
     if (fecha && fecha.seconds) {
@@ -121,6 +155,16 @@ export class DashboardPage implements OnInit {
       });
     }
     return typeof fecha === 'string' ? fecha : fecha.toString();
+  }
+
+  descargarCV(base64: string | undefined, nombreArchivo: string | undefined) {
+    if (!base64 || !nombreArchivo) return;
+    const a = document.createElement('a');
+    a.href = base64; 
+    a.download = nombreArchivo; 
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   }
 
   // ==========================================
@@ -145,6 +189,30 @@ export class DashboardPage implements OnInit {
     }
   }
 
+  async eliminarReclutador(reclutador: ReclutadorConEmpresa) {
+    const alert = await this.alertController.create({
+      header: 'Eliminar Reclutador y Empresa',
+      message: `¿Estás seguro que deseas eliminar permanentemente a ${reclutador.nombre} y toda la información de su empresa asociada? Esta acción no se puede deshacer.`,
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Eliminar Todo',
+          role: 'destructive',
+          handler: async () => {
+            try {
+              await this.adminService.eliminarReclutadorYEmpresa(reclutador.id, reclutador.empresaId);
+              this.cerrarModalReclutador();
+              this.cargarDatos('reclutadores');
+            } catch (error) {
+              console.error('Error al eliminar reclutador y empresa:', error);
+            }
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
   // ==========================================
   // LÓGICA DE POSTULANTES
   // ==========================================
@@ -156,26 +224,29 @@ export class DashboardPage implements OnInit {
     this.isModalPostulanteOpen = false;
     this.postulanteSeleccionado = null;
   }
-  descargarCV(base64: string | undefined, nombreArchivo: string | undefined) {
-    if (!base64 || !nombreArchivo) return;
-    const a = document.createElement('a');
-    a.href = base64; 
-    a.download = nombreArchivo; 
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  }
-
-  // ==========================================
-  // LÓGICA DE EMPRESAS
-  // ==========================================
-  abrirModalEmpresa(empresa: Empresa) {
-    this.empresaSeleccionada = empresa;
-    this.isModalEmpresaOpen = true;
-  }
-  cerrarModalEmpresa() {
-    this.isModalEmpresaOpen = false;
-    this.empresaSeleccionada = null;
+  
+  async eliminarPostulante(postulante: Postulante) {
+    const alert = await this.alertController.create({
+      header: 'Eliminar Postulante',
+      message: `¿Estás seguro que deseas eliminar permanentemente a ${postulante.nombre} de la base de datos? Esta acción no se puede deshacer.`,
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Eliminar',
+          role: 'destructive',
+          handler: async () => {
+            try {
+              await this.adminService.eliminarPostulante(postulante.id);
+              this.cerrarModalPostulante();
+              this.cargarDatos('postulantes');
+            } catch (error) {
+              console.error('Error al eliminar postulante:', error);
+            }
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 
   // ==========================================
@@ -195,9 +266,33 @@ export class DashboardPage implements OnInit {
       if (this.ofertaSeleccionada) {
         this.ofertaSeleccionada.estado = nuevoEstado;
       }
-      this.cargarDatos('ofertas');
+      this.cargarDatos('ofertas'); 
     } catch (error) {
       console.error('Error al alternar el estado de la oferta:', error);
     }
+  }
+
+  async eliminarOferta(oferta: Oferta) {
+    const alert = await this.alertController.create({
+      header: 'Eliminar Oferta',
+      message: `¿Estás seguro que deseas eliminar la oferta "${oferta.titulo}" de la base de datos?`,
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Eliminar',
+          role: 'destructive',
+          handler: async () => {
+            try {
+              await this.adminService.eliminarOferta(oferta.id);
+              this.cerrarModalOferta();
+              this.cargarDatos('ofertas');
+            } catch (error) {
+              console.error('Error al eliminar oferta:', error);
+            }
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 }
