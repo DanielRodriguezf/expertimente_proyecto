@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Firestore, collection, getDocs, doc, getDoc, updateDoc } from '@angular/fire/firestore';
+import { Firestore, collection, getDocs, doc, getDoc, updateDoc, deleteDoc } from '@angular/fire/firestore';
 
 // --- NUEVA INTERFAZ INDEPENDIENTE PARA EMPRESAS ---
 export interface Empresa {
@@ -20,18 +20,41 @@ export interface Empresa {
   creadoPor?: string;
 }
 
-// --- INTERFAZ DE RECLUTADORES (Actualizada) ---
+// --- INTERFAZ DE RECLUTADORES ---
 export interface ReclutadorConEmpresa {
   id: string;
   nombre: string;
+  nombreCompleto?: string;
+  nombres?: string;
+  apellido?: string;
   email: string;
+  telefono?: string;
   rol: string;
   estado: 'pendiente' | 'aprobado' | 'rechazado';
   fechaCreacion?: string;
+  cargoEmpresa?: string;
+  descripcionProfesional?: string;
+  linkedin?: string;
+  cvNombre?: string;
+  cvBase64?: string;
   empresa: Empresa | null;
+  empresaId?: string; 
 }
 
-// --- INTERFAZ PARA POSTULANTES (Con todos los campos de Firebase) ---
+// --- INTERFACES AUXILIARES PARA POSTULANTE ---
+export interface AreaExperiencia {
+  cargo: string;
+  descripcion: string;
+  lugar: string;
+  tiempo: string;
+}
+
+export interface CargoInteres {
+  cargo: string;
+  descripcion: string;
+}
+
+// --- INTERFAZ PARA POSTULANTES (Actualizada con todos los campos) ---
 export interface Postulante {
   id: string;
   uid?: string;
@@ -53,16 +76,21 @@ export interface Postulante {
   cvNombre?: string;
   cvBase64?: string;
   cvManual?: {
-    anosExperiencia: number;
-    areasExperiencia?: string[]; // Ahora es un arreglo
+    anosExperiencia?: number; 
+    areasExperiencia?: AreaExperiencia[]; // Ahora es arreglo de objetos
+    cargosInteres?: CargoInteres[]; // Nuevo campo
+    carrera?: string; // Nuevo campo
+    disponibilidad?: string; // Nuevo campo
+    establecimiento?: string; // Nuevo campo
     habilidades?: string;
     habilidadesBlandas?: string;
     habilidadesTecnicas?: string;
-    nivelEducativo: string;
+    nivelEducativo?: string;
+    sinExperiencia?: boolean; // Nuevo campo booleano
   };
 }
 
-// --- NUEVAS INTERFACES PARA OFERTAS Y PREGUNTAS ---
+// --- INTERFACES PARA OFERTAS Y PREGUNTAS ---
 export interface OpcionPregunta {
   texto: string;
   puntaje: number;
@@ -90,8 +118,12 @@ export interface Oferta {
   contactoEmail?: string;
   contactoTelefono?: string;
   candidatosCount?: number;
-  fechaPublicacion?: string;
-  estado: string; // 'Activa' o 'Inactiva'
+  cargoId?: string; // Nuevo campo
+  cargoNombre?: string; // Nuevo campo
+  formularioId?: string; // Nuevo campo
+  fechaPublicacion?: any; // Ahora lo trae de Firebase
+  fechaActualizacion?: any; // Nuevo campo
+  estado: string; 
   preguntas?: Pregunta[];
 }
 
@@ -103,7 +135,7 @@ export class AdminService {
 
   constructor() { }
 
-  // 1. Obtener TODOS los reclutadores (Aprobados, Rechazados y Pendientes)
+  // 1. Obtener TODOS los reclutadores y sus empresas
   async getTodosReclutadores(): Promise<ReclutadorConEmpresa[]> {
     const reclutadoresRef = collection(this.firestore, 'reclutadores');
     const snapshot = await getDocs(reclutadoresRef);
@@ -130,12 +162,21 @@ export class AdminService {
 
       todos.push({
         id: document.id,
-        nombre: data['nombre'],
+        nombre: data['nombreCompleto'] || data['nombre'],
+        nombres: data['nombres'],
+        apellido: data['apellido'],
         email: data['email'],
+        telefono: data['telefono'],
         rol: data['rol'],
         estado: estadoActual,
         fechaCreacion: data['fechaCreacion'],
-        empresa: datosEmpresa
+        cargoEmpresa: data['cargoEmpresa'],
+        descripcionProfesional: data['descripcionProfesional'],
+        linkedin: data['linkedin'],
+        cvNombre: data['cvNombre'],
+        cvBase64: data['cvBase64'],
+        empresa: datosEmpresa,
+        empresaId: data['empresaId'] 
       });
     }
 
@@ -159,15 +200,10 @@ export class AdminService {
     });
   }
 
-  // 4. Obtener TODAS las Empresas
-  async getTodasEmpresas(): Promise<Empresa[]> {
-    const empresasRef = collection(this.firestore, 'empresas');
-    const snapshot = await getDocs(empresasRef);
-    
-    return snapshot.docs.map(doc => {
-      const data = doc.data();
-      return { id: doc.id, ...data } as Empresa;
-    });
+  // 4. Eliminar Postulante
+  async eliminarPostulante(id: string) {
+    const postulanteRef = doc(this.firestore, `postulantes/${id}`);
+    await deleteDoc(postulanteRef);
   }
 
   // 5. Obtener TODAS las Ofertas
@@ -179,17 +215,34 @@ export class AdminService {
       const data = doc.data();
       return { 
         id: doc.id, 
-        estado: data['estado'] || 'Activa', // Por defecto Activa si no tiene estado
+        estado: data['estado'] || 'Activa',
         ...data 
       } as Oferta;
     });
   }
 
-  // 6. Cambiar estado de la Oferta (Habilitar/Deshabilitar)
+  // 6. Cambiar estado de la Oferta
   async alternarEstadoOferta(ofertaId: string, estadoActual: string) {
     const nuevoEstado = (estadoActual === 'Activa' || estadoActual === 'Pendiente') ? 'Inactiva' : 'Activa';
     const ofertaRef = doc(this.firestore, `ofertas/${ofertaId}`);
     await updateDoc(ofertaRef, { estado: nuevoEstado });
     return nuevoEstado;
+  }
+
+  // 7. Eliminar Oferta de la base de datos
+  async eliminarOferta(id: string) {
+    const ofertaRef = doc(this.firestore, `ofertas/${id}`);
+    await deleteDoc(ofertaRef);
+  }
+
+  // 8. Eliminar Reclutador y su Empresa vinculada
+  async eliminarReclutadorYEmpresa(reclutadorId: string, empresaId?: string) {
+    const reclutadorRef = doc(this.firestore, `reclutadores/${reclutadorId}`);
+    await deleteDoc(reclutadorRef);
+
+    if (empresaId) {
+      const empresaRef = doc(this.firestore, `empresas/${empresaId}`);
+      await deleteDoc(empresaRef);
+    }
   }
 }

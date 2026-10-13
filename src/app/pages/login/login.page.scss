@@ -1,5 +1,5 @@
 .login-content {
-  --background: #ffffff;
+  --background: var(--ion-color-light);
 }
 
 .split-layout {
@@ -12,15 +12,19 @@
   }
 }
 
-// LADO IZQUIERDO: PANEL AZUL
+// LADO IZQUIERDO: PANEL VERDE
 .left-panel {
   flex: 1;
-  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+  background: linear-gradient(
+    135deg,
+    var(--ion-color-primary-shade) 0%,
+    var(--ion-color-primary) 100%
+  );
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 3rem;
-  color: #ffffff;
+  color: var(--ion-color-primary-contrast);
 
   @media (max-width: 900px) {
     padding: 2.5rem 1.5rem;
@@ -43,7 +47,7 @@
 
     .brand-subtitle {
       font-size: 1.2rem;
-      color: #93c5fd;
+      color: var(--ion-color-light);
       margin: 0 0 1.5rem 0;
       font-weight: 400;
     }
@@ -51,7 +55,7 @@
     .accent-bar {
       width: 50px;
       height: 6px;
-      background-color: #f59e0b;
+      background-color: var(--ion-color-light);
       border-radius: 4px;
     }
   }
@@ -64,7 +68,7 @@
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  background-color: #ffffff;
+  background-color: var(--ion-color-light);
 
   .form-container {
     width: 100%;
@@ -73,13 +77,13 @@
     .welcome-title {
       font-size: 2rem;
       font-weight: 800;
-      color: #0f172a;
+      color: var(--ion-color-light-contrast);
       margin: 0 0 0.5rem 0;
     }
 
     .welcome-subtitle {
       font-size: 0.95rem;
-      color: #64748b;
+      color: var(--ion-color-medium);
       margin: 0 0 2rem 0;
     }
 
@@ -88,9 +92,11 @@
 
       .custom-input {
         --border-radius: 10px;
-        --border-color: #e2e8f0;
-        --border-color-focused: #2563eb;
-        --background: #f8fafc;
+        --border-color: var(--ion-color-light-shade);
+        --border-color-focused: var(--ion-color-primary);
+        --highlight-color-focused: var(--ion-color-primary);
+        --background: var(--ion-color-light-tint);
+        --color: var(--ion-color-light-contrast);
         --padding-start: 1rem;
         font-size: 0.95rem;
       }
@@ -105,10 +111,12 @@
     }
 
     .submit-btn {
-      --background: #2563eb;
-      --background-hover: #1d4ed8;
+      --background: var(--ion-color-primary);
+      --background-hover: var(--ion-color-primary-shade);
+      --background-activated: var(--ion-color-primary-shade);
+      --color: var(--ion-color-primary-contrast);
       --border-radius: 10px;
-      --box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+      --box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.2);
       height: 48px;
       font-weight: 700;
       font-size: 0.95rem;
@@ -121,7 +129,7 @@
       text-align: center;
 
       p {
-        color: #64748b;
+        color: var(--ion-color-medium);
         font-size: 0.85rem;
         margin: 0 0 0.5rem 0;
       }
@@ -129,7 +137,7 @@
       .register-link-btn {
         background: transparent;
         border: none;
-        color: #2563eb;
+        color: var(--ion-color-primary);
         font-weight: 800;
         font-size: 0.85rem;
         cursor: pointer;
@@ -140,7 +148,7 @@
         outline: none;
 
         &:hover {
-          color: #1d4ed8;
+          color: var(--ion-color-primary-shade);
           text-decoration: underline;
         }
 
