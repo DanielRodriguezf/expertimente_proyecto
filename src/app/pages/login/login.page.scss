@@ -18,14 +18,17 @@
 
   .brand-container {
     display: flex;
+    flex-direction: column; /* Coloca el logo por encima del texto */
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 12px;
     margin-bottom: 0.5rem;
 
     .brand-logo {
-      max-width: 220px;
+      /* Dimensiones proporcionales para el formato 1346x1146 centrado */
+      width: 120px;
       height: auto;
+      max-width: 100%;
       object-fit: contain;
     }
 

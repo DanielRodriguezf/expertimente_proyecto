@@ -25,6 +25,7 @@
     "@capacitor/haptics": "8.0.2",
     "@capacitor/keyboard": "8.0.5",
     "@capacitor/status-bar": "8.0.3",
+    "@google/genai": "^2.30.0",
     "@google/generative-ai": "^0.24.1",
     "@ionic/angular": "^9.0.0",
     "firebase": "^12.19.0",
