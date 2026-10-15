@@ -1,0 +1,321 @@
+/* --- HEADER Y PROGRESS BAR --- */
+ion-header {
+  background-color: var(--ion-color-light); 
+}
+
+.header-toolbar {
+  --background: var(--ion-color-light);
+  --border-width: 0;
+}
+
+.header-title {
+  color: var(--ion-color-primary-shade);
+  font-weight: 800;
+  font-size: 1.25rem;
+}
+
+.custom-progress-bar {
+  --background: rgba(var(--ion-color-primary-rgb), 0.15);
+  height: 6px;
+  border-radius: 4px;
+}
+
+/* --- ESTRUCTURA GENERAL --- */
+.main-content {
+  --background: var(--ion-color-light);
+}
+
+.register-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 10px 15px 30px;
+}
+
+/* Indicador de paso */
+.step-indicator {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 15px;
+
+  .step-badge {
+    background: rgba(var(--ion-color-primary-rgb), 0.1);
+    color: var(--ion-color-primary-shade);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+}
+
+/* Tarjeta Blanca Principal */
+.form-card {
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(var(--ion-color-primary-rgb), 0.08); /* Uso dinámico de variable */
+  padding: 25px 20px;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- TEXTOS --- */
+.question-text {
+  color: var(--ion-color-primary-shade);
+  font-size: 1.4rem;
+  font-weight: 800;
+  text-align: center;
+  margin: 0 0 5px 0;
+}
+
+.subtitle {
+  color: var(--ion-color-medium-shade);
+  text-align: center;
+  font-size: 0.95rem;
+  margin: 0 0 20px 0;
+}
+
+/* --- RADIOS / CHECKBOX (ACCESIBLES) --- */
+.radio-group-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.checkbox-wrapper, .radio-item {
+  --background: rgba(var(--ion-color-primary-rgb), 0.02);
+  --border-radius: 12px;
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.15);
+  --padding-start: 15px;
+  --inner-padding-end: 15px;
+  margin-bottom: 10px;
+}
+
+.custom-radio, .custom-checkbox {
+  --color: var(--ion-color-medium-shade);
+  --color-checked: var(--ion-color-primary);
+  font-weight: 500;
+  padding: 12px 0;
+  width: 100%;
+}
+
+/* --- INPUTS Y TEXTAREAS --- */
+.input-wrapper {
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+ion-input.modern-input, ion-textarea.modern-textarea {
+  --background: #ffffff; 
+  --border-color: rgba(var(--ion-color-primary-rgb), 0.35); 
+  --border-radius: 12px;
+  --color: var(--ion-color-light-contrast);
+  --placeholder-color: var(--ion-color-medium);
+  --placeholder-opacity: 0.8;
+  font-size: 1rem;
+}
+
+/* Estado Focus/Activo Accesible */
+ion-input.ion-focused, ion-textarea.ion-focused {
+  --border-color: var(--ion-color-primary);
+  --border-width: 2px; /* Mayor grosor al seleccionar */
+}
+
+.pointer-input {
+  cursor: pointer;
+}
+
+/* --- TARJETAS DE EXPERIENCIA AGREGADA --- */
+.experiencias-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.experiencia-card {
+  background: rgba(var(--ion-color-light-rgb), 0.5);
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
+  border-radius: 12px;
+  padding: 15px;
+
+  .exp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+
+    h3 {
+      margin: 0;
+      color: var(--ion-color-primary-shade);
+      font-size: 1.1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+    }
+    .btn-delete {
+      margin: 0;
+      --padding-start: 5px;
+      --padding-end: 5px;
+      height: 30px;
+    }
+  }
+
+  .exp-detalle {
+    margin: 2px 0;
+    color: var(--ion-color-medium-shade);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .exp-desc {
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: var(--ion-color-light-contrast);
+    font-style: italic;
+  }
+}
+
+/* --- CHIPS --- */
+.chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 25px;
+}
+
+.suggestions-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ion-color-primary-shade);
+  margin: 0 0 10px 0;
+}
+
+.suggestion-chip {
+  --background: transparent;
+  border: 1px solid var(--ion-color-primary);
+  --color: var(--ion-color-primary-shade);
+  font-weight: 600;
+
+  ion-icon {
+    color: var(--ion-color-primary);
+  }
+}
+
+/* --- BOTÓN DE ACCIÓN PRINCIPAL --- */
+.action-section {
+  margin-top: 15px;
+}
+
+.btn-primary-custom {
+  --background: linear-gradient(135deg, var(--ion-color-secondary-shade) 0%, var(--ion-color-primary-shade) 100%);
+  --border-radius: 16px;
+  --box-shadow: 0 6px 15px rgba(var(--ion-color-primary-rgb), 0.25);
+  --color: #ffffff;
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.3px;
+  min-height: 50px;
+}
+
+/* --- MODAL BOTTOM SHEET --- */
+.modal-content {
+  --background: var(--ion-color-light);
+  padding: 20px;
+}
+
+.modal-header h3 {
+  color: var(--ion-color-primary-shade);
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.custom-options-list {
+  background: transparent;
+
+  ion-item {
+    --background: #ffffff;
+    --border-radius: 12px;
+    margin-bottom: 10px;
+    --color: var(--ion-color-light-contrast);
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    
+    &.selected {
+      --background: rgba(var(--ion-color-primary-rgb), 0.1);
+      --color: var(--ion-color-primary-shade);
+      font-weight: 700;
+      border: 1px solid var(--ion-color-primary);
+    }
+  }
+}
+
+/* --- ANIMACIONES --- */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Contenedor para centrar el botón sin ocupar el 100% del ancho */
+.center-button-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 15px;
+  margin-bottom: 25px;
+}
+
+/* Botón Agregar Experiencia: Tamaño reducido y color verde claro exclusivo */
+.btn-add-experience-light {
+  --border-radius: 8px;
+  --box-shadow: 0 2px 8px rgba(166, 209, 116, 0.3); /* Sombra suave con tono pastel */
+  min-height: 36px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.2px;
+  margin: 0;
+  transition: transform 0.2s ease;
+  color: var(--ion-color-primary-shade); /* Usa tu verde oscuro original para el texto */
+}
+
+/* Fondo verde claro personalizado y aislado solo para este botón */
+.btn-add-experience-light::part(native) {
+  background: #eaf4e0; /* Verde muy clarito, amigable a la vista */
+  border: 1px solid #a6d174; /* Borde verde pastel */
+  padding-inline: 14px;
+}
+
+/* Efecto visual al presionar */
+.btn-add-experience-light:active {
+  transform: scale(0.96);
+  --box-shadow: 0 1px 4px rgba(166, 209, 116, 0.2);
+}
+
+/* Ícono del botón */
+.btn-add-experience-light ion-icon {
+  font-size: 1.05rem;
+  margin-left: 6px;
+  color: var(--ion-color-primary); /* Usa tu verde principal original para el ícono */
+}
+
+/* --- FOOTER --- */
+ion-footer {
+  .footer-toolbar {
+    --background: var(--ion-color-light);
+    text-align: center;
+    
+    .footer-text {
+      color: var(--ion-color-medium);
+      font-size: 0.85rem;
+      margin: 10px 0 20px 0;
+      font-weight: 500;
+    }
+  }
+}

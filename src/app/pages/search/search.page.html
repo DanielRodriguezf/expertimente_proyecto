@@ -1,0 +1,101 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home" class="custom-back-btn"></ion-back-button>
+    </ion-buttons>
+    <ion-title class="header-title">Buscar Empleo</ion-title>
+  </ion-toolbar>
+  
+  <!-- Barra de búsqueda anclada -->
+  <ion-toolbar class="searchbar-toolbar">
+    <ion-searchbar 
+      placeholder="Ej. Conserje, Vendedor..." 
+      class="custom-searchbar"
+      [debounce]="300"
+      (ionInput)="alEscribirBusqueda($event)">
+    </ion-searchbar>
+  </ion-toolbar>
+
+  <!-- Filtro por Área Laboral -->
+  <ion-toolbar class="filter-toolbar">
+    <ion-item lines="none" class="filter-item">
+      <ion-select 
+        placeholder="Seleccionar Área Laboral" 
+        cancelText="Cancelar" 
+        okText="Aplicar"
+        (ionChange)="alSeleccionarArea($event)"
+        class="custom-select">
+        <ion-select-option value="">Todas las áreas</ion-select-option>
+        
+        <!-- Angular 17 @for para iterar las áreas dinámicas -->
+        @for (area of areasLaborales; track area) {
+          <ion-select-option [value]="area">{{ area }}</ion-select-option>
+        }
+      </ion-select>
+    </ion-item>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding-bottom">
+  <div class="feed-container">
+
+    <!-- Angular 17 Control Flow (@if / @else) -->
+    @if (cargando) {
+      <!-- Spinner de carga -->
+      <div class="loading-container">
+        <ion-spinner name="crescent" class="custom-spinner"></ion-spinner>
+        <p class="loading-text">Buscando ofertas...</p>
+      </div>
+    } @else if (ofertasFiltradas.length === 0) {
+      <!-- Estado vacío -->
+      <div class="empty-state">
+        <ion-icon name="search-outline"></ion-icon>
+        <h3 class="empty-title">No encontramos resultados</h3>
+        <p class="empty-desc">Intenta con otros filtros o revisa más tarde.</p>
+      </div>
+    } @else {
+      <!-- LISTA DE OFERTAS FILTRADAS -->
+      @for (oferta of ofertasFiltradas; track oferta.id) {
+        <ion-card class="job-card">
+          <ion-card-content>
+            
+            <div class="badge-container">
+              <span class="badge-modalidad">{{ oferta.modalidad }}</span>
+              <!-- Si el campo areaLaboral viene de Firestore, lo mostramos -->
+              @if (oferta.areaLaboral) {
+                <span class="badge-area">{{ oferta.areaLaboral }}</span>
+              }
+            </div>
+
+            <h2 class="job-title">{{ oferta.titulo }}</h2>
+            <h3 class="job-company">{{ oferta.nombreEmpresa }}</h3>
+
+            <div class="job-info-row">
+              <ion-icon name="location-outline" class="icon-green"></ion-icon>
+              <span class="text-main">{{ oferta.direccion }}</span>
+            </div>
+
+            @if (oferta.habilidades) {
+              <div class="job-info-row">
+                <ion-icon name="star-outline" class="icon-green"></ion-icon>
+                <span class="text-sub truncate-text">Req: {{ oferta.habilidades }}</span>
+              </div>
+            }
+
+            <ion-button expand="block" class="btn-primary-custom mt-15" (click)="verDetalles(oferta)">
+              Ver Detalles
+            </ion-button>
+
+          </ion-card-content>
+        </ion-card>
+      }
+    }
+  </div>
+
+  <!-- FOOTER FIJO -->
+  <ion-footer class="ion-no-border">
+    <ion-toolbar class="footer-toolbar">
+      <p class="footer-text">© ExpertiMente 2026</p>
+    </ion-toolbar>
+  </ion-footer>
+</ion-content>

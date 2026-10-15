@@ -1,0 +1,107 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home" class="menu-btn-custom"></ion-back-button>
+    </ion-buttons>
+    <ion-title class="app-title">Mi Perfil profesional</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="profile-content">
+  <div class="cv-container">
+
+    <div class="section-header">
+      <h2 class="section-title">Completa tu Perfil Profesional</h2>
+      <p class="section-subtitle">Completa o actualiza tu información paso a paso.</p>
+    </div>
+
+    <!-- BARRA DE PROGRESO GENERAL -->
+    <ion-card class="progress-card" *ngIf="progresoPerfil < 1">
+      <ion-card-content>
+        <div class="progress-header">
+          <span class="progress-title">Progreso de tu perfil</span>
+          <span class="progress-percentage">{{ (progresoPerfil * 100) | number:'1.0-0' }}%</span>
+        </div>
+        <ion-progress-bar [value]="progresoPerfil" class="custom-progress"></ion-progress-bar>
+        <p class="progress-hint">Completa todas las secciones para destacar tu perfil.</p>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- MENSAJE DE ÉXITO CUANDO TODO ESTÁ COMPLETO -->
+    <ion-card class="success-banner" *ngIf="progresoPerfil === 1">
+      <ion-card-content class="success-content">
+        <div class="trophy-container">
+          <ion-icon name="trophy-outline" class="trophy-icon"></ion-icon>
+        </div>
+        <div class="success-text">
+          <h3>¡Perfil 100% Completado!</h3>
+          <p>Tu información está lista para impresionar a los reclutadores.</p>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- LISTA DE SECCIONES -->
+    <div class="sections-list">
+      
+      <!-- 1. Información Profesional -->
+      <ion-card class="menu-card" [class.completed-card]="infoProfesionalLista" routerLink="/usuario-info">
+        <div class="card-flex-row">
+          <div class="icon-box" [class.icon-box-success]="infoProfesionalLista">
+            <ion-icon name="briefcase-outline"></ion-icon>
+          </div>
+          <div class="text-content">
+            <h3 class="card-title">Información Profesional</h3>
+            <p class="card-status status-pending" *ngIf="!infoProfesionalLista">Pendiente de completar</p>
+            <p class="card-status status-success" *ngIf="infoProfesionalLista">
+              <ion-icon name="checkmark-circle"></ion-icon> ¡Listo!
+            </p>
+          </div>
+          <ion-icon class="nav-icon" name="chevron-forward-outline"></ion-icon>
+        </div>
+      </ion-card>
+
+      <!-- 2. Foto de Perfil -->
+      <ion-card class="menu-card" [class.completed-card]="fotoLista" routerLink="/foto-perfil">
+        <div class="card-flex-row">
+          <div class="icon-box" [class.icon-box-success]="fotoLista">
+            <ion-icon name="camera-outline"></ion-icon>
+          </div>
+          <div class="text-content">
+            <h3 class="card-title">Foto de Perfil</h3>
+            <p class="card-status status-pending" *ngIf="!fotoLista">Pendiente de subir</p>
+            <p class="card-status status-success" *ngIf="fotoLista">
+              <ion-icon name="checkmark-circle"></ion-icon> ¡Subida!
+            </p>
+          </div>
+          <ion-icon class="nav-icon" name="chevron-forward-outline"></ion-icon>
+        </div>
+      </ion-card>
+
+      <!-- 3. Currículum PDF -->
+      <ion-card class="menu-card" [class.completed-card]="cvListo" routerLink="/cv">
+        <div class="card-flex-row">
+          <div class="icon-box" [class.icon-box-success]="cvListo">
+            <ion-icon name="document-text-outline"></ion-icon>
+          </div>
+          <div class="text-content">
+            <h3 class="card-title">Currículum en PDF</h3>
+            <p class="card-status status-pending" *ngIf="!cvListo">Opcional / Pendiente</p>
+            <p class="card-status status-success" *ngIf="cvListo">
+              <ion-icon name="checkmark-circle"></ion-icon> ¡Cargado!
+            </p>
+          </div>
+          <ion-icon class="nav-icon" name="chevron-forward-outline"></ion-icon>
+        </div>
+      </ion-card>
+
+    </div>
+
+  </div>
+</ion-content>
+
+<!-- FOOTER FIJO -->
+<ion-footer class="ion-no-border">
+  <ion-toolbar class="footer-toolbar">
+    <p class="footer-text">© ExpertiMente 2026</p>
+  </ion-toolbar>
+</ion-footer>

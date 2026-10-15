@@ -1,0 +1,121 @@
+/* --- FONDO DEL MENÚ --- */
+.menu-content {
+  /* Fondo beige/crema claro de tu paleta */
+  --background: var(--ion-color-light);
+}
+
+/* --- ENCABEZADO DEL PERFIL --- */
+.menu-header {
+  /* Degradado verde idéntico al de la barra de navegación del Home */
+  background: linear-gradient(135deg, var(--ion-color-secondary-shade) 0%, var(--ion-color-tertiary-tint) 100%);
+  padding: 50px 20px 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(var(--ion-color-primary-rgb), 0.2);
+  border-bottom-right-radius: 20px;
+  border-bottom-left-radius: 20px;
+}
+
+.menu-avatar {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: 3px solid #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+  .avatar-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  ion-icon {
+    font-size: 45px;
+    color: #ffffff;
+  }
+}
+
+.menu-header h2 {
+  color: #ffffff;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 15px 0 0 0;
+  text-align: center;
+  letter-spacing: 0.3px;
+}
+
+/* --- LISTA DE NAVEGACIÓN --- */
+.menu-list {
+  background: transparent;
+  padding: 25px 15px;
+}
+
+.menu-item {
+  --background: transparent;
+  --border-radius: 14px;
+  --padding-start: 10px;
+  --inner-padding-end: 10px;
+  margin-bottom: 8px;
+  transition: transform 0.2s ease, background 0.2s ease;
+
+  ion-icon[slot="start"] {
+    color: var(--ion-color-medium); /* Verde oliva para los íconos */
+    font-size: 1.4rem;
+    margin-right: 15px;
+  }
+
+  ion-label {
+    color: var(--ion-color-primary-shade); /* Verde oscuro en lugar de negro */
+    font-weight: 600;
+    font-size: 1.05rem;
+  }
+
+  .lock-icon {
+    color: var(--ion-color-medium-tint);
+    opacity: 0.5;
+  }
+
+  /* Efecto visual suave al tocar un elemento */
+  &:active {
+    --background: rgba(var(--ion-color-primary-rgb), 0.1);
+    transform: scale(0.98);
+  }
+}
+
+/* --- FOOTER / CERRAR SESIÓN --- */
+.menu-footer-container {
+  --background: var(--ion-color-light); /* Mismo fondo beige que el contenido */
+  
+  .menu-footer {
+    padding: 10px 15px 25px;
+    /* Una sutil línea divisoria verde claro */
+    border-top: 1px solid rgba(var(--ion-color-primary-rgb), 0.15);
+  }
+
+  .logout-item {
+    /* Fondo rojo muy translúcido para denotar la acción de salir sin ser agresivo */
+    --background: rgba(229, 83, 83, 0.08); 
+    --border-radius: 14px;
+    margin-top: 10px;
+
+    ion-icon {
+      color: #e55353; /* Rojo estándar de Ionic para acciones destructivas */
+    }
+
+    ion-label {
+      color: #e55353; 
+      font-weight: 700;
+    }
+    
+    &:active {
+      --background: rgba(229, 83, 83, 0.15);
+    }
+  }
+}

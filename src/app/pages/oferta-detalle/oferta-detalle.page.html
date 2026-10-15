@@ -1,0 +1,90 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/search" class="custom-back-btn"></ion-back-button>
+    </ion-buttons>
+    <ion-title class="header-title">Detalle del Empleo</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="detail-content">
+  
+  <!-- SPINNER DE CARGA -->
+  <div class="loading-container" *ngIf="cargando">
+    <ion-spinner name="crescent" class="custom-spinner"></ion-spinner>
+    <p class="loading-text">Cargando información...</p>
+  </div>
+
+  <!-- CONTENIDO SI EXISTE LA OFERTA -->
+  <div class="detail-container" *ngIf="!cargando && oferta">
+
+    <!-- Tarjeta Principal de Información -->
+    <ion-card class="detail-card">
+      <ion-card-content>
+        
+        <div class="badge-container">
+          <span class="badge-modalidad">{{ oferta.modalidad }}</span>
+        </div>
+
+        <h1 class="job-title">{{ oferta.titulo }}</h1>
+        <h2 class="job-company">{{ oferta.nombreEmpresa }}</h2>
+
+        <!-- Ubicación -->
+        <div class="info-row">
+          <ion-icon name="location-outline" class="icon-green"></ion-icon>
+          <span class="text-main"><strong>Dirección:</strong> {{ oferta.direccion }}</span>
+        </div>
+
+        <!-- Habilidades -->
+        <div class="info-row" *ngIf="oferta.habilidades">
+          <ion-icon name="star-outline" class="icon-green"></ion-icon>
+          <span class="text-sub"><strong>Requisitos:</strong> {{ oferta.habilidades }}</span>
+        </div>
+
+        <hr class="divider">
+
+        <!-- Descripción completa -->
+        <div class="description-section">
+          <h3 class="section-title">Descripción del trabajo</h3>
+          <p class="job-description">{{ oferta.descripcion }}</p>
+        </div>
+
+        <hr class="divider" *ngIf="oferta.contactoTelefono || oferta.contactoEmail">
+
+        <!-- Contacto Directo -->
+        <div class="contact-box" *ngIf="oferta.contactoTelefono || oferta.contactoEmail">
+          <h3 class="section-title">Contacto Directo</h3>
+          <div class="contact-item" *ngIf="oferta.contactoTelefono">
+            <ion-icon name="call-outline" class="icon-green"></ion-icon> 
+            <span class="text-main">Teléfono: <strong>{{ oferta.contactoTelefono }}</strong></span>
+          </div>
+          <div class="contact-item" *ngIf="oferta.contactoEmail">
+            <ion-icon name="mail-outline" class="icon-green"></ion-icon> 
+            <span class="text-main">Correo: <strong>{{ oferta.contactoEmail }}</strong></span>
+          </div>
+        </div>
+
+      </ion-card-content>
+    </ion-card>
+
+    <!-- BOTÓN DE POSTULACIÓN / CUESTIONARIO -->
+    <div class="action-section">
+      <ion-button 
+        expand="block" 
+        class="btn-primary-custom" 
+        [disabled]="yaPostulado"
+        (click)="irAlCuestionario()">
+        {{ yaPostulado ? '¡Ya te postulaste a este empleo!' : 'Iniciar Cuestionario y Postular' }}
+      </ion-button>
+    </div>
+
+  </div>
+
+
+</ion-content>
+
+<ion-footer class="ion-no-border">
+  <ion-toolbar class="footer-toolbar">
+    <p class="footer-text">© ExpertiMente 2026</p>
+  </ion-toolbar>
+</ion-footer>

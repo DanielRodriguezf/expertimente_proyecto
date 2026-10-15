@@ -1,0 +1,131 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home" class="menu-btn-custom"></ion-back-button>
+    </ion-buttons>
+    <ion-title class="app-title">Mi Perfil</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="profile-content">
+  
+  <!-- Pantalla de Carga -->
+  @if (cargando) {
+    <div class="loading-container">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+    </div>
+  }
+
+  <!-- Contenedor del Perfil (Se muestra cuando termina de cargar y hay datos) -->
+  @if (!cargando && usuarioData) {
+    <div class="perfil-container fade-in">
+
+      <!-- Tarjeta de cabecera con el avatar y nombre del usuario -->
+      <div class="perfil-header text-center">
+        <div class="avatar-container">
+          
+          <!-- Mostrar imagen si existe, sino mostrar ícono -->
+          @if (usuarioData?.fotoPerfil) {
+            <img [src]="usuarioData.fotoPerfil" alt="Foto de perfil" class="profile-avatar" />
+          } @else {
+            <div class="empty-avatar-placeholder">
+              <ion-icon name="person-outline"></ion-icon>
+            </div>
+          }
+
+        </div>
+        <!-- Nombre dinámico -->
+        <h2 class="profile-name">{{ usuarioData?.nombre }} {{ usuarioData?.apellidoPaterno }}</h2>
+        <p class="profile-subtitle">Postulante</p>
+      </div>
+
+      <!-- Sección de Información Personal -->
+      <div class="form-section">
+        <div class="section-header">
+          <h3 class="section-title">Datos Personales</h3>
+        </div>
+
+        <ion-card class="form-card">
+          <ion-card-content class="data-content">
+            
+            <div class="data-row">
+              <div class="icon-box">
+                <ion-icon name="id-card-outline"></ion-icon>
+              </div>
+              <div class="data-text">
+                <span class="label">RUT</span>
+                <p class="value">{{ usuarioData?.rut }}</p>
+              </div>
+            </div>
+
+            <div class="data-row">
+              <div class="icon-box">
+                <ion-icon name="mail-outline"></ion-icon>
+              </div>
+              <div class="data-text">
+                <span class="label">Correo Personal</span>
+                <p class="value">{{ usuarioData?.correo }}</p>
+              </div>
+            </div>
+
+            <div class="data-row">
+              <div class="icon-box">
+                <ion-icon name="call-outline"></ion-icon>
+              </div>
+              <div class="data-text">
+                <span class="label">Teléfono Celular</span>
+                <p class="value">{{ usuarioData?.telefono }}</p>
+              </div>
+            </div>
+
+            <div class="data-row">
+              <div class="icon-box">
+                <ion-icon name="location-outline"></ion-icon>
+              </div>
+              <div class="data-text">
+                <span class="label">Ubicación</span>
+                <p class="value">{{ usuarioData?.ciudad }}, {{ usuarioData?.pais }}</p>
+              </div>
+            </div>
+
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="actions-section">
+        <ion-button expand="block" class="btn-primary-custom" routerLink="/perfil-editar">
+          <ion-icon slot="start" name="create-outline"></ion-icon>
+          Modificar Datos
+        </ion-button>
+
+        <div class="danger-zone">
+          <p class="danger-text">¿Deseas dar de baja tu registro en la plataforma?</p>
+          <ion-button expand="block" class="btn-outline-danger" fill="outline" (click)="borrarCuenta()">
+            <ion-icon slot="start" name="trash-outline"></ion-icon>
+            Borrar Mi Cuenta
+          </ion-button>
+        </div>
+      </div>
+
+    </div>
+  }
+
+  <!-- Mensaje de Error si no se encuentra sesión -->
+  @if (!cargando && !usuarioData) {
+    <div class="error-container fade-in">
+      <ion-icon name="alert-circle-outline" class="error-icon"></ion-icon>
+      <p class="error-text">No se encontraron datos. Por favor, inicia sesión.</p>
+      <ion-button class="btn-primary-custom" routerLink="/login">Ir a Iniciar Sesión</ion-button>
+    </div>
+  }
+
+  <!-- FOOTER FIJO -->
+<ion-footer class="ion-no-border">
+  <ion-toolbar class="footer-toolbar">
+    <p class="footer-text">© ExpertiMente 2026</p>
+  </ion-toolbar>
+</ion-footer>
+
+</ion-content>
+

@@ -1,0 +1,136 @@
+ion-header {
+  .header-title {
+    color: var(--ion-color-primary-shade);
+    font-weight: bold;
+    font-family: var(--ion-font-family);
+  }
+
+  .custom-progress-bar {
+    --background: var(--ion-color-light-shade);
+    height: 6px;
+  }
+}
+
+ion-content {
+  --background: var(--ion-color-light); 
+}
+
+.register-container {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 20px 40px;
+  font-family: var(--ion-font-family);
+}
+
+.step-indicator {
+  text-align: center;
+  margin-bottom: 20px;
+  
+  p {
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--ion-color-primary); /* Usando el verde oliva para destacar sutilmente */
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0;
+  }
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px; 
+  animation: fadeIn 0.3s ease-in-out;
+
+  h2 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin: 0 0 5px;
+    color: var(--ion-color-secondary-shade);
+    text-align: center;
+  }
+
+  .subtitle {
+    color: var(--ion-color-primary);
+    margin: 0 0 15px;
+    font-size: 1.1rem;
+    text-align: center;
+  }
+
+  .info-text {
+    text-align: center;
+    color: var(--ion-color-medium);
+    font-size: 0.95rem;
+    margin-top: 15px;
+  }
+
+  ion-input {
+    --background: #ffffff;
+    --color: #000000 !important;
+    color: #000000 !important; 
+    --highlight-color-focused: var(--ion-color-primary); 
+  }
+
+  .manual-toggle {
+    --color: var(--ion-color-medium) !important;
+    margin: 0;
+  }
+
+  .error-message {
+    color: #d9534f;
+    font-weight: bold;
+    text-align: center;
+    margin: 10px 0;
+  }
+
+  .btn-primary {
+    margin-top: 20px;
+    --border-radius: 12px;
+    --background: var(--ion-color-primary); 
+    --background-hover: var(--ion-color-primary-shade); 
+    --color: var(--ion-color-primary-contrast); 
+    font-weight: bold;
+    font-size: 1.2rem;
+    height: 55px;
+    --box-shadow: 0 4px 10px rgba(58, 89, 18, 0.3);
+  }
+
+  .btn-success {
+    margin-top: 20px;
+    --border-radius: 12px;
+    /* Cambiado para usar el color secundario de la marca (#92A038) en lugar del verde por defecto */
+    --background: var(--ion-color-secondary); 
+    --background-hover: var(--ion-color-secondary-shade); 
+    --color: var(--ion-color-secondary-contrast); 
+    font-weight: bold;
+    font-size: 1.2rem;
+    height: 55px;
+    --box-shadow: 0 4px 10px rgba(146, 160, 56, 0.3);
+  }
+}
+
+.footer-toolbar {
+  --background: transparent;
+  text-align: center;
+  
+  .footer-text {
+    color: var(--ion-color-medium);
+    font-size: 0.9rem;
+    margin: 10px 0;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Media Query para asegurar una buena visualización en dispositivos celulares horizontales */
+@media (max-height: 600px) and (orientation: landscape) {
+  .register-container {
+    padding-top: 10px;
+  }
+  .form-section {
+    gap: 15px;
+  }
+}
