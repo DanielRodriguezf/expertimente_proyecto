@@ -272,7 +272,7 @@ export class CvPage implements OnInit {
         return;
       }
 
-      const ai = new GoogleGenAI({ apiKey: 'AQ.Ab8RN6IdzooTVzqNqyCF2TbJEStiuAqjnmrRIY2H37joCkiSyw' });
+      const ai = new GoogleGenAI({ apiKey: 'LLAVESITA' });
 
       loading.message = 'Google AI está redactando tu currículum personalizado...';
 
