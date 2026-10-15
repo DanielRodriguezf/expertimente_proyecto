@@ -272,8 +272,6 @@ export class CvPage implements OnInit {
         return;
       }
 
-     // const ai = new GoogleGenAI({ api/Key: 'LLAVESITA' });
-
       loading.message = 'Google AI está redactando tu currículum personalizado...';
 
       const historialCrudo = tieneExperiencia 
