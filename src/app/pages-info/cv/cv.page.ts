@@ -3,6 +3,7 @@ import { RouterModule, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 import { ToastController, LoadingController, AlertController } from '@ionic/angular';
 import { 
@@ -23,7 +24,6 @@ import { Auth, onAuthStateChanged } from '@angular/fire/auth';
 import { Firestore, doc, updateDoc, onSnapshot, deleteField, getDoc, serverTimestamp } from '@angular/fire/firestore';
 
 import { jsPDF } from 'jspdf';
-// Importación oficial del nuevo SDK de Google Gen AI
 import { GoogleGenAI } from '@google/genai';
 
 @Component({
@@ -130,15 +130,18 @@ export class CvPage implements OnInit {
       });
       await loading.present();
 
-      const reader = new FileReader();
-      reader.onload = async () => {
-        this.archivoBase64 = reader.result as string; 
-        this.archivoSeleccionadoNombre = file.name;
+      try {
+        const reader = new FileReader();
+        reader.onload = () => {
+          this.archivoBase64 = reader.result as string; 
+          this.archivoSeleccionadoNombre = file.name;
+          this.cdr.detectChanges(); 
+          this.mostrarMensaje('¡Documento cargado con exito!', 'success');
+        };
+        reader.readAsDataURL(file);
+      } finally {
         await loading.dismiss();
-        this.cdr.detectChanges(); 
-        this.mostrarMensaje('¡Documento cargado con exito!', 'success');
-      };
-      reader.readAsDataURL(file);
+      }
     }
   }
 
@@ -223,23 +226,20 @@ export class CvPage implements OnInit {
       
       await updateDoc(docRef, payload);
       this.quitarArchivoPendiente(); 
-      await loading.dismiss();
       this.mostrarMensaje('¡Tu currículum PDF se ha guardado con éxito!', 'success');
     } catch (error) {
-      await loading.dismiss();
       this.mostrarMensaje('Hubo un error al guardar.', 'danger');
+    } finally {
+      await loading.dismiss();
     }
   }
 
-  // ==========================================
-  // FLUJO DE IA REAL: GOOGLE GEN AI SDK OFICIAL
-  // ==========================================
   async generarCVConIA() {
     const user = this.auth.currentUser;
     if (!user) return;
 
     const loading = await this.loadingCtrl.create({
-      message: 'Conectando con Google AI Studio...',
+      message: 'Conectando con la IA...',
       spinner: 'crescent'
     });
     await loading.present();
@@ -249,7 +249,6 @@ export class CvPage implements OnInit {
       const docSnap = await getDoc(docRef);
 
       if (!docSnap.exists()) {
-        await loading.dismiss();
         this.mostrarMensaje('No se encontraron tus datos en la base de datos.', 'danger');
         return;
       }
@@ -257,7 +256,8 @@ export class CvPage implements OnInit {
       const datosBD = docSnap.data();
       const cvManual = datosBD['cvManual'];
 
-      const tieneExperiencia = cvManual && cvManual['areasExperiencia'] && cvManual['areasExperiencia'].length > 0;
+      // Validación reforzada para evitar errores si areasExperiencia viene vacío o no es un arreglo
+      const tieneExperiencia = cvManual && Array.isArray(cvManual['areasExperiencia']) && cvManual['areasExperiencia'].length > 0;
       const sinExperiencia = datosBD['sinExperiencia'] === true || (cvManual && cvManual['sinExperiencia'] === true);
 
       if (
@@ -267,18 +267,18 @@ export class CvPage implements OnInit {
         !cvManual['habilidadesTecnicas'] || 
         (!tieneExperiencia && sinExperiencia === false)
       ) {
-        await loading.dismiss();
-        this.mostrarMensaje('⚠️ Completa tu información laboral o indica que buscas primer empleo.', 'warning');
+        this.mostrarMensaje('Completa tu información profesional', 'warning');
         return;
       }
 
-      loading.message = 'Google AI está redactando tu currículum personalizado...';
+      const ai = new GoogleGenAI({ apiKey: environment.geminiApiKey });
+
+      loading.message = 'La IA está redactando tu currículum personalizado...';
 
       const historialCrudo = tieneExperiencia 
         ? JSON.stringify(cvManual['areasExperiencia']) 
         : 'Ninguna experiencia laboral previa. El candidato busca su primera oportunidad profesional, con gran actitud y proactividad.';
 
-      // PROMPT MEJORADO: Separar explícitamente EXPERIENCIA y COMPETENCIAS
       const promptTexto = `Actúa como un experto reclutador corporativo. Redacta de forma profesional, clara y persuasiva el cuerpo de un currículum en español.
       Datos del candidato:
       - Nombre: ${datosBD['nombre']} ${datosBD['apellidoPaterno']}
@@ -302,125 +302,131 @@ export class CvPage implements OnInit {
 
       loading.message = 'Compilando documento PDF final...';
 
+      // Fallback si la carrera viene vacía
       let tituloProfesional = this.formularioIA.oficio || cvManual['carrera'] || (tieneExperiencia ? 'Profesional Especializado' : 'Perfil Proactivo en Desarrollo');
 
-      // ==========================================
-      // DISEÑO VISUAL MEJORADO DEL PDF (jsPDF)
-      // ==========================================
       const docPdf = new jsPDF();
       const pageWidth = docPdf.internal.pageSize.getWidth();
       const pageHeight = docPdf.internal.pageSize.getHeight();
-      const margenIzquierdo = 20;
-      const margenDerecho = 20;
+      const margenIzquierdo = 25;
+      const margenDerecho = 25;
       const anchoUtil = pageWidth - margenIzquierdo - margenDerecho;
-      let yPos = 20;
-
-      // Color primario ExpertiMente (#4f9d14) y color oscuro de texto
-      const colorPrimario = [79, 157, 20];
-      const colorTextoOscuro = [33, 37, 41];
-      const colorGris = [100, 100, 100];
-
-      // Franja superior decorativa de diseño
-      docPdf.setFillColor(colorPrimario[0], colorPrimario[1], colorPrimario[2]);
-      docPdf.rect(0, 0, pageWidth, 6, 'F');
-
-      yPos = 16;
-
-      // Encabezado: Nombre del Postulante
-      docPdf.setFontSize(22);
-      docPdf.setFont('helvetica', 'bold');
-      docPdf.setTextColor(colorTextoOscuro[0], colorTextoOscuro[1], colorTextoOscuro[2]);
-      docPdf.text(`${datosBD['nombre']} ${datosBD['apellidoPaterno']} ${datosBD['apellidoMaterno'] || ''}`, margenIzquierdo, yPos);
-      yPos += 7;
       
-      // Título / Oficio con color primario
-      docPdf.setFontSize(13);
+      const colorPrimario = [79, 157, 20]; 
+      const colorOscuro = [44, 62, 80];
+      const colorGris = [90, 90, 90];
+      const colorClaro = [249, 247, 235]; 
+
+      docPdf.setFillColor(colorPrimario[0], colorPrimario[1], colorPrimario[2]);
+      docPdf.rect(0, 0, pageWidth, 45, 'F');
+
+      docPdf.setFontSize(24);
       docPdf.setFont('helvetica', 'bold');
-      docPdf.setTextColor(colorPrimario[0], colorPrimario[1], colorPrimario[2]); 
-      docPdf.text(tituloProfesional.toUpperCase(), margenIzquierdo, yPos);
-      yPos += 4;
-
-      // Línea divisoria elegante bajo el encabezado
-      docPdf.setDrawColor(200, 200, 200);
-      docPdf.setLineWidth(0.5);
-      docPdf.line(margenIzquierdo, yPos, pageWidth - margenDerecho, yPos);
-      yPos += 8;
-
-      // Procesamiento de secciones generadas por la IA
-      // Dividimos el texto por líneas o secciones lógicas para maquetarlas ordenadamente
-      docPdf.setFontSize(10);
+      docPdf.setTextColor(255, 255, 255);
+      const nombreCompleto = `${datosBD['nombre']} ${datosBD['apellidoPaterno']} ${datosBD['apellidoMaterno'] || ''}`;
+      docPdf.text(nombreCompleto.toUpperCase(), pageWidth / 2, 22, { align: 'center' });
+      
+      docPdf.setFontSize(12);
       docPdf.setFont('helvetica', 'normal');
-      docPdf.setTextColor(colorGris[0], colorGris[1], colorGris[2]);
+      docPdf.setTextColor(230, 245, 220);
+      docPdf.text(tituloProfesional.toUpperCase(), pageWidth / 2, 32, { align: 'center' });
 
-      const lineasIA = docPdf.splitTextToSize(textoGenerado, anchoUtil);
+      let yPos = 60;
+
+      const lineasIA = textoGenerado.split('\n');
 
       for (let i = 0; i < lineasIA.length; i++) {
-        const linea = lineasIA[i].trim();
-        
-        // Detectar si es un encabezado generado por la IA (RESUMEN PROFESIONAL, EXPERIENCIA, COMPETENCIAS)
+        let linea = lineasIA[i].trim();
+        if (!linea) continue;
+
+        if (yPos > pageHeight - 35) { 
+            docPdf.addPage(); 
+            yPos = 30; 
+        }
+
         if (linea.includes('RESUMEN PROFESIONAL') || linea.includes('EXPERIENCIA') || linea.includes('COMPETENCIAS')) {
           yPos += 4;
-          if (yPos > pageHeight - 25) { docPdf.addPage(); yPos = 20; }
-
-          // Título de sección estilizado con barra lateral o color primario
-          docPdf.setFontSize(12);
+          docPdf.setFontSize(13);
           docPdf.setFont('helvetica', 'bold');
           docPdf.setTextColor(colorPrimario[0], colorPrimario[1], colorPrimario[2]);
-          docPdf.text(linea.replace(':', ''), margenIzquierdo, yPos);
+          
+          const tituloLimpio = linea.replace(/\*|:/g, '').trim();
+          docPdf.text(tituloLimpio, margenIzquierdo, yPos);
+          yPos += 2;
+
+          docPdf.setDrawColor(colorPrimario[0], colorPrimario[1], colorPrimario[2]);
+          docPdf.setLineWidth(0.5);
+          docPdf.line(margenIzquierdo, yPos, pageWidth - margenDerecho, yPos);
           yPos += 6;
 
-          // Línea fina debajo del título de sección
-          docPdf.setDrawColor(colorPrimario[0], colorPrimario[1], colorPrimario[2]);
-          docPdf.setLineWidth(0.3);
-          docPdf.line(margenIzquierdo, yPos - 2, margenIzquierdo + 40, yPos - 2);
-          
-          docPdf.setFontSize(10);
-          docPdf.setFont('helvetica', 'normal');
-          docPdf.setTextColor(colorGris[0], colorGris[1], colorGris[2]);
-          yPos += 2;
         } else {
-          if (yPos > pageHeight - 20) { docPdf.addPage(); yPos = 20; }
-          docPdf.text(linea, margenIzquierdo, yPos);
-          yPos += 5;
+          const esVineta = linea.startsWith('-') || linea.startsWith('*');
+          
+          if (linea.includes('|') || (!esVineta && linea.length < 90)) {
+            docPdf.setFontSize(11);
+            docPdf.setFont('helvetica', 'bold');
+            docPdf.setTextColor(colorOscuro[0], colorOscuro[1], colorOscuro[2]);
+          } else {
+            docPdf.setFontSize(10);
+            docPdf.setFont('helvetica', 'normal');
+            docPdf.setTextColor(colorGris[0], colorGris[1], colorGris[2]);
+          }
+
+          let sangriaX = margenIzquierdo;
+          let maxAncho = anchoUtil;
+
+          if (esVineta) {
+            linea = linea.substring(1).trim();
+            sangriaX = margenIzquierdo + 5;
+            maxAncho = anchoUtil - 5;
+            
+            docPdf.setFillColor(colorPrimario[0], colorPrimario[1], colorPrimario[2]);
+            docPdf.circle(margenIzquierdo + 2, yPos - 1.5, 1, 'F');
+          }
+
+          const lineasTexto = docPdf.splitTextToSize(linea, maxAncho);
+          docPdf.text(lineasTexto, sangriaX, yPos);
+          yPos += (lineasTexto.length * 5) + 2;
         }
       }
 
-      yPos += 4;
+      yPos += 6;
 
-      // Formación Académica (Sección fija estructurada)
-      if (yPos > pageHeight - 35) { docPdf.addPage(); yPos = 20; }
+      if (yPos > pageHeight - 40) { docPdf.addPage(); yPos = 30; }
       
-      docPdf.setFontSize(12);
+      docPdf.setFontSize(13);
       docPdf.setFont('helvetica', 'bold');
       docPdf.setTextColor(colorPrimario[0], colorPrimario[1], colorPrimario[2]);
       docPdf.text('FORMACIÓN ACADÉMICA', margenIzquierdo, yPos);
-      yPos += 6;
-
-      docPdf.setDrawColor(colorPrimario[0], colorPrimario[1], colorPrimario[2]);
-      docPdf.setLineWidth(0.3);
-      docPdf.line(margenIzquierdo, yPos - 2, margenIzquierdo + 40, yPos - 2);
       yPos += 2;
+      
+      docPdf.setLineWidth(0.5);
+      docPdf.line(margenIzquierdo, yPos, pageWidth - margenDerecho, yPos);
+      yPos += 7;
 
+      docPdf.setFontSize(11);
+      docPdf.setTextColor(colorOscuro[0], colorOscuro[1], colorOscuro[2]);
+      docPdf.text(cvManual['nivelEducativo'] || 'Educación Superior', margenIzquierdo, yPos);
+      yPos += 5;
       docPdf.setFontSize(10);
       docPdf.setFont('helvetica', 'normal');
       docPdf.setTextColor(colorGris[0], colorGris[1], colorGris[2]);
-      
-      const textoFormacion = `• Nivel Alcanzado: ${cvManual['nivelEducativo']}\n• Institución / Establecimiento: ${cvManual['establecimiento'] || 'No especificada'}`;
-      const lineasEducacion = docPdf.splitTextToSize(textoFormacion, anchoUtil);
-      docPdf.text(lineasEducacion, margenIzquierdo, yPos);
+      docPdf.text(cvManual['establecimiento'] || 'Institución no especificada', margenIzquierdo, yPos);
 
-      // Pie de página sutil institucional en el PDF
       const totalPages = docPdf.internal.pages.length - 1;
       for (let i = 1; i <= totalPages; i++) {
         docPdf.setPage(i);
+        
+        docPdf.setFillColor(colorClaro[0], colorClaro[1], colorClaro[2]);
+        docPdf.rect(0, pageHeight - 15, pageWidth, 15, 'F');
+
         docPdf.setFontSize(8);
-        docPdf.setTextColor(150, 150, 150);
-        docPdf.text(`Generado por ExpertiMente - Plataforma de Inclusión Laboral`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+        docPdf.setTextColor(120, 120, 120);
+        docPdf.text(`Generado por ExpertiMente - Plataforma de Inclusión Laboral`, pageWidth / 2, pageHeight - 6, { align: 'center' });
       }
 
-      // CONVERSIÓN A BASE64 Y GUARDADO EN FIRESTORE
       const pdfBase64 = docPdf.output('datauristring');
-      const nombreArchivoGenerado = `CV_Gemini_${datosBD['nombre']}_${datosBD['apellidoPaterno']}.pdf`;
+      const nombreArchivoGenerado = `CV_IA_${datosBD['nombre']}_${datosBD['apellidoPaterno']}.pdf`;
 
       await updateDoc(docRef, {
         cvBase64: pdfBase64,
@@ -429,14 +435,19 @@ export class CvPage implements OnInit {
         cvGeneradoIA: deleteField() 
       });
 
-      await loading.dismiss();
       this.modoOpcion = 'manual'; 
-      this.mostrarMensaje('¡Currículum redactado por Google AI exitosamente!', 'success');
+      this.mostrarMensaje('¡Currículum redactado con IA exitosamente!', 'success');
 
     } catch (error: any) {
-      await loading.dismiss();
       console.error('Error de IA con Google GenAI:', error);
-      this.mostrarMensaje('Ocurrió un error al conectar con Google AI Studio.', 'danger');
+
+      if (error?.status === 503 || error?.message?.includes('503') || error?.message?.includes('high demand')) {
+        this.mostrarMensaje('El motor de IA está experimentando alta demanda. Por favor, intenta de nuevo en unos segundos.', 'warning');
+      } else {
+        this.mostrarMensaje('Ocurrió un error al conectar con la IA.', 'danger');
+      }
+    } finally {
+      await loading.dismiss();
     }
   }
 
