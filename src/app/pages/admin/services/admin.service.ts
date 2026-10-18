@@ -127,6 +127,20 @@ export interface Oferta {
   preguntas?: Pregunta[];
 }
 
+// --- INTERFAZ PARA SOLICITUDES DE CARGOS ---
+export interface CargoSolicitud {
+  id: string;
+  nombre: string;
+  descripcion: string;
+  empresaId: string;
+  nombreEmpresa: string;
+  reclutadorId: string;
+  numeroSolicitud: string;
+  fechaSolicitud?: any;
+  estado: 'pendiente' | 'aprobado' | 'rechazado' | string;
+  preguntas?: Pregunta[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -244,5 +258,43 @@ export class AdminService {
       const empresaRef = doc(this.firestore, `empresas/${empresaId}`);
       await deleteDoc(empresaRef);
     }
+  }
+
+  // 9. Obtener TODAS las solicitudes de Cargos
+  async getTodosCargos(): Promise<CargoSolicitud[]> {
+    const cargosRef = collection(this.firestore, 'cargos');
+    const snapshot = await getDocs(cargosRef);
+
+    return snapshot.docs.map(docSnap => {
+      const data = docSnap.data();
+      return {
+        id: docSnap.id,
+        estado: data['estado'] || 'pendiente',
+        ...data
+      } as CargoSolicitud;
+    });
+  }
+
+  // 10. Aprobar Cargo guardando las preguntas con sus alternativas y puntajes (3 a 10 preguntas)
+  async aprobarCargoConPreguntas(cargoId: string, preguntas: Pregunta[]) {
+    const cargoRef = doc(this.firestore, `cargos/${cargoId}`);
+    await updateDoc(cargoRef, {
+      estado: 'aprobado',
+      preguntas: preguntas
+    });
+  }
+
+  // 11. Rechazar solicitud de Cargo
+  async rechazarCargo(cargoId: string) {
+    const cargoRef = doc(this.firestore, `cargos/${cargoId}`);
+    await updateDoc(cargoRef, {
+      estado: 'rechazado'
+    });
+  }
+
+  // 12. Eliminar solicitud de Cargo
+  async eliminarCargo(id: string) {
+    const cargoRef = doc(this.firestore, `cargos/${id}`);
+    await deleteDoc(cargoRef);
   }
 }

@@ -33,6 +33,11 @@
             <ion-label>Ofertas</ion-label>
           </ion-item>
 
+          <ion-item button (click)="cambiarVista('cargos')" [class.active-item]="vistaActual === 'cargos'" detail="false">
+            <ion-icon name="layers-outline" slot="start"></ion-icon>
+            <ion-label>Cargos</ion-label>
+          </ion-item>
+
         </ion-menu-toggle>
       </ion-list>
     </ion-content>
@@ -51,7 +56,8 @@
           {{ 
             vistaActual === 'reclutadores' ? 'Directorio de Reclutadores y Empresas' :
             vistaActual === 'postulantes' ? 'Listado de Postulantes' :
-            'Control de Ofertas Laborales'
+            vistaActual === 'ofertas' ? 'Control de Ofertas Laborales' :
+            'Solicitudes de Cargos Urgentes'
           }}
         </ion-title>
       </ion-toolbar>
@@ -200,6 +206,62 @@
             <div class="empty-wrapper">
               <div class="empty-state">
                 <p>No hay ofertas que coincidan con el filtro.</p>
+              </div>
+            </div>
+          }
+        }
+
+        <!-- ========================================== -->
+        <!-- SECCIÓN: CARGOS -->
+        <!-- ========================================== -->
+        @if (vistaActual === 'cargos') {
+          
+          <div class="filter-bar">
+            <ion-item lines="none" class="filter-item">
+              <ion-icon name="filter-outline" slot="start"></ion-icon>
+              <ion-select [(ngModel)]="filtroCargos" (ionChange)="aplicarFiltros()" interface="popover" label="Estado: " labelPlacement="start">
+                <ion-select-option value="todos">Todos los estados</ion-select-option>
+                <ion-select-option value="pendiente">Pendientes</ion-select-option>
+                <ion-select-option value="aprobado">Aprobados</ion-select-option>
+                <ion-select-option value="rechazado">Rechazados</ion-select-option>
+              </ion-select>
+            </ion-item>
+
+            <ion-item lines="none" class="filter-item">
+              <ion-icon name="swap-vertical-outline" slot="start"></ion-icon>
+              <ion-select [(ngModel)]="ordenCargos" (ionChange)="aplicarFiltros()" interface="popover" label="Ordenar: " labelPlacement="start">
+                <ion-select-option value="reciente">Más recientes</ion-select-option>
+                <ion-select-option value="antiguo">Más antiguos</ion-select-option>
+                <ion-select-option value="alfabetico">Orden Alfabético</ion-select-option>
+                <ion-select-option value="empresa">Por Empresa</ion-select-option>
+              </ion-select>
+            </ion-item>
+          </div>
+
+          @if (cargosMostrados.length > 0) {
+            <div class="grid-container">
+              @for (cargo of cargosMostrados; track cargo.id) {
+                <ion-card class="data-card" button (click)="abrirModalCargo(cargo)">
+                  <ion-card-header>
+                    <div class="card-header-flex">
+                      <ion-card-title>{{ cargo.nombre }}</ion-card-title>
+                      <ion-badge [color]="cargo.estado === 'aprobado' ? 'success' : cargo.estado === 'rechazado' ? 'danger' : 'warning'">
+                        {{ cargo.estado | uppercase }}
+                      </ion-badge>
+                    </div>
+                    <ion-card-subtitle>{{ cargo.nombreEmpresa }}</ion-card-subtitle>
+                  </ion-card-header>
+                  <ion-card-content>
+                    <div class="info-row"><ion-icon name="document-text-outline"></ion-icon> <span>{{ cargo.numeroSolicitud }}</span></div>
+                    <div class="info-row"><ion-icon name="help-circle-outline"></ion-icon> <span>{{ cargo.preguntas?.length ? (cargo.preguntas?.length + ' preguntas asignadas') : 'Sin preguntas asignadas' }}</span></div>
+                  </ion-card-content>
+                </ion-card>
+              }
+            </div>
+          } @else {
+            <div class="empty-wrapper">
+              <div class="empty-state">
+                <p>No hay solicitudes de cargos que coincidan con el filtro.</p>
               </div>
             </div>
           }
@@ -477,6 +539,211 @@
           <ion-button expand="block" color="danger" fill="outline" (click)="eliminarOferta(ofertaSeleccionada)">
             <ion-icon name="trash-outline" slot="start"></ion-icon>
             ELIMINAR OFERTA
+          </ion-button>
+        </div>
+      }
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+<!-- ========================================== -->
+<!-- MODAL: SOLICITUD DE CARGO -->
+<!-- ========================================== -->
+<ion-modal [isOpen]="isModalCargoOpen" (didDismiss)="cerrarModalCargo()" class="fullscreen-modal">
+  <ng-template>
+    <ion-header class="ion-no-border">
+      <ion-toolbar>
+        <ion-title>Gestión de Solicitud de Cargo</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="cerrarModalCargo()">Cerrar</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="ion-padding modal-bg">
+      @if (cargoSeleccionado) {
+        <div class="modal-grid">
+          <!-- Columna Izquierda: Información de la Solicitud -->
+          <div>
+            <ion-card class="detail-panel">
+              <ion-card-header>
+                <div class="card-header-flex">
+                  <ion-card-title>{{ cargoSeleccionado.nombre }}</ion-card-title>
+                  <ion-badge [color]="cargoSeleccionado.estado === 'aprobado' ? 'success' : cargoSeleccionado.estado === 'rechazado' ? 'danger' : 'warning'">
+                    {{ cargoSeleccionado.estado | uppercase }}
+                  </ion-badge>
+                </div>
+                <ion-card-subtitle>{{ cargoSeleccionado.nombreEmpresa }}</ion-card-subtitle>
+              </ion-card-header>
+
+              <ion-card-content>
+                <div class="info-row">
+                  <ion-icon name="document-text-outline"></ion-icon>
+                  <span><strong>N° Solicitud:</strong> {{ cargoSeleccionado.numeroSolicitud }}</span>
+                </div>
+                <div class="info-row">
+                  <ion-icon name="business-outline"></ion-icon>
+                  <span><strong>Empresa:</strong> {{ cargoSeleccionado.nombreEmpresa }}</span>
+                </div>
+                <div class="info-row">
+                  <ion-icon name="time-outline"></ion-icon>
+                  <span><strong>Fecha de Solicitud:</strong> {{ formatearFecha(cargoSeleccionado.fechaSolicitud) }}</span>
+                </div>
+
+                <div style="border-top: 1px solid #e2e8f0; margin: 15px 0;"></div>
+
+                <div class="info-row">
+                  <ion-icon name="information-circle-outline"></ion-icon>
+                  <span><strong>Descripción del Cargo:</strong> {{ cargoSeleccionado.descripcion }}</span>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          </div>
+
+          <!-- Columna Derecha: Preguntas Generales del Cargo con Alternativas y Puntaje -->
+          <div>
+            @if (mostrandoFormularioPreguntas) {
+              <div class="preguntas-container">
+                <h4>Preguntas Obligatorias del Cargo (Mín. 3 - Máx. 10)</h4>
+                <p class="preguntas-helper">
+                  Define las preguntas filtro para este cargo. Cada pregunta debe tener entre 2 y 5 alternativas con su puntaje respectivo.
+                </p>
+
+                @for (pregunta of preguntasCargo; track $index; let i = $index) {
+                  <div class="pregunta-editor-card">
+                    <div class="pregunta-editor-header">
+                      <span class="pregunta-numero">Pregunta {{ i + 1 }} (Obligatoria)</span>
+                      @if (preguntasCargo.length > 3) {
+                        <ion-button fill="clear" size="small" color="danger" (click)="eliminarPreguntaCargo(i)" title="Eliminar pregunta">
+                          <ion-icon name="trash-outline" slot="start"></ion-icon>
+                          Quitar
+                        </ion-button>
+                      }
+                    </div>
+
+                    <div class="pregunta-input-row">
+                      <ion-input
+                        label="Enunciado de la pregunta"
+                        labelPlacement="stacked"
+                        fill="outline"
+                        placeholder="Escribe la pregunta general para este cargo..."
+                        [(ngModel)]="pregunta.texto">
+                      </ion-input>
+                    </div>
+
+                    <div class="opciones-editor-section">
+                      <span class="opciones-subtitle">Alternativas y Puntajes (Mín. 2 - Máx. 5):</span>
+
+                      @for (opcion of pregunta.opciones; track $index; let j = $index) {
+                        <div class="opcion-input-row">
+                          <ion-input
+                            class="input-opcion-texto"
+                            [label]="'Alternativa ' + (j + 1)"
+                            labelPlacement="stacked"
+                            fill="outline"
+                            placeholder="Texto de la respuesta..."
+                            [(ngModel)]="opcion.texto">
+                          </ion-input>
+
+                          <ion-input
+                            class="input-opcion-puntaje"
+                            type="number"
+                            label="Puntaje"
+                            labelPlacement="stacked"
+                            fill="outline"
+                            placeholder="0"
+                            [(ngModel)]="opcion.puntaje">
+                          </ion-input>
+
+                          @if (pregunta.opciones.length > 2) {
+                            <ion-button fill="clear" color="danger" (click)="eliminarOpcionPregunta(i, j)" title="Quitar alternativa">
+                              <ion-icon name="remove-circle-outline" slot="icon-only"></ion-icon>
+                            </ion-button>
+                          }
+                        </div>
+                      }
+
+                      @if (pregunta.opciones.length < 5) {
+                        <ion-button size="small" fill="clear" color="primary" (click)="agregarOpcionPregunta(i)">
+                          <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+                          Agregar alternativa ({{ pregunta.opciones.length }}/5)
+                        </ion-button>
+                      }
+                    </div>
+                  </div>
+                }
+
+                @if (preguntasCargo.length < 10) {
+                  <ion-button expand="block" fill="outline" color="primary" class="ion-margin-top" (click)="agregarPreguntaCargo()">
+                    <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+                    Agregar otra pregunta ({{ preguntasCargo.length }}/10)
+                  </ion-button>
+                }
+
+                <div class="preguntas-form-actions">
+                  <ion-button expand="block" color="success" (click)="confirmarAprobacionCargo()">
+                    <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+                    OK (APROBAR Y ENVIAR AL RECLUTADOR)
+                  </ion-button>
+                  <ion-button expand="block" fill="clear" color="medium" (click)="mostrandoFormularioPreguntas = false">
+                    Cancelar
+                  </ion-button>
+                </div>
+              </div>
+            } @else {
+              @if (cargoSeleccionado.preguntas && cargoSeleccionado.preguntas.length > 0) {
+                <div class="preguntas-container">
+                  <h4>Preguntas Obligatorias Asignadas ({{ cargoSeleccionado.preguntas.length }})</h4>
+                  @for (pregunta of cargoSeleccionado.preguntas; track $index; let i = $index) {
+                    <div class="pregunta-box">
+                      @if ($any(pregunta).texto) {
+                        <p><strong>P{{ i + 1 }}: {{ pregunta.texto }}</strong> (Obligatoria)</p>
+                        @if (pregunta.opciones && pregunta.opciones.length > 0) {
+                          <ul class="opciones-lista">
+                            @for (opcion of pregunta.opciones; track $index) {
+                              <li><strong>{{ opcion.texto }}</strong> — {{ opcion.puntaje }} pts</li>
+                            }
+                          </ul>
+                        }
+                      } @else {
+                        <p><strong>P{{ i + 1 }}:</strong> {{ $any(pregunta) }}</p>
+                      }
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="preguntas-container">
+                  <h4>Preguntas Generales del Cargo</h4>
+                  <p style="color: var(--ion-color-medium); margin: 0;">
+                    Aún no se han definido las preguntas para este cargo. Presiona <strong>Aprobar Cargo</strong> para redactar entre 3 y 10 preguntas con sus alternativas y puntajes.
+                  </p>
+                </div>
+              }
+            }
+          </div>
+        </div>
+
+        <!-- Botones principales de Aprobar / Rechazar -->
+        @if (!mostrandoFormularioPreguntas) {
+          <div class="modal-actions">
+            <ion-button expand="block" color="success" class="ion-margin-bottom" (click)="mostrarCamposPreguntas()">
+              <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+              {{ (cargoSeleccionado.preguntas && cargoSeleccionado.preguntas.length > 0) ? 'EDITAR PREGUNTAS Y APROBAR' : 'APROBAR CARGO' }}
+            </ion-button>
+
+            @if (cargoSeleccionado.estado !== 'rechazado') {
+              <ion-button expand="block" color="danger" fill="outline" (click)="rechazarSolicitudCargo()">
+                <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+                RECHAZAR SOLICITUD
+              </ion-button>
+            }
+          </div>
+        }
+
+        <div class="modal-actions" style="margin-top: 30px;">
+          <ion-button expand="block" color="danger" fill="outline" (click)="eliminarCargo(cargoSeleccionado)">
+            <ion-icon name="trash-outline" slot="start"></ion-icon>
+            ELIMINAR SOLICITUD DE CARGO
           </ion-button>
         </div>
       }
