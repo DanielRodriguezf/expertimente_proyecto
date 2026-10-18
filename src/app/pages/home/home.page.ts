@@ -20,8 +20,6 @@ import {
   IonModal,
   IonTitle,
   IonButtons,
-  IonSelect,
-  IonSelectOption,
   ToastController,
   AlertController
 } from '@ionic/angular';
@@ -71,22 +69,18 @@ import {
   deleteDoc,
   updateDoc,
   getDocs,
+  getDocsFromServer,
   addDoc
 } from '@angular/fire/firestore';
 
-/*
- * CATÁLOGO LOCAL DE CARGOS
- *
- * Estructura real:
- *
- * src/app/pages/home/home.page.ts
- * src/app/pages/cargos-catalogo/cargos-catalogo.ts
- */
 import {
   CargoCatalogo,
   generarCatalogoCargos
 } from '../cargos-catalogo/cargos-catalogo';
 
+import {
+  PerfilChatReclutadorComponent
+} from './perfil-chat-reclutador.component';
 
 export interface OfertaTrabajo {
   id: string;
@@ -111,28 +105,20 @@ export interface OfertaTrabajo {
   reclutadorId?: string;
 }
 
-
 export interface RespuestaCuestionario {
   preguntaId: string;
   preguntaTexto: string;
-
   tipo: 'texto' | 'seleccion';
-
   respuesta: string;
   puntajeObtenido?: number;
 }
 
-
 export interface PostulanteCompleto {
   postulacionId: string;
   postulanteId: string;
-
   fechaPostulacion?: any;
 
-  estado:
-    | 'Pendiente'
-    | 'Aceptado'
-    | 'Rechazado';
+  estado: 'Pendiente' | 'Aceptado' | 'Rechazado';
 
   nombres: string;
   apellidos: string;
@@ -140,7 +126,6 @@ export interface PostulanteCompleto {
   telefono: string;
 
   fotoPerfil?: string;
-
   puntajeInoeidad?: number;
 
   areaLaboral?: string;
@@ -160,13 +145,11 @@ export interface PostulanteCompleto {
   cvBase64?: string;
 }
 
-
 export interface PostulanteBusqueda {
   postulanteId: string;
 
   nombres: string;
   apellidos: string;
-
   correo: string;
   telefono: string;
 
@@ -185,13 +168,11 @@ export interface PostulanteBusqueda {
   cvBase64?: string;
 }
 
-
 @Component({
   selector: 'app-home',
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss'],
   standalone: true,
-
   imports: [
     CommonModule,
     IonContent,
@@ -203,169 +184,92 @@ export interface PostulanteBusqueda {
     IonModal,
     IonTitle,
     IonButtons,
-    IonSelect,
-    IonSelectOption
+    PerfilChatReclutadorComponent
   ]
 })
 export class HomePage implements OnInit, OnDestroy {
-
   private auth = inject(Auth);
+  private firestore = inject(Firestore);
+  private router = inject(Router);
+  private toastController = inject(ToastController);
+  private alertController = inject(AlertController);
+  private cdr = inject(ChangeDetectorRef);
+  private ngZone = inject(NgZone);
 
-  private firestore =
-    inject(Firestore);
-
-  private router =
-    inject(Router);
-
-  private toastController =
-    inject(ToastController);
-
-  private alertController =
-    inject(AlertController);
-
-  private cdr =
-    inject(ChangeDetectorRef);
-
-  private ngZone =
-    inject(NgZone);
-
-
-  // ============================================================
   // PERFIL RECLUTADOR
-  // ============================================================
 
   nombreReclutador = '';
-
   nombreEmpresa = '';
 
-  estadoReclutador:
-    'aprobado' | 'pendiente' =
-    'pendiente';
+  estadoReclutador: 'aprobado' | 'pendiente' = 'pendiente';
 
   isLoading = true;
 
-
-  // ============================================================
   // OFERTAS
-  // ============================================================
 
   ofertas: OfertaTrabajo[] = [];
 
-
-  // ============================================================
-  // MODAL POSTULANTES DE UNA OFERTA
-  // ============================================================
+  // POSTULANTES DE UNA OFERTA
 
   isModalPostulantesOpen = false;
-
   cargandoPostulantes = false;
 
-  ofertaSeleccionada:
-    OfertaTrabajo | null =
-    null;
+  ofertaSeleccionada: OfertaTrabajo | null = null;
+  postulantesList: PostulanteCompleto[] = [];
 
-  postulantesList:
-    PostulanteCompleto[] =
-    [];
+  modalPostulantesFullscreen = false;
+  mostrarRankingCompleto = false;
 
-  modalPostulantesFullscreen =
-    false;
+  // BÚSQUEDA POR CARGO DE PREFERENCIA
 
-  mostrarRankingCompleto =
-    false;
+  isModalBusquedaPostulantesOpen = false;
+  cargandoBusquedaPostulantes = false;
 
+  postulantesBusqueda: PostulanteBusqueda[] = [];
 
-  // ============================================================
-  // BÚSQUEDA MANUAL DE POSTULANTES
-  // ============================================================
-
-  isModalBusquedaPostulantesOpen =
-    false;
-
-  cargandoBusquedaPostulantes =
-    false;
-
-  postulantesBusqueda:
-    PostulanteBusqueda[] =
-    [];
-
-  /*
-   * El catálogo de cargos se carga directamente desde
-   * cargos-catalogo.ts.
-   *
-   * NO depende de Firestore para mostrar las opciones
-   * de Cargo y Área laboral.
-   */
-  cargosCatalogoBusqueda:
-    CargoCatalogo[] =
+  cargosCatalogoBusqueda: CargoCatalogo[] =
     generarCatalogoCargos();
 
   filtroCargo = '';
-
   filtroArea = '';
 
+  busquedaRealizada = false;
+  cargoBuscado = '';
+  errorBusquedaPostulantes = '';
 
-  // ============================================================
-  // MODAL RESPUESTAS CUESTIONARIO
-  // ============================================================
+  private solicitudBusquedaActual = 0;
 
-  isModalRespuestasOpen =
-    false;
+  // RESPUESTAS DEL CUESTIONARIO DE UNA POSTULACIÓN
+
+  isModalRespuestasOpen = false;
 
   postulanteRespuestasSeleccionado:
-    PostulanteCompleto | null =
-    null;
+    PostulanteCompleto | null = null;
 
-
-  // ============================================================
   // SUSCRIPCIONES
-  // ============================================================
 
-  private authUnsubscribe?:
-    Unsubscribe;
+  private authUnsubscribe?: Unsubscribe;
+  private snapshotUnsubscribe?: Unsubscribe;
 
-  private snapshotUnsubscribe?:
-    Unsubscribe;
-
-
-  // ============================================================
   // EMPRESAS MOCK ANTIGUAS
-  // ============================================================
 
-  private empresasMockMap: {
-    [key: string]: string;
-  } = {
-    emp_001:
-      'Tech Corp Chile',
-
-    emp_002:
-      'Innovación Global S.A.',
-
-    emp_003:
-      'Desarrollos Rápidos'
+  private empresasMockMap: { [key: string]: string } = {
+    emp_001: 'Tech Corp Chile',
+    emp_002: 'Innovación Global S.A.',
+    emp_003: 'Desarrollos Rápidos'
   };
 
-
-  // ============================================================
   // GETTERS GENERALES
-  // ============================================================
 
   get primerNombre(): string {
-
     if (
       !this.nombreReclutador ||
-      this.nombreReclutador
-        .toLowerCase() ===
-        'reclutador'
+      this.nombreReclutador.toLowerCase() === 'reclutador'
     ) {
-
-      const email =
-        this.auth.currentUser?.email;
+      const email = this.auth.currentUser?.email;
 
       if (email) {
-
-        const handle =
-          email.split('@')[0];
+        const handle = email.split('@')[0];
 
         return (
           handle.charAt(0).toUpperCase() +
@@ -376,1395 +280,682 @@ export class HomePage implements OnInit, OnDestroy {
       return 'Usuario';
     }
 
-    return this
-      .nombreReclutador
-      .trim()
-      .split(' ')[0];
+    return this.nombreReclutador.trim().split(' ')[0];
   }
 
-
-  get totalOfertasActivas():
-    number {
-
+  get totalOfertasActivas(): number {
     return this.ofertas.filter(
-      oferta =>
-        oferta.estado ===
-        'Activa'
+      oferta => oferta.estado === 'Activa'
     ).length;
   }
 
-
-  get puedePublicarOfertas():
-    boolean {
-
-    return (
-      this.estadoReclutador ===
-      'aprobado'
-    );
+  get puedePublicarOfertas(): boolean {
+    return this.estadoReclutador === 'aprobado';
   }
 
+  // RANKING EXISTENTE DE UNA OFERTA
 
-  // ============================================================
-  // RANKING
-  // ============================================================
-
-  get rankingPostulantes():
-    PostulanteCompleto[] {
-
+  get rankingPostulantes(): PostulanteCompleto[] {
     return this.postulantesList
+      .filter(postulante => {
+        const tienePuntaje =
+          typeof postulante.puntajeInoeidad === 'number' &&
+          Number.isFinite(postulante.puntajeInoeidad);
 
-      .filter(
-        postulante => {
+        const sigueDisponible =
+          postulante.estado === 'Pendiente';
 
-          const tienePuntaje =
-            typeof postulante
-              .puntajeInoeidad ===
-              'number'
-            &&
-            Number.isFinite(
-              postulante
-                .puntajeInoeidad
-            );
+        return tienePuntaje && sigueDisponible;
+      })
+      .sort((a, b) => {
+        const puntajeA =
+          typeof a.puntajeInoeidad === 'number'
+            ? a.puntajeInoeidad
+            : -1;
 
-          const sigueDisponible =
-            postulante.estado ===
-            'Pendiente';
+        const puntajeB =
+          typeof b.puntajeInoeidad === 'number'
+            ? b.puntajeInoeidad
+            : -1;
 
-          return (
-            tienePuntaje &&
-            sigueDisponible
-          );
-        }
+        return puntajeB - puntajeA;
+      });
+  }
+
+  get top3Postulantes(): PostulanteCompleto[] {
+    return this.rankingPostulantes.slice(0, 3);
+  }
+
+  // SUGERENCIAS DE CARGOS
+
+  get cargosBusquedaDisponibles(): string[] {
+    const nombres = [
+      ...this.cargosCatalogoBusqueda.map(
+        cargo => String(cargo.nombre ?? '').trim()
+      ),
+      ...this.postulantesBusqueda.flatMap(
+        postulante => postulante.cargos
       )
+    ];
 
-      .sort(
-        (a, b) => {
+    const unicos = new Map<string, string>();
 
-          const puntajeA =
-            typeof a.puntajeInoeidad ===
-            'number'
-              ? a.puntajeInoeidad
-              : -1;
+    for (const nombre of nombres) {
+      const clave = this.normalizarTexto(nombre);
 
-          const puntajeB =
-            typeof b.puntajeInoeidad ===
-            'number'
-              ? b.puntajeInoeidad
-              : -1;
-
-          return puntajeB - puntajeA;
-        }
-      );
-  }
-
-
-  get top3Postulantes():
-    PostulanteCompleto[] {
-
-    return this
-      .rankingPostulantes
-      .slice(0, 3);
-  }
-
-
-  // ============================================================
-  // FILTRO — TODOS LOS CARGOS DEL CATÁLOGO
-  // ============================================================
-
-  get cargosBusquedaDisponibles():
-    string[] {
-
-    return Array.from(
-      new Set(
-        this.cargosCatalogoBusqueda
-
-          .map(
-            cargo =>
-              String(
-                cargo.nombre
-              ).trim()
-          )
-
-          .filter(Boolean)
-      )
-    )
-      .sort(
-        (a, b) =>
-          a.localeCompare(
-            b,
-            'es',
-            {
-              sensitivity:
-                'base'
-            }
-          )
-      );
-  }
-
-
-  // ============================================================
-  // FILTRO — TODAS LAS ÁREAS DEL CATÁLOGO
-  // ============================================================
-
-  get areasBusquedaDisponibles():
-    string[] {
-
-    return Array.from(
-      new Set(
-        this.cargosCatalogoBusqueda
-
-          .map(
-            cargo =>
-              String(
-                cargo.areaLaboral
-              ).trim()
-          )
-
-          .filter(Boolean)
-      )
-    )
-      .sort(
-        (a, b) =>
-          a.localeCompare(
-            b,
-            'es',
-            {
-              sensitivity:
-                'base'
-            }
-          )
-      );
-  }
-
-
-  // ============================================================
-  // POSTULANTES FILTRADOS
-  // ============================================================
-
-  get postulantesBusquedaFiltrados():
-    PostulanteBusqueda[] {
-
-    return this.postulantesBusqueda.filter(
-      postulante => {
-
-        const coincideCargo =
-          !this.filtroCargo
-          ||
-          postulante.cargos.some(
-            cargo =>
-              this.normalizarTexto(
-                cargo
-              )
-              ===
-              this.normalizarTexto(
-                this.filtroCargo
-              )
-          );
-
-        const coincideArea =
-          !this.filtroArea
-          ||
-          postulante
-            .areasLaborales
-            .some(
-              area =>
-                this.normalizarTexto(
-                  area
-                )
-                ===
-                this.normalizarTexto(
-                  this.filtroArea
-                )
-            );
-
-        return (
-          coincideCargo &&
-          coincideArea
-        );
+      if (clave && !unicos.has(clave)) {
+        unicos.set(clave, nombre);
       }
+    }
+
+    return Array.from(unicos.values()).sort((a, b) =>
+      a.localeCompare(b, 'es', {
+        sensitivity: 'base'
+      })
     );
   }
 
-
-  // ============================================================
-  // NORMALIZAR TEXTO
-  // ============================================================
-
-  private normalizarTexto(
-    texto: string
-  ): string {
-
-    return String(
-      texto ?? ''
-    )
-      .normalize('NFD')
-      .replace(
-        /[\u0300-\u036f]/g,
-        ''
+  get areasBusquedaDisponibles(): string[] {
+    return Array.from(
+      new Set(
+        this.cargosCatalogoBusqueda
+          .map(cargo =>
+            String(cargo.areaLaboral ?? '').trim()
+          )
+          .filter(Boolean)
       )
-      .trim()
-      .toLowerCase();
+    ).sort((a, b) =>
+      a.localeCompare(b, 'es', {
+        sensitivity: 'base'
+      })
+    );
   }
 
+  // RESULTADOS POR PREFERENCIA
 
-  // ============================================================
-  // CONSTRUCTOR
-  // ============================================================
+  get postulantesBusquedaFiltrados(): PostulanteBusqueda[] {
+    if (!this.busquedaRealizada) {
+      return [];
+    }
 
-  constructor() {
+    const textoCargo =
+      this.normalizarTexto(this.cargoBuscado);
 
-    addIcons({
+    if (!textoCargo) {
+      return [];
+    }
 
-      'briefcase-outline':
-        briefcaseOutline,
+    return this.postulantesBusqueda.filter(postulante => {
+      const coincideCargo = postulante.cargos.some(
+        cargo =>
+          this.normalizarTexto(cargo).includes(textoCargo)
+      );
 
-      'add-outline':
-        addOutline,
+      const coincideArea =
+        !this.filtroArea ||
+        postulante.areasLaborales.some(
+          area =>
+            this.normalizarTexto(area) ===
+            this.normalizarTexto(this.filtroArea)
+        );
 
-      'log-out-outline':
-        logOutOutline,
-
-      'create-outline':
-        createOutline,
-
-      'trash-outline':
-        trashOutline,
-
-      'power-outline':
-        powerOutline,
-
-      'location-outline':
-        locationOutline,
-
-      'mail-outline':
-        mailOutline,
-
-      'call-outline':
-        callOutline,
-
-      'people-outline':
-        peopleOutline,
-
-      'close-outline':
-        closeOutline,
-
-      'checkmark-circle-outline':
-        checkmarkCircleOutline,
-
-      'close-circle-outline':
-        closeCircleOutline,
-
-      'person-outline':
-        personOutline,
-
-      'document-text-outline':
-        documentTextOutline,
-
-      'school-outline':
-        schoolOutline,
-
-      'time-outline':
-        timeOutline,
-
-      'star-outline':
-        starOutline,
-
-      'lock-closed-outline':
-        lockClosedOutline,
-
-      'expand-outline':
-        expandOutline,
-
-      'contract-outline':
-        contractOutline
+      return coincideCargo && coincideArea;
     });
   }
 
+  private normalizarTexto(texto: string): string {
+    return String(texto ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .replace(/\s+/g, ' ')
+      .toLowerCase();
+  }
 
-  // ============================================================
+  constructor() {
+    addIcons({
+      'briefcase-outline': briefcaseOutline,
+      'add-outline': addOutline,
+      'log-out-outline': logOutOutline,
+      'create-outline': createOutline,
+      'trash-outline': trashOutline,
+      'power-outline': powerOutline,
+      'location-outline': locationOutline,
+      'mail-outline': mailOutline,
+      'call-outline': callOutline,
+      'people-outline': peopleOutline,
+      'close-outline': closeOutline,
+      'checkmark-circle-outline': checkmarkCircleOutline,
+      'close-circle-outline': closeCircleOutline,
+      'person-outline': personOutline,
+      'document-text-outline': documentTextOutline,
+      'school-outline': schoolOutline,
+      'time-outline': timeOutline,
+      'star-outline': starOutline,
+      'lock-closed-outline': lockClosedOutline,
+      'expand-outline': expandOutline,
+      'contract-outline': contractOutline
+    });
+  }
+
   // CICLO DE VIDA
-  // ============================================================
 
   ngOnInit() {
-
-    /*
-     * Generamos nuevamente el catálogo al iniciar.
-     */
     this.cargosCatalogoBusqueda =
       generarCatalogoCargos();
-
-    console.log(
-      'CATÁLOGO LOCAL:',
-      this.cargosCatalogoBusqueda.length,
-      'cargos'
-    );
-
-    console.log(
-      'CARGOS DISPONIBLES:',
-      this.cargosBusquedaDisponibles.length
-    );
-
-    console.log(
-      'ÁREAS DISPONIBLES:',
-      this.areasBusquedaDisponibles.length
-    );
 
     this.iniciarObservadorAuth();
   }
 
-
   ionViewWillEnter() {
-
-    const user =
-      this.auth.currentUser;
+    const user = this.auth.currentUser;
 
     if (user) {
-
       this.cargarTodo(user);
-
     } else {
-
       this.iniciarObservadorAuth();
     }
   }
 
-
   ionViewWillLeave() {
-
-    this
-      .limpiarSuscripcionOfertas();
+    this.limpiarSuscripcionOfertas();
+    this.cerrarBusquedaPostulantes();
   }
 
-
   ngOnDestroy() {
+    this.solicitudBusquedaActual++;
 
     if (this.authUnsubscribe) {
-
       this.authUnsubscribe();
     }
 
-    this
-      .limpiarSuscripcionOfertas();
+    this.limpiarSuscripcionOfertas();
   }
 
-
-  // ============================================================
   // SUSCRIPCIONES
-  // ============================================================
 
   private limpiarSuscripcionOfertas() {
-
-    if (
-      this.snapshotUnsubscribe
-    ) {
-
+    if (this.snapshotUnsubscribe) {
       this.snapshotUnsubscribe();
-
-      this.snapshotUnsubscribe =
-        undefined;
+      this.snapshotUnsubscribe = undefined;
     }
   }
 
-
   private iniciarObservadorAuth() {
-
-    if (
-      this.authUnsubscribe
-    ) {
-
+    if (this.authUnsubscribe) {
       return;
     }
 
-    this.authUnsubscribe =
-      onAuthStateChanged(
-        this.auth,
-
-        (
-          user:
-            User | null
-        ) => {
-
-          if (user) {
-
-            this.cargarTodo(
-              user
-            );
-
-          } else {
-
-            this.ngZone.run(
-              () => {
-
-                this.router.navigate(
-                  [
-                    '/auth/login'
-                  ]
-                );
-              }
-            );
-          }
+    this.authUnsubscribe = onAuthStateChanged(
+      this.auth,
+      (user: User | null) => {
+        if (user) {
+          this.cargarTodo(user);
+        } else {
+          this.ngZone.run(() => {
+            this.router.navigate(['/auth/login']);
+          });
         }
-      );
-  }
-
-
-  // ============================================================
-  // CARGA GENERAL
-  // ============================================================
-
-  private async cargarTodo(
-    user: User
-  ) {
-
-    this.ngZone.run(
-      () => {
-
-        this.isLoading =
-          true;
-
-        this.cdr.detectChanges();
       }
     );
-
-    await this
-      .cargarPerfilReclutador(
-        user
-      );
-
-    this.escucharOfertasReales(
-      user.uid
-    );
   }
 
+  // CARGA GENERAL
 
-  // ============================================================
+  private async cargarTodo(user: User) {
+    this.ngZone.run(() => {
+      this.isLoading = true;
+      this.cdr.detectChanges();
+    });
+
+    await this.cargarPerfilReclutador(user);
+
+    this.escucharOfertasReales(user.uid);
+  }
+
   // PERFIL RECLUTADOR
-  // ============================================================
 
-  async cargarPerfilReclutador(
-    user: User
-  ) {
-
-    this.estadoReclutador =
-      'pendiente';
+  async cargarPerfilReclutador(user: User) {
+    this.estadoReclutador = 'pendiente';
 
     try {
+      const docRef = doc(
+        this.firestore,
+        'reclutadores',
+        user.uid
+      );
 
-      const docRef =
-        doc(
-          this.firestore,
-          'reclutadores',
-          user.uid
-        );
-
-      const docSnap =
-        await getDoc(
-          docRef
-        );
+      const docSnap = await getDoc(docRef);
 
       let nombreEncontrado = '';
-
       let empresaEncontrada = '';
 
-      if (
-        docSnap.exists()
-      ) {
-
-        const data =
-          docSnap.data();
-
-        const estadoBD =
-          data['estado'];
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const estadoBD = data['estado'];
 
         const estadoNormalizado =
-          String(
-            estadoBD ?? ''
-          )
+          String(estadoBD ?? '')
             .trim()
             .toLowerCase();
 
         this.estadoReclutador =
-          estadoNormalizado ===
-          'aprobado'
+          estadoNormalizado === 'aprobado'
             ? 'aprobado'
             : 'pendiente';
-
 
         if (
           estadoBD === undefined ||
           estadoBD === null ||
-          String(
-            estadoBD
-          ).trim() === ''
+          String(estadoBD).trim() === ''
         ) {
-
-          await updateDoc(
-            docRef,
-            {
-              estado:
-                'Pendiente'
-            }
-          );
+          await updateDoc(docRef, {
+            estado: 'Pendiente'
+          });
         }
 
-
         nombreEncontrado =
-          data['nombre']
-          ||
-          data['nombreCompleto']
-          ||
-          data['nombreReclutador']
-          ||
+          data['nombre'] ||
+          data['nombreCompleto'] ||
+          data['nombreReclutador'] ||
           '';
 
-
-        const empId =
-          data['empresaId'];
-
+        const empId = data['empresaId'];
 
         if (empId) {
-
-          if (
-            this.empresasMockMap[
-              empId
-            ]
-          ) {
-
+          if (this.empresasMockMap[empId]) {
             empresaEncontrada =
-              this.empresasMockMap[
-                empId
-              ];
-
+              this.empresasMockMap[empId];
           } else {
+            const empRef = doc(
+              this.firestore,
+              'empresas',
+              empId
+            );
 
-            const empRef =
-              doc(
-                this.firestore,
-                'empresas',
-                empId
-              );
+            const empSnap = await getDoc(empRef);
 
-            const empSnap =
-              await getDoc(
-                empRef
-              );
-
-            if (
-              empSnap.exists()
-            ) {
-
+            if (empSnap.exists()) {
               empresaEncontrada =
-                empSnap.data()[
-                  'nombre'
-                ]
-                ||
-                '';
+                empSnap.data()['nombre'] || '';
             }
           }
         }
       }
 
-
-      if (
-        !nombreEncontrado
-      ) {
-
+      if (!nombreEncontrado) {
         nombreEncontrado =
-          user.displayName
-          ||
-          user.email?.split('@')[0]
-          ||
+          user.displayName ||
+          user.email?.split('@')[0] ||
           'Usuario';
       }
 
-
-      this.ngZone.run(
-        () => {
-
-          this.nombreReclutador =
-            nombreEncontrado;
-
-          this.nombreEmpresa =
-            empresaEncontrada;
-
-          this.cdr.detectChanges();
-        }
-      );
-
+      this.ngZone.run(() => {
+        this.nombreReclutador = nombreEncontrado;
+        this.nombreEmpresa = empresaEncontrada;
+        this.cdr.detectChanges();
+      });
     } catch (error) {
-
       console.error(
         'Error al cargar datos del perfil:',
         error
       );
 
-      this.estadoReclutador =
-        'pendiente';
+      this.estadoReclutador = 'pendiente';
     }
   }
 
-
-  // ============================================================
   // ESCUCHAR OFERTAS
-  // ============================================================
 
-  escucharOfertasReales(
-    reclutadorUid:
-      string
-  ) {
+  escucharOfertasReales(reclutadorUid: string) {
+    this.limpiarSuscripcionOfertas();
 
-    this
-      .limpiarSuscripcionOfertas();
+    const q = query(
+      collection(this.firestore, 'ofertas'),
+      where('reclutadorId', '==', reclutadorUid)
+    );
 
-    const q =
-      query(
+    this.snapshotUnsubscribe = onSnapshot(
+      q,
+      snapshot => {
+        this.ngZone.run(() => {
+          this.ofertas = snapshot.docs.map(documento => {
+            const data = documento.data();
 
-        collection(
-          this.firestore,
-          'ofertas'
-        ),
+            return {
+              id: documento.id,
+              titulo: data['titulo'] || '',
+              descripcion: data['descripcion'] || '',
+              modalidad: data['modalidad'] || '',
+              cargoId: data['cargoId'] || '',
+              cargoNombre: data['cargoNombre'] || '',
+              formularioId: data['formularioId'] || '',
+              areaLaboral: data['areaLaboral'] || '',
+              direccion: data['direccion'] || '',
+              habilidades: data['habilidades'] || '',
+              contactoEmail: data['contactoEmail'] || '',
+              contactoTelefono:
+                data['contactoTelefono'] || '',
+              estado:
+                data['estado'] === 'Inactiva'
+                  ? 'Inactiva'
+                  : 'Activa',
+              fechaPublicacion:
+                data['fechaPublicacion'],
+              reclutadorId: data['reclutadorId']
+            };
+          });
 
-        where(
-          'reclutadorId',
-          '==',
-          reclutadorUid
-        )
-      );
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        });
+      },
+      error => {
+        console.error(
+          'Error al escuchar cambios en ofertas:',
+          error
+        );
 
-
-    this.snapshotUnsubscribe =
-      onSnapshot(
-        q,
-
-        snapshot => {
-
-          this.ngZone.run(
-            () => {
-
-              this.ofertas =
-                snapshot.docs.map(
-                  documento => {
-
-                    const data =
-                      documento.data();
-
-                    return {
-
-                      id:
-                        documento.id,
-
-                      titulo:
-                        data['titulo']
-                        ||
-                        '',
-
-                      descripcion:
-                        data['descripcion']
-                        ||
-                        '',
-
-                      modalidad:
-                        data['modalidad']
-                        ||
-                        '',
-
-                      cargoId:
-                        data['cargoId']
-                        ||
-                        '',
-
-                      cargoNombre:
-                        data['cargoNombre']
-                        ||
-                        '',
-
-                      formularioId:
-                        data['formularioId']
-                        ||
-                        '',
-
-                      areaLaboral:
-                        data['areaLaboral']
-                        ||
-                        '',
-
-                      direccion:
-                        data['direccion']
-                        ||
-                        '',
-
-                      habilidades:
-                        data['habilidades']
-                        ||
-                        '',
-
-                      contactoEmail:
-                        data['contactoEmail']
-                        ||
-                        '',
-
-                      contactoTelefono:
-                        data['contactoTelefono']
-                        ||
-                        '',
-
-                      estado:
-                        data['estado'] ===
-                        'Inactiva'
-                          ? 'Inactiva'
-                          : 'Activa',
-
-                      fechaPublicacion:
-                        data[
-                          'fechaPublicacion'
-                        ],
-
-                      reclutadorId:
-                        data[
-                          'reclutadorId'
-                        ]
-                    };
-                  }
-                );
-
-              this.isLoading =
-                false;
-
-              this.cdr.detectChanges();
-            }
-          );
-        },
-
-        error => {
-
-          console.error(
-            'Error al escuchar cambios en ofertas:',
-            error
-          );
-
-          this.ngZone.run(
-            () => {
-
-              this.isLoading =
-                false;
-
-              this.cdr.detectChanges();
-            }
-          );
-        }
-      );
+        this.ngZone.run(() => {
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        });
+      }
+    );
   }
 
+  // POSTULANTES DE UNA OFERTA
 
-  // ============================================================
-  // VER POSTULANTES DE UNA OFERTA
-  // ============================================================
-
-  async verPostulantes(
-    oferta:
-      OfertaTrabajo
-  ) {
-
-    this.ofertaSeleccionada =
-      oferta;
-
-    this.modalPostulantesFullscreen =
-      false;
-
-    this.mostrarRankingCompleto =
-      false;
-
-    this.isModalPostulantesOpen =
-      true;
-
-    this.cargandoPostulantes =
-      true;
-
-    this.postulantesList =
-      [];
+  async verPostulantes(oferta: OfertaTrabajo) {
+    this.ofertaSeleccionada = oferta;
+    this.modalPostulantesFullscreen = false;
+    this.mostrarRankingCompleto = false;
+    this.isModalPostulantesOpen = true;
+    this.cargandoPostulantes = true;
+    this.postulantesList = [];
 
     this.cdr.detectChanges();
 
-
     try {
+      const q = query(
+        collection(this.firestore, 'postulaciones'),
+        where('ofertaId', '==', oferta.id)
+      );
 
-      const postulacionesRef =
-        collection(
-          this.firestore,
-          'postulaciones'
-        );
+      const querySnapshot = await getDocs(q);
 
-      const q =
-        query(
-          postulacionesRef,
+      const tempPostulantes: PostulanteCompleto[] = [];
 
-          where(
-            'ofertaId',
-            '==',
-            oferta.id
-          )
-        );
-
-      const querySnapshot =
-        await getDocs(q);
-
-      const tempPostulantes:
-        PostulanteCompleto[] =
-        [];
-
-
-      for (
-        const postulacionDoc
-        of querySnapshot.docs
-      ) {
-
-        const dataPostulacion =
-          postulacionDoc.data();
+      for (const postulacionDoc of querySnapshot.docs) {
+        const dataPostulacion = postulacionDoc.data();
 
         const postulanteId =
-          dataPostulacion[
-            'postulanteId'
-          ];
-
+          dataPostulacion['postulanteId'];
 
         const puntajeRaw =
-          dataPostulacion[
-            'puntajeInoeidad'
-          ]
-          ??
-          dataPostulacion[
-            'puntajeIdoneidad'
-          ];
-
+          dataPostulacion['puntajeInoeidad'] ??
+          dataPostulacion['puntajeIdoneidad'];
 
         const puntajeInoeidad =
-          puntajeRaw !== undefined
-          &&
-          puntajeRaw !== null
-          &&
-          !Number.isNaN(
-            Number(puntajeRaw)
-          )
-
-            ? Number(
-                puntajeRaw
-              )
-
+          puntajeRaw !== undefined &&
+          puntajeRaw !== null &&
+          !Number.isNaN(Number(puntajeRaw))
+            ? Number(puntajeRaw)
             : undefined;
 
+        if (postulanteId) {
+          const userDocRef = doc(
+            this.firestore,
+            `postulantes/${postulanteId}`
+          );
 
-        if (
-          postulanteId
-        ) {
+          const userDocSnap = await getDoc(userDocRef);
 
-          const userDocRef =
-            doc(
-              this.firestore,
-              `postulantes/${postulanteId}`
-            );
-
-          const userDocSnap =
-            await getDoc(
-              userDocRef
-            );
-
-
-          if (
-            userDocSnap.exists()
-          ) {
-
-            const userData =
-              userDocSnap.data();
-
+          if (userDocSnap.exists()) {
+            const userData = userDocSnap.data();
 
             const apellidos =
-              userData['apellidos']
-              ||
+              userData['apellidos'] ||
               [
-                userData[
-                  'apellidoPaterno'
-                ],
-
-                userData[
-                  'apellidoMaterno'
-                ]
+                userData['apellidoPaterno'],
+                userData['apellidoMaterno']
               ]
                 .filter(Boolean)
                 .join(' ');
 
-
             const fotoPerfil =
-              userData[
-                'fotoPerfil'
-              ]
-              ||
-              '';
+              userData['fotoPerfil'] || '';
 
-
-            const estadoFirestore =
-              String(
-                dataPostulacion[
-                  'estado'
-                ]
-                ??
-                ''
-              )
-                .trim()
-                .toLowerCase();
-
+            const estadoFirestore = String(
+              dataPostulacion['estado'] ?? ''
+            )
+              .trim()
+              .toLowerCase();
 
             let estadoVista:
               | 'Pendiente'
               | 'Aceptado'
-              | 'Rechazado'
-              =
-              'Pendiente';
+              | 'Rechazado' = 'Pendiente';
 
-
-            if (
-              estadoFirestore ===
-              'aceptado'
-            ) {
-
-              estadoVista =
-                'Aceptado';
-
-            } else if (
-              estadoFirestore ===
-              'rechazado'
-            ) {
-
-              estadoVista =
-                'Rechazado';
+            if (estadoFirestore === 'aceptado') {
+              estadoVista = 'Aceptado';
+            } else if (estadoFirestore === 'rechazado') {
+              estadoVista = 'Rechazado';
             }
 
-
             tempPostulantes.push({
-
-              postulacionId:
-                postulacionDoc.id,
-
-              postulanteId:
-                postulanteId,
-
+              postulacionId: postulacionDoc.id,
+              postulanteId,
               fechaPostulacion:
-                dataPostulacion[
-                  'fechaPostulacion'
-                ],
-
-              estado:
-                estadoVista,
-
-              puntajeInoeidad:
-                puntajeInoeidad,
-
+                dataPostulacion['fechaPostulacion'],
+              estado: estadoVista,
+              puntajeInoeidad,
               areaLaboral:
-                dataPostulacion[
-                  'areaLaboral'
-                ]
-                ||
-                oferta.areaLaboral
-                ||
+                dataPostulacion['areaLaboral'] ||
+                oferta.areaLaboral ||
                 '',
-
               cargoId:
-                dataPostulacion[
-                  'cargoId'
-                ]
-                ||
-                oferta.cargoId
-                ||
+                dataPostulacion['cargoId'] ||
+                oferta.cargoId ||
                 '',
-
               cargoNombre:
-                dataPostulacion[
-                  'cargoNombre'
-                ]
-                ||
-                oferta.cargoNombre
-                ||
+                dataPostulacion['cargoNombre'] ||
+                oferta.cargoNombre ||
                 '',
-
               ofertaTitulo:
-                dataPostulacion[
-                  'tituloOferta'
-                ]
-                ||
-                oferta.titulo
-                ||
+                dataPostulacion['tituloOferta'] ||
+                oferta.titulo ||
                 '',
-
-
               respuestas:
-                this
-                  .normalizarRespuestasCuestionario(
-                    dataPostulacion[
-                      'respuestasDetalle'
-                    ]
-                    ??
-                    dataPostulacion[
-                      'respuestas'
-                    ]
-                  ),
-
-
+                this.normalizarRespuestasCuestionario(
+                  dataPostulacion['respuestasDetalle'] ??
+                  dataPostulacion['respuestas']
+                ),
               nombres:
-                userData[
-                  'nombres'
-                ]
-                ||
-                userData[
-                  'nombre'
-                ]
-                ||
+                userData['nombres'] ||
+                userData['nombre'] ||
                 'Candidato',
-
-              apellidos:
-                apellidos,
-
-              fotoPerfil:
-                fotoPerfil,
-
+              apellidos,
+              fotoPerfil,
               correo:
-                userData[
-                  'correo'
-                ]
-                ||
-                userData[
-                  'email'
-                ]
-                ||
+                userData['correo'] ||
+                userData['email'] ||
                 'Sin correo',
-
               telefono:
-                userData[
-                  'telefono'
-                ]
-                ||
-                userData[
-                  'celular'
-                ]
-                ||
+                userData['telefono'] ||
+                userData['celular'] ||
                 '',
-
               cvManual:
-                userData[
-                  'cvManual'
-                ]
-                ||
-                undefined,
-
+                userData['cvManual'] || undefined,
               cvBase64:
-                userData[
-                  'cvBase64'
-                ]
-                ||
-                undefined
+                userData['cvBase64'] || undefined
             });
           }
         }
       }
 
+      tempPostulantes.sort((a, b) => {
+        const puntajeA =
+          typeof a.puntajeInoeidad === 'number'
+            ? a.puntajeInoeidad
+            : -1;
 
-      tempPostulantes.sort(
-        (a, b) => {
+        const puntajeB =
+          typeof b.puntajeInoeidad === 'number'
+            ? b.puntajeInoeidad
+            : -1;
 
-          const puntajeA =
-            typeof a.puntajeInoeidad ===
-            'number'
-              ? a.puntajeInoeidad
-              : -1;
+        return puntajeB - puntajeA;
+      });
 
-          const puntajeB =
-            typeof b.puntajeInoeidad ===
-            'number'
-              ? b.puntajeInoeidad
-              : -1;
-
-          return (
-            puntajeB -
-            puntajeA
-          );
-        }
-      );
-
-
-      this.ngZone.run(
-        () => {
-
-          this.postulantesList =
-            tempPostulantes;
-
-          this.cargandoPostulantes =
-            false;
-
-          this.cdr.detectChanges();
-        }
-      );
-
+      this.ngZone.run(() => {
+        this.postulantesList = tempPostulantes;
+        this.cargandoPostulantes = false;
+        this.cdr.detectChanges();
+      });
     } catch (error) {
-
       console.error(
         'Error al cargar postulantes:',
         error
       );
 
-
-      this.ngZone.run(
-        () => {
-
-          this.cargandoPostulantes =
-            false;
-
-          this.cdr.detectChanges();
-        }
-      );
+      this.ngZone.run(() => {
+        this.cargandoPostulantes = false;
+        this.cdr.detectChanges();
+      });
     }
   }
 
-
-  // ============================================================
-  // CONTROLES MODAL POSTULANTES
-  // ============================================================
+  // CONTROLES DE POSTULANTES
 
   togglePantallaCompletaPostulantes() {
-
     this.modalPostulantesFullscreen =
-      !this
-        .modalPostulantesFullscreen;
+      !this.modalPostulantesFullscreen;
 
     this.cdr.detectChanges();
   }
 
-
   toggleRankingCompleto() {
-
     this.mostrarRankingCompleto =
       !this.mostrarRankingCompleto;
 
     this.cdr.detectChanges();
   }
 
-
-  // ============================================================
-  // IR A FICHA DESDE RANKING
-  // ============================================================
-
   verDatosPostulanteRanking(
-    candidato:
-      PostulanteCompleto
+    candidato: PostulanteCompleto
   ) {
+    setTimeout(() => {
+      const elemento = document.getElementById(
+        `postulante-${candidato.postulacionId}`
+      );
 
-    setTimeout(
-      () => {
+      if (!elemento) {
+        this.mostrarToast(
+          'No fue posible localizar la ficha del candidato.'
+        );
 
-        const elemento =
-          document.getElementById(
-            `postulante-${candidato.postulacionId}`
-          );
+        return;
+      }
 
-        if (
-          !elemento
-        ) {
+      elemento.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
 
-          this.mostrarToast(
-            'No fue posible localizar la ficha del candidato.'
-          );
+      elemento.classList.add('postulante-destacado');
 
-          return;
-        }
-
-
-        elemento.scrollIntoView({
-          behavior:
-            'smooth',
-
-          block:
-            'center'
-        });
-
-
-        elemento.classList.add(
+      setTimeout(() => {
+        elemento.classList.remove(
           'postulante-destacado'
         );
-
-
-        setTimeout(
-          () => {
-
-            elemento
-              .classList
-              .remove(
-                'postulante-destacado'
-              );
-
-          },
-          2500
-        );
-
-      },
-      100
-    );
+      }, 2500);
+    }, 100);
   }
 
-
-  // ============================================================
-  // CAMBIAR ESTADO POSTULANTE
-  // ============================================================
+  // ESTADO DE UNA POSTULACIÓN
 
   async cambiarEstadoPostulante(
-    p:
-      PostulanteCompleto,
-
-    nuevoEstado:
-      | 'Aceptado'
-      | 'Rechazado'
+    p: PostulanteCompleto,
+    nuevoEstado: 'Aceptado' | 'Rechazado'
   ) {
-
     try {
+      p.estado = nuevoEstado;
 
-      p.estado =
-        nuevoEstado;
-
-
-      if (
-        p.postulacionId
-      ) {
-
+      if (p.postulacionId) {
         await updateDoc(
           doc(
             this.firestore,
             'postulaciones',
             p.postulacionId
           ),
-
           {
-            estado:
-              nuevoEstado
+            estado: nuevoEstado
           }
         );
       }
-
 
       const tituloOferta =
-        this
-          .ofertaSeleccionada
-          ?.titulo
-        ||
+        this.ofertaSeleccionada?.titulo ||
         'Oferta de empleo';
 
-
       const ofertaId =
-        this
-          .ofertaSeleccionada
-          ?.id
-        ||
-        '';
-
+        this.ofertaSeleccionada?.id || '';
 
       const nombreEmpresa =
-        this.nombreEmpresa
-        ||
-        'La Empresa';
+        this.nombreEmpresa || 'La Empresa';
 
-
-      if (
-        nuevoEstado ===
-        'Aceptado'
-      ) {
-
+      if (nuevoEstado === 'Aceptado') {
         await addDoc(
           collection(
             this.firestore,
             'notificaciones'
           ),
-
           {
-            postulanteId:
-              p.postulanteId,
-
+            postulanteId: p.postulanteId,
             ofertaId,
-
             tituloOferta,
-
             nombreEmpresa,
-
             mensaje:
               `¡Felicidades ${p.nombres}! Has sido aceptado para el puesto de "${tituloOferta}". Se pondrán en contacto contigo.`,
-
-            fecha:
-              new Date(),
-
-            leido:
-              false,
-
-            tipo:
-              'seleccionado'
+            fecha: new Date(),
+            leido: false,
+            tipo: 'seleccionado'
           }
         );
       }
 
-
-      if (
-        nuevoEstado ===
-        'Rechazado'
-      ) {
-
+      if (nuevoEstado === 'Rechazado') {
         await addDoc(
           collection(
             this.firestore,
             'notificaciones'
           ),
-
           {
-            postulanteId:
-              p.postulanteId,
-
+            postulanteId: p.postulanteId,
             ofertaId,
-
             tituloOferta,
-
             nombreEmpresa,
-
             mensaje:
               `Hola ${p.nombres}. Tu postulación para "${tituloOferta}" ha sido revisada. En esta oportunidad no continuarás en el proceso de selección. Te invitamos a seguir revisando nuevas oportunidades en ExpertiMente.`,
-
-            fecha:
-              new Date(),
-
-            leido:
-              false,
-
-            tipo:
-              'rechazado'
+            fecha: new Date(),
+            leido: false,
+            tipo: 'rechazado'
           }
         );
       }
 
-
       const mensajeToast =
-        nuevoEstado ===
-        'Aceptado'
-
+        nuevoEstado === 'Aceptado'
           ? `Candidato ${p.nombres} aceptado y notificación enviada.`
-
           : `Candidato ${p.nombres} rechazado y notificación enviada.`;
 
+      this.mostrarToast(mensajeToast);
 
-      this.mostrarToast(
-        mensajeToast
-      );
-
-
-      this.ngZone.run(
-        () => {
-
-          this.cdr.detectChanges();
-        }
-      );
-
+      this.ngZone.run(() => {
+        this.cdr.detectChanges();
+      });
     } catch (error) {
-
       console.error(
         'Error al actualizar estado o enviar notificación:',
         error
@@ -1776,212 +967,114 @@ export class HomePage implements OnInit, OnDestroy {
     }
   }
 
-
-  // ============================================================
-  // RESPUESTAS CUESTIONARIO
-  // ============================================================
+  // RESPUESTAS DEL CUESTIONARIO DE UNA POSTULACIÓN
 
   private normalizarRespuestasCuestionario(
-    respuestasRaw:
-      any
-  ):
-    RespuestaCuestionario[] {
-
+    respuestasRaw: any
+  ): RespuestaCuestionario[] {
     if (
-      respuestasRaw ===
-        undefined
-      ||
-      respuestasRaw ===
-        null
+      respuestasRaw === undefined ||
+      respuestasRaw === null
     ) {
-
       return [];
     }
 
-
-    const listaRespuestas:
-      any[] =
-      Array.isArray(
-        respuestasRaw
-      )
-
+    const listaRespuestas: any[] =
+      Array.isArray(respuestasRaw)
         ? respuestasRaw
-
-        : typeof respuestasRaw ===
-          'object'
-
-          ? Object.values(
-              respuestasRaw
-            )
-
+        : typeof respuestasRaw === 'object'
+          ? Object.values(respuestasRaw)
           : [];
 
-
     return listaRespuestas.map(
-      (
-        item: any,
-        index: number
-      ) => {
-
+      (item: any, index: number) => {
         const tipoNormalizado =
-          String(
-            item?.tipo ?? ''
-          )
+          String(item?.tipo ?? '')
             .trim()
             .toLowerCase();
 
-
-        const respuestaRaw =
-          item?.respuesta;
-
+        const respuestaRaw = item?.respuesta;
 
         let respuestaTexto = '';
 
         let puntajeObtenido:
           number | undefined;
 
-
         const puntajeExplicito =
-          item?.puntajeObtenido
-          ??
+          item?.puntajeObtenido ??
           item?.puntaje;
 
-
         if (
-          puntajeExplicito !==
-            undefined
-          &&
-          puntajeExplicito !==
-            null
-          &&
-          !Number.isNaN(
-            Number(
-              puntajeExplicito
-            )
-          )
+          puntajeExplicito !== undefined &&
+          puntajeExplicito !== null &&
+          !Number.isNaN(Number(puntajeExplicito))
         ) {
-
           puntajeObtenido =
-            Number(
-              puntajeExplicito
-            );
+            Number(puntajeExplicito);
         }
 
-
-        if (
-          tipoNormalizado ===
-          'seleccion'
-        ) {
-
-          if (
-            typeof respuestaRaw ===
-            'number'
-          ) {
-
+        if (tipoNormalizado === 'seleccion') {
+          if (typeof respuestaRaw === 'number') {
             respuestaTexto =
               `${respuestaRaw} puntos`;
 
-
-            if (
-              puntajeObtenido ===
-              undefined
-            ) {
-
-              puntajeObtenido =
-                respuestaRaw;
+            if (puntajeObtenido === undefined) {
+              puntajeObtenido = respuestaRaw;
             }
-
           } else if (
-            respuestaRaw !==
-              undefined
-            &&
-            respuestaRaw !==
-              null
+            respuestaRaw !== undefined &&
+            respuestaRaw !== null
           ) {
-
             respuestaTexto =
-              String(
-                respuestaRaw
-              );
-
+              String(respuestaRaw);
           } else {
-
-            respuestaTexto =
-              '';
+            respuestaTexto = '';
           }
-
         } else {
-
-          respuestaTexto =
-            String(
-              respuestaRaw
-              ??
-              item?.respuestaTexto
-              ??
-              item?.valor
-              ??
-              ''
-            );
+          respuestaTexto = String(
+            respuestaRaw ??
+            item?.respuestaTexto ??
+            item?.valor ??
+            ''
+          );
         }
 
-
         return {
-
-          preguntaId:
-            String(
-              item?.preguntaId
-              ??
-              item?.id
-              ??
-              `pregunta-${index + 1}`
-            ),
-
-          preguntaTexto:
-            String(
-              item?.preguntaTexto
-              ??
-              item?.pregunta
-              ??
-              item?.texto
-              ??
-              `Pregunta ${index + 1}`
-            ),
-
+          preguntaId: String(
+            item?.preguntaId ??
+            item?.id ??
+            `pregunta-${index + 1}`
+          ),
+          preguntaTexto: String(
+            item?.preguntaTexto ??
+            item?.pregunta ??
+            item?.texto ??
+            `Pregunta ${index + 1}`
+          ),
           tipo:
-            tipoNormalizado ===
-            'seleccion'
+            tipoNormalizado === 'seleccion'
               ? 'seleccion'
               : 'texto',
-
-          respuesta:
-            respuestaTexto,
-
+          respuesta: respuestaTexto,
           puntajeObtenido
         };
       }
     );
   }
 
-
   verRespuestasCuestionario(
-    postulante:
-      PostulanteCompleto
+    postulante: PostulanteCompleto
   ) {
-
     this.postulanteRespuestasSeleccionado =
       postulante;
 
-    this.isModalRespuestasOpen =
-      true;
+    this.isModalRespuestasOpen = true;
 
     this.cdr.detectChanges();
   }
 
-
   cerrarModalRespuestas() {
-
-    this.isModalRespuestasOpen =
-      false;
+    this.isModalRespuestasOpen = false;
 
     this.postulanteRespuestasSeleccionado =
       null;
@@ -1989,662 +1082,382 @@ export class HomePage implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-
-  // ============================================================
   // VER CV
-  // ============================================================
 
-  verCV(
-    cvBase64:
-      string
-  ) {
+  verCV(cvBase64: string) {
+    if (cvBase64) {
+      const ventana = window.open();
 
-    if (
-      cvBase64
-    ) {
-
-      const ventana =
-        window.open();
-
-
-      ventana
-        ?.document
-        .write(`
-
-          <body
-            style="
-              margin:0;
-              padding:0;
-              background-color:#ffffff;
-            "
-          >
-
-            <iframe
-              width="100%"
-              height="100%"
-              style="border:none;"
-              src="${cvBase64}">
-            </iframe>
-
-          </body>
-
-        `);
-
+      ventana?.document.write(`
+        <body style="margin:0;padding:0;background-color:#ffffff;">
+          <iframe
+            width="100%"
+            height="100%"
+            style="border:none;"
+            src="${cvBase64}">
+          </iframe>
+        </body>
+      `);
     } else {
-
       this.mostrarToast(
         'Este postulante no adjuntó archivo PDF.'
       );
     }
   }
 
-
-  // ============================================================
-  // CERRAR MODAL POSTULANTES
-  // ============================================================
+  // CERRAR VISTA DE POSTULANTES DE UNA OFERTA
 
   cerrarModalPostulantes() {
-
-    this.isModalRespuestasOpen =
-      false;
+    this.isModalRespuestasOpen = false;
 
     this.postulanteRespuestasSeleccionado =
       null;
 
-    this.isModalPostulantesOpen =
-      false;
-
-    this.ofertaSeleccionada =
-      null;
-
-    this.postulantesList =
-      [];
-
-    this.modalPostulantesFullscreen =
-      false;
-
-    this.mostrarRankingCompleto =
-      false;
+    this.isModalPostulantesOpen = false;
+    this.ofertaSeleccionada = null;
+    this.postulantesList = [];
+    this.modalPostulantesFullscreen = false;
+    this.mostrarRankingCompleto = false;
   }
 
-
-  // ============================================================
   // SCROLL
-  // ============================================================
 
   scrollAOfertas() {
+    const elemento = document.getElementById(
+      'seccion-ofertas'
+    );
 
-    const elemento =
-      document.getElementById(
-        'seccion-ofertas'
-      );
-
-    if (
-      elemento
-    ) {
-
+    if (elemento) {
       elemento.scrollIntoView({
-        behavior:
-          'smooth'
+        behavior: 'smooth'
       });
     }
   }
 
-
-  // ============================================================
   // CREAR OFERTA
-  // ============================================================
 
   crearOferta() {
-
-    if (
-      !this.puedePublicarOfertas
-    ) {
-
+    if (!this.puedePublicarOfertas) {
       return;
     }
 
-    this.router.navigate(
-      [
-        '/crear-oferta'
-      ]
-    );
+    this.router.navigate(['/crear-oferta']);
   }
 
+  // ABRIR BUSCADOR
 
-  // ============================================================
-  // BUSCAR POSTULANTES
-  // ============================================================
-
-  async buscarPostulantes() {
-
-    if (
-      !this.puedePublicarOfertas
-    ) {
-
+  buscarPostulantes() {
+    if (!this.puedePublicarOfertas) {
       return;
     }
 
+    this.limpiarFiltrosBusqueda();
 
-    /*
-     * Recarga el catálogo local.
-     */
     this.cargosCatalogoBusqueda =
       generarCatalogoCargos();
-
-
-    console.log(
-      'CATÁLOGO LOCAL CARGADO:',
-      this.cargosCatalogoBusqueda.length
-    );
-
-
-    console.log(
-      'CARGOS PARA SELECT:',
-      this.cargosBusquedaDisponibles.length
-    );
-
-
-    console.log(
-      'ÁREAS PARA SELECT:',
-      this.areasBusquedaDisponibles.length
-    );
-
-
-    this.filtroCargo = '';
-
-    this.filtroArea = '';
-
 
     this.isModalBusquedaPostulantesOpen =
       true;
 
+    this.cdr.detectChanges();
+  }
 
-    this.cargandoBusquedaPostulantes =
-      true;
+  actualizarFiltroCargo(valor: string) {
+    this.filtroCargo = valor;
 
+    this.busquedaRealizada = false;
+    this.cargoBuscado = '';
+    this.errorBusquedaPostulantes = '';
+  }
+
+  // PREFERENCIAS GUARDADAS EN EL PERFIL
+
+  private obtenerCargosInteres(
+    data: any
+  ): string[] {
+    const cargosPrincipales =
+      data['cargosInteres'];
+
+    // Un arreglo principal vacío significa que
+    // no hay preferencias seleccionadas.
+    const origen: unknown[] =
+      Array.isArray(cargosPrincipales)
+        ? cargosPrincipales
+        : Array.isArray(
+            data['cvManual']?.cargosInteres
+          )
+          ? data['cvManual'].cargosInteres
+          : [];
+
+    const cargosUnicos =
+      new Map<string, string>();
+
+    for (const elemento of origen) {
+      if (
+        !elemento ||
+        typeof elemento !== 'object'
+      ) {
+        continue;
+      }
+
+      const cargoRaw = (
+        elemento as { cargo?: unknown }
+      ).cargo;
+
+      if (typeof cargoRaw !== 'string') {
+        continue;
+      }
+
+      const nombre = cargoRaw.trim();
+
+      const clave =
+        this.normalizarTexto(nombre);
+
+      if (
+        clave &&
+        !cargosUnicos.has(clave)
+      ) {
+        cargosUnicos.set(clave, nombre);
+      }
+    }
+
+    return Array.from(cargosUnicos.values());
+  }
+
+  // CONSULTAR POSTULANTES EN FIREBASE
+
+  async cargarPostulantesBusqueda() {
+    if (
+      !this.puedePublicarOfertas ||
+      !this.isModalBusquedaPostulantesOpen ||
+      this.cargandoBusquedaPostulantes
+    ) {
+      return;
+    }
+
+    const cargoIngresado =
+      this.filtroCargo.trim();
+
+    if (!cargoIngresado) {
+      this.mostrarToast(
+        'Escribe el cargo que quieres buscar.'
+      );
+
+      return;
+    }
+
+    const solicitud =
+      ++this.solicitudBusquedaActual;
+
+    this.cargandoBusquedaPostulantes = true;
+    this.busquedaRealizada = false;
+    this.errorBusquedaPostulantes = '';
+    this.postulantesBusqueda = [];
+    this.cargoBuscado = cargoIngresado;
 
     this.cdr.detectChanges();
 
-
     try {
-
-      await this
-        .cargarPostulantesBusqueda();
-
-    } finally {
-
-      this.cargandoBusquedaPostulantes =
-        false;
-
-      this.cdr.detectChanges();
-    }
-  }
-
-
-  // ============================================================
-  // CARGAR POSTULANTES PARA BÚSQUEDA
-  // ============================================================
-
-  async cargarPostulantesBusqueda() {
-
-    this.postulantesBusqueda =
-      [];
-
-
-    try {
-
-      const [
-        postulantesSnapshot,
-        postulacionesSnapshot
-      ] =
-        await Promise.all([
-
-          getDocs(
-            collection(
-              this.firestore,
-              'postulantes'
-            )
-          ),
-
-          getDocs(
-            collection(
-              this.firestore,
-              'postulaciones'
-            )
+      const snapshot =
+        await getDocsFromServer(
+          collection(
+            this.firestore,
+            'postulantes'
           )
-        ]);
+        );
 
-
-      const informacionPostulaciones =
-        new Map<
-          string,
-          {
-            cargos:
-              Set<string>;
-
-            areas:
-              Set<string>;
-          }
-        >();
-
-
-      // ========================================================
-      // LEER CARGOS / ÁREAS DESDE POSTULACIONES
-      // ========================================================
-
-      for (
-        const postulacionDoc
-        of postulacionesSnapshot.docs
+      if (
+        solicitud !==
+        this.solicitudBusquedaActual
       ) {
+        return;
+      }
 
-        const data =
-          postulacionDoc.data();
+      const postulantes:
+        PostulanteBusqueda[] = [];
 
+      for (const documento of snapshot.docs) {
+        const data = documento.data();
 
-        const postulanteId =
-          String(
-            data[
-              'postulanteId'
-            ]
-            ??
-            ''
-          )
-            .trim();
+        const cargos =
+          this.obtenerCargosInteres(data);
 
-
-        if (
-          !postulanteId
-        ) {
-
+        if (cargos.length === 0) {
           continue;
         }
 
-
-        if (
-          !informacionPostulaciones
-            .has(
-              postulanteId
-            )
-        ) {
-
-          informacionPostulaciones
-            .set(
-              postulanteId,
-
-              {
-                cargos:
-                  new Set<string>(),
-
-                areas:
-                  new Set<string>()
-              }
-            );
-        }
-
-
-        const informacion =
-          informacionPostulaciones
-            .get(
-              postulanteId
-            );
-
-
-        const cargoNombre =
-          String(
-            data[
-              'cargoNombre'
-            ]
-            ??
-            ''
-          )
-            .trim();
-
-
-        const areaLaboral =
-          String(
-            data[
-              'areaLaboral'
-            ]
-            ??
-            ''
-          )
-            .trim();
-
-
-        if (
-          cargoNombre
-        ) {
-
-          informacion
-            ?.cargos
-            .add(
-              cargoNombre
-            );
-        }
-
-
-        if (
-          areaLaboral
-        ) {
-
-          informacion
-            ?.areas
-            .add(
-              areaLaboral
-            );
-        }
-      }
-
-
-      // ========================================================
-      // CONSTRUIR POSTULANTES
-      // ========================================================
-
-      const postulantes:
-        PostulanteBusqueda[] =
-        [];
-
-
-      for (
-        const postulanteDoc
-        of postulantesSnapshot.docs
-      ) {
-
-        const data =
-          postulanteDoc.data();
-
-
-        const postulanteId =
-          postulanteDoc.id;
-
-
-        const informacion =
-          informacionPostulaciones
-            .get(
-              postulanteId
-            );
-
-
-        const cvManual =
-          data[
-            'cvManual'
-          ]
-          ||
-          undefined;
-
-
-        const areaExperiencia =
-          String(
-            cvManual
-              ?.areaExperiencia
-            ??
-            ''
-          )
-            .trim();
-
-
-        const areas =
-          new Set<string>(
-            informacion
-
-              ? Array.from(
-                  informacion.areas
-                )
-
-              : []
-          );
-
-
-        if (
-          areaExperiencia
-        ) {
-
-          areas.add(
-            areaExperiencia
-          );
-        }
-
-
         const apellidos =
-          data[
-            'apellidos'
-          ]
-          ||
+          data['apellidos'] ||
           [
-            data[
-              'apellidoPaterno'
-            ],
-
-            data[
-              'apellidoMaterno'
-            ]
+            data['apellidoPaterno'],
+            data['apellidoMaterno']
           ]
             .filter(Boolean)
             .join(' ');
 
+        const cvManual =
+          data['cvManual'] || undefined;
+
+        const areaExperiencia = String(
+          cvManual?.areaExperiencia ?? ''
+        ).trim();
 
         postulantes.push({
-
-          postulanteId,
-
-          nombres:
-            data[
-              'nombres'
-            ]
-            ||
-            data[
-              'nombre'
-            ]
-            ||
-            'Candidato',
-
+          postulanteId: documento.id,
+          nombres: String(
+            data['nombres'] ||
+            data['nombre'] ||
+            'Candidato'
+          ),
           apellidos:
-            apellidos
-            ||
-            '',
-
-          correo:
-            data[
-              'correo'
-            ]
-            ||
-            data[
-              'email'
-            ]
-            ||
-            '',
-
-          telefono:
-            data[
-              'telefono'
-            ]
-            ||
-            data[
-              'celular'
-            ]
-            ||
-            '',
-
+            String(apellidos || ''),
+          correo: String(
+            data['correo'] ||
+            data['email'] ||
+            ''
+          ),
+          telefono: String(
+            data['telefono'] ||
+            data['celular'] ||
+            ''
+          ),
           fotoPerfil:
-            data[
-              'fotoPerfil'
-            ]
-            ||
-            '',
-
-          cargos:
-            informacion
-
-              ? Array.from(
-                  informacion.cargos
-                )
-
-              : [],
-
+            data['fotoPerfil'] || '',
+          cargos,
           areasLaborales:
-            Array.from(
-              areas
-            ),
-
+            areaExperiencia
+              ? [areaExperiencia]
+              : [],
           cvManual,
-
           cvBase64:
-            data[
-              'cvBase64'
-            ]
-            ||
+            data['cvBase64'] ||
             undefined
         });
       }
 
-
-      // ========================================================
-      // ORDENAR POR NOMBRE
-      // ========================================================
-
-      postulantes.sort(
-        (a, b) => {
-
-          const nombreA =
-            `${a.nombres} ${a.apellidos}`
-              .trim();
-
-          const nombreB =
+      postulantes.sort((a, b) =>
+        `${a.nombres} ${a.apellidos}`
+          .trim()
+          .localeCompare(
             `${b.nombres} ${b.apellidos}`
-              .trim();
-
-
-          return nombreA.localeCompare(
-            nombreB,
+              .trim(),
             'es',
-            {
-              sensitivity:
-                'base'
-            }
-          );
-        }
+            { sensitivity: 'base' }
+          )
       );
 
+      this.ngZone.run(() => {
+        this.postulantesBusqueda =
+          postulantes;
 
-      this.ngZone.run(
-        () => {
-
-          this.postulantesBusqueda =
-            postulantes;
-
-          this.cdr.detectChanges();
-        }
-      );
-
-    } catch (error) {
+        this.busquedaRealizada = true;
+      });
+    } catch (error: unknown) {
+      if (
+        solicitud !==
+        this.solicitudBusquedaActual
+      ) {
+        return;
+      }
 
       console.error(
-        'Error al cargar postulantes para búsqueda manual:',
+        'Error al buscar postulantes por cargo de preferencia:',
         error
       );
 
+      const codigo =
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error
+          ? String(error.code)
+          : '';
 
-      this.postulantesBusqueda =
-        [];
+      this.ngZone.run(() => {
+        this.postulantesBusqueda = [];
+        this.busquedaRealizada = false;
 
+        this.errorBusquedaPostulantes =
+          codigo.includes('permission-denied')
+            ? 'Tu cuenta no tiene permiso para consultar los postulantes. Revisa las reglas de acceso de Firestore.'
+            : 'No fue posible consultar los postulantes en Firebase. Revisa tu conexión e inténtalo nuevamente.';
+      });
+    } finally {
+      if (
+        solicitud ===
+        this.solicitudBusquedaActual
+      ) {
+        this.ngZone.run(() => {
+          this.cargandoBusquedaPostulantes =
+            false;
 
-      this.mostrarToast(
-        'No fue posible cargar los postulantes.'
-      );
+          this.cdr.detectChanges();
+        });
+      }
     }
   }
 
-
-  // ============================================================
   // LIMPIAR FILTROS
-  // ============================================================
 
   limpiarFiltrosBusqueda() {
+    this.solicitudBusquedaActual++;
 
     this.filtroCargo = '';
-
     this.filtroArea = '';
+    this.cargoBuscado = '';
+
+    this.busquedaRealizada = false;
+    this.errorBusquedaPostulantes = '';
+    this.cargandoBusquedaPostulantes = false;
+
+    this.postulantesBusqueda = [];
 
     this.cdr.detectChanges();
   }
 
-
-  // ============================================================
-  // CERRAR BÚSQUEDA
-  // ============================================================
+  // CERRAR BUSCADOR
 
   cerrarBusquedaPostulantes() {
-
     this.isModalBusquedaPostulantesOpen =
       false;
 
-    this.filtroCargo = '';
-
-    this.filtroArea = '';
-
-    this.cdr.detectChanges();
+    this.limpiarFiltrosBusqueda();
   }
 
-
-  // ============================================================
   // EDITAR OFERTA
-  // ============================================================
 
-  editarOferta(
-    ofertaId:
-      string
-  ) {
-
-    this.router.navigate(
-      [
-        '/crear-oferta',
-        ofertaId
-      ]
-    );
+  editarOferta(ofertaId: string) {
+    this.router.navigate([
+      '/crear-oferta',
+      ofertaId
+    ]);
   }
 
-
-  // ============================================================
   // ACTIVAR / DESACTIVAR OFERTA
-  // ============================================================
 
   async cambiarEstadoOferta(
-    oferta:
-      OfertaTrabajo
+    oferta: OfertaTrabajo
   ) {
-
     const nuevoEstado =
-      oferta.estado ===
-      'Activa'
-
+      oferta.estado === 'Activa'
         ? 'Inactiva'
-
         : 'Activa';
 
-
     try {
-
       await updateDoc(
         doc(
           this.firestore,
           'ofertas',
           oferta.id
         ),
-
         {
-          estado:
-            nuevoEstado
+          estado: nuevoEstado
         }
       );
-
 
       this.mostrarToast(
         `Oferta marcada como ${nuevoEstado.toLowerCase()}.`
       );
-
     } catch (error) {
-
       console.error(
         'Error al cambiar estado:',
         error
@@ -2652,174 +1465,98 @@ export class HomePage implements OnInit, OnDestroy {
     }
   }
 
-
-  // ============================================================
   // ELIMINAR OFERTA
-  // ============================================================
 
   async confirmarEliminarOferta(
-    ofertaId:
-      string
+    ofertaId: string
   ) {
-
     const alert =
-      await this
-        .alertController
-        .create({
+      await this.alertController.create({
+        header: 'Eliminar oferta',
+        message:
+          '¿Estás seguro de que deseas eliminar esta oferta? Esta acción no se puede deshacer.',
+        buttons: [
+          {
+            text: 'Cancelar',
+            role: 'cancel'
+          },
+          {
+            text: 'Eliminar',
+            role: 'destructive',
+            handler: async () => {
+              try {
+                await deleteDoc(
+                  doc(
+                    this.firestore,
+                    'ofertas',
+                    ofertaId
+                  )
+                );
 
-          header:
-            'Eliminar oferta',
-
-          message:
-            '¿Estás seguro de que deseas eliminar esta oferta? Esta acción no se puede deshacer.',
-
-          buttons: [
-
-            {
-              text:
-                'Cancelar',
-
-              role:
-                'cancel'
-            },
-
-            {
-              text:
-                'Eliminar',
-
-              role:
-                'destructive',
-
-              handler:
-                async () => {
-
-                  try {
-
-                    await deleteDoc(
-                      doc(
-                        this.firestore,
-                        'ofertas',
-                        ofertaId
-                      )
-                    );
-
-
-                    this.mostrarToast(
-                      'Oferta eliminada correctamente.'
-                    );
-
-                  } catch (error) {
-
-                    console.error(
-                      'Error al eliminar oferta:',
-                      error
-                    );
-                  }
-                }
+                this.mostrarToast(
+                  'Oferta eliminada correctamente.'
+                );
+              } catch (error) {
+                console.error(
+                  'Error al eliminar oferta:',
+                  error
+                );
+              }
             }
-          ]
-        });
-
+          }
+        ]
+      });
 
     await alert.present();
   }
 
-
-  // ============================================================
   // CERRAR SESIÓN
-  // ============================================================
 
   async cerrarSesion() {
-
     try {
+      this.cerrarBusquedaPostulantes();
+      this.limpiarSuscripcionOfertas();
 
-      this
-        .limpiarSuscripcionOfertas();
-
-
-      if (
-        this.authUnsubscribe
-      ) {
-
+      if (this.authUnsubscribe) {
         this.authUnsubscribe();
-
-        this.authUnsubscribe =
-          undefined;
+        this.authUnsubscribe = undefined;
       }
 
+      await signOut(this.auth);
 
-      await signOut(
-        this.auth
-      );
-
-
-      this.ngZone.run(
-        () => {
-
-          this.router.navigate(
-            [
-              '/login'
-            ]
-          )
-
-            .catch(
-              () => {
-
-                this.router.navigate(
-                  [
-                    '/auth/login'
-                  ]
-                )
-
-                  .catch(
-                    () => {
-
-                      window.location.href =
-                        '/login';
-                    }
-                  );
-              }
-            );
-        }
-      );
-
+      this.ngZone.run(() => {
+        this.router
+          .navigate(['/login'])
+          .catch(() => {
+            this.router
+              .navigate(['/auth/login'])
+              .catch(() => {
+                window.location.href =
+                  '/login';
+              });
+          });
+      });
     } catch (error) {
-
       console.error(
         'Error al cerrar sesión:',
         error
       );
 
-      window.location.href =
-        '/login';
+      window.location.href = '/login';
     }
   }
 
-
-  // ============================================================
   // TOAST
-  // ============================================================
 
   private async mostrarToast(
-    mensaje:
-      string
+    mensaje: string
   ) {
-
     const toast =
-      await this
-        .toastController
-        .create({
-
-          message:
-            mensaje,
-
-          duration:
-            2500,
-
-          position:
-            'top'
-        });
-
+      await this.toastController.create({
+        message: mensaje,
+        duration: 2500,
+        position: 'top'
+      });
 
     await toast.present();
   }
