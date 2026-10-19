@@ -82,6 +82,10 @@ import {
   PerfilChatReclutadorComponent
 } from './perfil-chat-reclutador.component';
 
+import {
+  RankingCargoComponent
+} from './ranking-cargo.component';
+
 export interface OfertaTrabajo {
   id: string;
   titulo: string;
@@ -108,7 +112,9 @@ export interface OfertaTrabajo {
 export interface RespuestaCuestionario {
   preguntaId: string;
   preguntaTexto: string;
+
   tipo: 'texto' | 'seleccion';
+
   respuesta: string;
   puntajeObtenido?: number;
 }
@@ -116,6 +122,7 @@ export interface RespuestaCuestionario {
 export interface PostulanteCompleto {
   postulacionId: string;
   postulanteId: string;
+
   fechaPostulacion?: any;
 
   estado: 'Pendiente' | 'Aceptado' | 'Rechazado';
@@ -184,19 +191,22 @@ export interface PostulanteBusqueda {
     IonModal,
     IonTitle,
     IonButtons,
-    PerfilChatReclutadorComponent
+    PerfilChatReclutadorComponent,
+    RankingCargoComponent
   ]
 })
 export class HomePage implements OnInit, OnDestroy {
   private auth = inject(Auth);
   private firestore = inject(Firestore);
   private router = inject(Router);
+
   private toastController = inject(ToastController);
   private alertController = inject(AlertController);
+
   private cdr = inject(ChangeDetectorRef);
   private ngZone = inject(NgZone);
 
-  // PERFIL RECLUTADOR
+  // PERFIL DEL RECLUTADOR
 
   nombreReclutador = '';
   nombreEmpresa = '';
@@ -239,7 +249,7 @@ export class HomePage implements OnInit, OnDestroy {
 
   private solicitudBusquedaActual = 0;
 
-  // RESPUESTAS DEL CUESTIONARIO DE UNA POSTULACIÓN
+  // RESPUESTAS DE UNA POSTULACIÓN A OFERTA
 
   isModalRespuestasOpen = false;
 
@@ -271,10 +281,7 @@ export class HomePage implements OnInit, OnDestroy {
       if (email) {
         const handle = email.split('@')[0];
 
-        return (
-          handle.charAt(0).toUpperCase() +
-          handle.slice(1)
-        );
+        return handle.charAt(0).toUpperCase() + handle.slice(1);
       }
 
       return 'Usuario';
@@ -371,7 +378,7 @@ export class HomePage implements OnInit, OnDestroy {
     );
   }
 
-  // RESULTADOS POR PREFERENCIA
+  // RESULTADOS DE BÚSQUEDA POR PREFERENCIA
 
   get postulantesBusquedaFiltrados(): PostulanteBusqueda[] {
     if (!this.busquedaRealizada) {
@@ -513,7 +520,7 @@ export class HomePage implements OnInit, OnDestroy {
     this.escucharOfertasReales(user.uid);
   }
 
-  // PERFIL RECLUTADOR
+  // PERFIL DEL RECLUTADOR
 
   async cargarPerfilReclutador(user: User) {
     this.estadoReclutador = 'pendiente';
@@ -605,7 +612,7 @@ export class HomePage implements OnInit, OnDestroy {
     }
   }
 
-  // ESCUCHAR OFERTAS
+  // OFERTAS EN TIEMPO REAL
 
   escucharOfertasReales(reclutadorUid: string) {
     this.limpiarSuscripcionOfertas();
@@ -826,7 +833,7 @@ export class HomePage implements OnInit, OnDestroy {
     }
   }
 
-  // CONTROLES DE POSTULANTES
+  // CONTROLES DE LA VISTA DE POSTULANTES
 
   togglePantallaCompletaPostulantes() {
     this.modalPostulantesFullscreen =
@@ -873,7 +880,7 @@ export class HomePage implements OnInit, OnDestroy {
     }, 100);
   }
 
-  // ESTADO DE UNA POSTULACIÓN
+  // CAMBIAR ESTADO DE UNA POSTULACIÓN
 
   async cambiarEstadoPostulante(
     p: PostulanteCompleto,
@@ -1120,7 +1127,7 @@ export class HomePage implements OnInit, OnDestroy {
     this.mostrarRankingCompleto = false;
   }
 
-  // SCROLL
+  // SCROLL A OFERTAS
 
   scrollAOfertas() {
     const elemento = document.getElementById(
@@ -1170,7 +1177,7 @@ export class HomePage implements OnInit, OnDestroy {
     this.errorBusquedaPostulantes = '';
   }
 
-  // PREFERENCIAS GUARDADAS EN EL PERFIL
+  // LEER CARGOS DE PREFERENCIA
 
   private obtenerCargosInteres(
     data: any
@@ -1178,8 +1185,6 @@ export class HomePage implements OnInit, OnDestroy {
     const cargosPrincipales =
       data['cargosInteres'];
 
-    // Un arreglo principal vacío significa que
-    // no hay preferencias seleccionadas.
     const origen: unknown[] =
       Array.isArray(cargosPrincipales)
         ? cargosPrincipales
@@ -1224,7 +1229,7 @@ export class HomePage implements OnInit, OnDestroy {
     return Array.from(cargosUnicos.values());
   }
 
-  // CONSULTAR POSTULANTES EN FIREBASE
+  // EJECUTAR BÚSQUEDA POR PREFERENCIAS
 
   async cargarPostulantesBusqueda() {
     if (
@@ -1432,7 +1437,7 @@ export class HomePage implements OnInit, OnDestroy {
     ]);
   }
 
-  // ACTIVAR / DESACTIVAR OFERTA
+  // ACTIVAR O DESACTIVAR OFERTA
 
   async cambiarEstadoOferta(
     oferta: OfertaTrabajo
@@ -1546,7 +1551,7 @@ export class HomePage implements OnInit, OnDestroy {
     }
   }
 
-  // TOAST
+  // NOTIFICACIONES VISUALES
 
   private async mostrarToast(
     mensaje: string

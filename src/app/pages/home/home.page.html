@@ -122,7 +122,7 @@
       </ion-button>
     </div>
 
-    <!-- ESTADO DE CUENTA -->
+    <!-- ESTADO DE LA CUENTA -->
 
     <div
       class="account-status approved"
@@ -132,6 +132,7 @@
 
       <div>
         <strong>Cuenta activa</strong>
+
         <p>
           Tu cuenta de reclutador está aprobada.
           Puedes registrar y gestionar ofertas
@@ -148,6 +149,7 @@
 
       <div>
         <strong>Cuenta en espera de aprobación</strong>
+
         <p>
           Tu cuenta está siendo revisada.
           Puedes acceder a tu panel,
@@ -190,7 +192,7 @@
       </div>
     </div>
 
-    <!-- OFERTAS -->
+    <!-- LISTADO DE OFERTAS -->
 
     <div
       id="seccion-ofertas"
@@ -199,6 +201,7 @@
       <div class="section-header">
         <div>
           <h2>Mis Ofertas de Trabajo</h2>
+
           <p>
             Todas las vacantes publicadas
             en la plataforma
@@ -592,7 +595,7 @@
         </p>
       </div>
 
-      <!-- RANKING EXISTENTE DE LA OFERTA -->
+      <!-- RANKING COMPLETO DE LA OFERTA -->
 
       <div
         class="ranking-completo"
@@ -689,7 +692,7 @@
         </p>
       </div>
 
-      <!-- LISTA DE POSTULANTES DE LA OFERTA -->
+      <!-- FICHAS DE POSTULANTES DE LA OFERTA -->
 
       <div
         class="postulantes-list"
@@ -876,7 +879,7 @@
     </div>
   </section>
 
-  <!-- BÚSQUEDA POR CARGO DE PREFERENCIA -->
+  <!-- BUSCADOR GENERAL DE POSTULANTES -->
 
   <ion-modal
     class="postulantes-modal"
@@ -922,10 +925,12 @@
             <h2>Encuentra postulantes por cargo</h2>
 
             <p>
-              Busca personas según los cargos que
-              seleccionaron como preferencia en su perfil.
+              Consulta el ranking de evaluación y encuentra
+              personas que seleccionaron ese cargo como preferencia.
             </p>
           </div>
+
+          <!-- FORMULARIO DE BÚSQUEDA -->
 
           <div class="top-candidatos">
             <div class="top-header ranking-header">
@@ -1030,6 +1035,8 @@
             </ion-button>
           </div>
 
+          <!-- ESTADOS Y RESULTADOS -->
+
           <div
             aria-live="polite"
             [attr.aria-busy]="cargandoBusquedaPostulantes">
@@ -1075,7 +1082,8 @@
 
               <p>
                 Indica un cargo y presiona
-                “Buscar postulantes” para ver las coincidencias.
+                “Buscar postulantes” para ver
+                el ranking y las coincidencias.
               </p>
             </div>
 
@@ -1086,17 +1094,28 @@
                 !errorBusquedaPostulantes
               ">
 
+              <!-- RANKING GENERAL DEL CARGO -->
+
+              <app-ranking-cargo
+                [cargo]="cargoBuscado"
+                [nombreReclutador]="nombreReclutador"
+                [nombreEmpresa]="nombreEmpresa">
+              </app-ranking-cargo>
+
+              <!-- RESULTADOS POR CARGOS DE PREFERENCIA -->
+
               <ng-container
                 *ngIf="postulantesBusquedaFiltrados as resultados">
 
                 <div class="ranking-completo-header">
                   <div>
                     <h3>
-                      Resultados para “{{ cargoBuscado }}”
+                      Postulantes interesados en “{{ cargoBuscado }}”
                     </h3>
 
                     <p>
-                      Personas con cargos de preferencia coincidentes.
+                      Personas con cargos de preferencia coincidentes,
+                      tengan o no una evaluación registrada.
                       Ordenadas alfabéticamente.
                     </p>
                   </div>
@@ -1118,12 +1137,12 @@
 
                   <ion-icon name="people-outline"></ion-icon>
 
-                  <h3>No encontramos coincidencias</h3>
+                  <h3>No encontramos preferencias coincidentes</h3>
 
                   <p>
-                    No hay postulantes con un cargo de preferencia
+                    No hay perfiles con un cargo de preferencia
                     que coincida con “{{ cargoBuscado }}”.
-                    Prueba con otro nombre.
+                    El ranking se consulta por separado.
                   </p>
                 </div>
 
@@ -1242,7 +1261,7 @@
                       Sin currículum adjunto.
                     </p>
 
-                    <!-- PERFIL COMPLETO Y CHAT DEL RECLUTADOR -->
+                    <!-- PERFIL COMPLETO Y MENSAJERÍA -->
 
                     <app-perfil-chat-reclutador
                       [postulanteId]="p.postulanteId"
@@ -1250,7 +1269,6 @@
                       [nombreReclutador]="nombreReclutador"
                       [nombreEmpresa]="nombreEmpresa">
                     </app-perfil-chat-reclutador>
-
                   </article>
                 </div>
               </ng-container>
@@ -1271,7 +1289,7 @@
     </ng-template>
   </ion-modal>
 
-  <!-- RESPUESTAS DEL CUESTIONARIO DE UNA POSTULACIÓN -->
+  <!-- RESPUESTAS DEL CUESTIONARIO DE UNA POSTULACIÓN A OFERTA -->
 
   <ion-modal
     class="questionnaire-modal"
