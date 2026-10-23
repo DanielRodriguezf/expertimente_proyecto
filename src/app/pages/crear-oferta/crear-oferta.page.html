@@ -1,11 +1,7 @@
 <ion-header class="ion-no-border">
-
   <ion-toolbar class="navbar">
-
     <div class="header-container">
-
       <div class="header-left">
-
         <ion-button
           class="back-button"
           fill="clear"
@@ -17,11 +13,9 @@
             name="arrow-back-outline"
             slot="icon-only">
           </ion-icon>
-
         </ion-button>
 
         <div class="header-title">
-
           <span class="header-eyebrow">
             Gestión de ofertas
           </span>
@@ -33,44 +27,28 @@
                 : 'Nueva oferta de trabajo'
             }}
           </h2>
-
         </div>
-
       </div>
 
       <div
         class="header-company"
         *ngIf="nombreEmpresa">
 
-        <span class="company-icon">
-          🏢
-        </span>
+        <span class="company-icon">🏢</span>
 
-        <span>
-          {{ nombreEmpresa }}
-        </span>
-
+        <span>{{ nombreEmpresa }}</span>
       </div>
-
     </div>
-
   </ion-toolbar>
-
 </ion-header>
 
-
 <ion-content [fullscreen]="true">
-
   <div class="page-wrapper">
 
-    <!-- ===================================================== -->
     <!-- ENCABEZADO -->
-    <!-- ===================================================== -->
 
     <section class="page-intro">
-
       <div>
-
         <span class="intro-label">
           {{
             isEditMode
@@ -92,67 +70,42 @@
           Los candidatos responderán el cuestionario asociado
           cuando realicen su postulación.
         </p>
-
       </div>
-
     </section>
 
-
-    <!-- ===================================================== -->
     <!-- FORMULARIO -->
-    <!-- ===================================================== -->
 
     <form
       [formGroup]="ofertaForm"
       (ngSubmit)="guardarOferta()"
       class="offer-form">
 
-
-      <!-- =================================================== -->
-      <!-- 01 INFORMACIÓN PRINCIPAL -->
-      <!-- =================================================== -->
+      <!-- 01: INFORMACIÓN PRINCIPAL -->
 
       <section class="form-section">
-
         <div class="section-heading">
-
-          <div class="section-number">
-            01
-          </div>
+          <div class="section-number">01</div>
 
           <div>
-
-            <h2>
-              Información principal
-            </h2>
+            <h2>Información principal</h2>
 
             <p>
               Identifica correctamente el cargo y el área
               a la que pertenece la vacante.
             </p>
-
           </div>
-
         </div>
 
-
-        <!-- TÍTULO + CARGO -->
+        <!-- TÍTULO Y CARGO -->
 
         <div class="form-grid two-columns">
-
 
           <!-- TÍTULO -->
 
           <div class="form-group">
-
             <label>
-
               Título de la oferta
-
-              <span class="required">
-                *
-              </span>
-
+              <span class="required">*</span>
             </label>
 
             <ion-input
@@ -167,29 +120,17 @@
                 ofertaForm.get('titulo')?.touched &&
                 ofertaForm.get('titulo')?.invalid
               ">
-
               Ingresa un título descriptivo
               de al menos 4 caracteres.
-
             </span>
-
           </div>
 
-
-          <!-- ================================================= -->
           <!-- CARGO -->
-          <!-- ================================================= -->
 
           <div class="form-group autocomplete-group">
-
             <label>
-
               Cargo
-
-              <span class="required">
-                *
-              </span>
-
+              <span class="required">*</span>
             </label>
 
             <ion-input
@@ -203,8 +144,7 @@
               (ionBlur)="ocultarSugerenciasCargo()">
             </ion-input>
 
-
-            <!-- RESULTADOS CARGO -->
+            <!-- SUGERENCIAS DE CARGOS -->
 
             <div
               class="autocomplete-results"
@@ -219,174 +159,18 @@
                 *ngFor="let cargo of cargosFiltrados"
                 (click)="seleccionarCargo(cargo)">
 
-                <div class="suggestion-icon">
-                  💼
-                </div>
+                <div class="suggestion-icon">💼</div>
 
                 <div class="suggestion-content">
-
-                  <strong>
-                    {{ cargo.nombre }}
-                  </strong>
-
-                  <span>
-                    {{ cargo.area }}
-                  </span>
-
+                  <strong>{{ cargo.nombre }}</strong>
+                  <span>{{ cargo.area }}</span>
                 </div>
-
               </button>
-
             </div>
-
 
             <span class="helper-text">
               Busca un cargo registrado en la plataforma.
             </span>
-
-
-            <!-- ================================================= -->
-            <!-- BOTÓN SOLICITAR NUEVO CARGO -->
-            <!-- ================================================= -->
-
-            <ion-button
-              type="button"
-              fill="clear"
-              size="small"
-              class="request-cargo-button"
-              (click)="toggleSolicitudCargo()">
-
-              <ion-icon
-                name="add-outline"
-                slot="start">
-              </ion-icon>
-
-              {{
-                mostrarSolicitudCargo
-                  ? 'Cancelar solicitud'
-                  : 'Solicitar nuevo cargo'
-              }}
-
-            </ion-button>
-
-
-            <!-- ================================================= -->
-            <!-- FORMULARIO SOLICITUD NUEVO CARGO -->
-            <!-- ================================================= -->
-
-            <div
-              *ngIf="mostrarSolicitudCargo"
-              [formGroup]="solicitudCargoForm"
-              class="cargo-request-box">
-
-              <div class="cargo-request-header">
-
-                <h4>
-                  Solicitar nuevo cargo
-                </h4>
-
-                <p>
-                  Si el cargo que necesitas no está disponible,
-                  solicita su incorporación al administrador.
-                </p>
-
-              </div>
-
-
-              <!-- NOMBRE DEL CARGO -->
-
-              <div class="form-group">
-
-                <label>
-
-                  Nombre del cargo
-
-                  <span class="required">
-                    *
-                  </span>
-
-                </label>
-
-                <ion-input
-                  type="text"
-                  formControlName="nombre"
-                  placeholder="Ej: Técnico en climatización"
-                  fill="outline">
-                </ion-input>
-
-                <span
-                  class="error-text"
-                  *ngIf="
-                    solicitudCargoForm.get('nombre')?.touched &&
-                    solicitudCargoForm.get('nombre')?.invalid
-                  ">
-
-                  Ingresa el nombre del cargo.
-
-                </span>
-
-              </div>
-
-
-              <!-- DESCRIPCIÓN -->
-
-              <div class="form-group">
-
-                <label>
-
-                  Descripción
-
-                  <span class="required">
-                    *
-                  </span>
-
-                </label>
-
-                <ion-textarea
-                  formControlName="descripcion"
-                  placeholder="Describe brevemente el cargo que deseas solicitar..."
-                  rows="4"
-                  fill="outline">
-                </ion-textarea>
-
-                <span
-                  class="error-text"
-                  *ngIf="
-                    solicitudCargoForm.get('descripcion')?.touched &&
-                    solicitudCargoForm.get('descripcion')?.invalid
-                  ">
-
-                  Ingresa una descripción de al menos 10 caracteres.
-
-                </span>
-
-              </div>
-
-
-              <!-- ENVIAR -->
-
-              <ion-button
-                type="button"
-                class="send-cargo-request"
-                (click)="enviarSolicitudCargo()"
-                [disabled]="enviandoSolicitudCargo">
-
-                <ion-spinner
-                  *ngIf="enviandoSolicitudCargo"
-                  name="crescent"
-                  slot="start">
-                </ion-spinner>
-
-                {{
-                  enviandoSolicitudCargo
-                    ? 'Enviando...'
-                    : 'Enviar solicitud'
-                }}
-
-              </ion-button>
-
-            </div>
-
 
             <span
               class="error-text"
@@ -394,35 +178,21 @@
                 ofertaForm.get('cargoNombre')?.touched &&
                 ofertaForm.get('cargoNombre')?.invalid
               ">
-
               Debes indicar el cargo de la oferta.
-
             </span>
-
           </div>
-
         </div>
 
-
-        <!-- ================================================= -->
-        <!-- ÁREA + MODALIDAD -->
-        <!-- ================================================= -->
+        <!-- ÁREA Y MODALIDAD -->
 
         <div class="form-grid two-columns">
 
-
-          <!-- ÁREA -->
+          <!-- ÁREA LABORAL -->
 
           <div class="form-group autocomplete-group">
-
             <label>
-
               Área laboral
-
-              <span class="required">
-                *
-              </span>
-
+              <span class="required">*</span>
             </label>
 
             <ion-input
@@ -436,8 +206,7 @@
               (ionBlur)="ocultarSugerenciasArea()">
             </ion-input>
 
-
-            <!-- RESULTADOS ÁREA -->
+            <!-- SUGERENCIAS DE ÁREAS -->
 
             <div
               class="autocomplete-results"
@@ -452,44 +221,26 @@
                 *ngFor="let area of areasFiltradas"
                 (click)="seleccionarArea(area)">
 
-                <div class="suggestion-icon">
-                  🗂️
-                </div>
+                <div class="suggestion-icon">🗂️</div>
 
                 <div class="suggestion-content">
+                  <strong>{{ area.nombre }}</strong>
 
-                  <strong>
-                    {{ area.nombre }}
-                  </strong>
-
-                  <span
-                    *ngIf="area.plantillaId">
-
+                  <span *ngIf="area.plantillaId">
                     Plantilla disponible
-
                   </span>
 
-                  <span
-                    *ngIf="!area.plantillaId">
-
+                  <span *ngIf="!area.plantillaId">
                     Cuestionario personalizable
-
                   </span>
-
                 </div>
-
               </button>
-
             </div>
 
-
             <span class="helper-text">
-
               Esta área será utilizada para clasificar
               la oferta y los postulantes.
-
             </span>
-
 
             <span
               class="error-text"
@@ -497,26 +248,16 @@
                 ofertaForm.get('areaLaboral')?.touched &&
                 ofertaForm.get('areaLaboral')?.invalid
               ">
-
               Debes indicar un área laboral.
-
             </span>
-
           </div>
-
 
           <!-- MODALIDAD -->
 
           <div class="form-group">
-
             <label>
-
               Modalidad de trabajo
-
-              <span class="required">
-                *
-              </span>
-
+              <span class="required">*</span>
             </label>
 
             <ion-select
@@ -524,158 +265,103 @@
               interface="popover"
               fill="outline">
 
-              <ion-select-option
-                value="Remoto">
-
+              <ion-select-option value="Remoto">
                 🏠 Remoto
-
               </ion-select-option>
 
-              <ion-select-option
-                value="Híbrido">
-
+              <ion-select-option value="Híbrido">
                 🏢 Híbrido
-
               </ion-select-option>
 
-              <ion-select-option
-                value="Presencial">
-
+              <ion-select-option value="Presencial">
                 📍 Presencial
-
               </ion-select-option>
-
             </ion-select>
-
           </div>
-
         </div>
 
-
-        <!-- ================================================= -->
         <!-- INFORMACIÓN DEL CUESTIONARIO -->
-        <!-- ================================================= -->
 
         <div
           class="questionnaire-status"
-          *ngIf="
-            ofertaForm.get('cargoNombre')?.value
-          ">
+          *ngIf="ofertaForm.get('cargoNombre')?.value">
 
-          <div class="status-icon">
-            🎯
-          </div>
+          <div class="status-icon">🎯</div>
 
           <div class="status-content">
-
             <div class="status-title">
-
-              <strong>
-                Cuestionario del cargo
-              </strong>
+              <strong>Cuestionario del cargo</strong>
 
               <span
                 class="status-badge"
                 *ngIf="
                   ofertaForm.get('formularioId')?.value &&
-                  ofertaForm.get('formularioId')?.value !== 'personalizado'
+                  ofertaForm.get('formularioId')?.value !==
+                    'personalizado'
                 ">
-
                 Plantilla automática
-
               </span>
 
               <span
                 class="status-badge custom"
                 *ngIf="
                   !ofertaForm.get('formularioId')?.value ||
-                  ofertaForm.get('formularioId')?.value === 'personalizado'
+                  ofertaForm.get('formularioId')?.value ===
+                    'personalizado'
                 ">
-
                 Personalizado
-
               </span>
-
             </div>
-
 
             <p
               *ngIf="
                 ofertaForm.get('formularioId')?.value &&
-                ofertaForm.get('formularioId')?.value !== 'personalizado'
+                ofertaForm.get('formularioId')?.value !==
+                  'personalizado'
               ">
-
               Se cargó una plantilla de preguntas
               según el cargo o área seleccionada.
               Puedes modificarla libremente.
-
             </p>
-
 
             <p
               *ngIf="
                 !ofertaForm.get('formularioId')?.value ||
-                ofertaForm.get('formularioId')?.value === 'personalizado'
+                ofertaForm.get('formularioId')?.value ===
+                  'personalizado'
               ">
-
               Puedes crear las preguntas necesarias
               para evaluar a los candidatos de esta oferta.
-
             </p>
-
           </div>
-
         </div>
-
       </section>
 
-
-      <!-- =================================================== -->
-      <!-- 02 CUESTIONARIO -->
-      <!-- =================================================== -->
+      <!-- 02: CUESTIONARIO -->
 
       <section class="form-section questionnaire-section">
-
         <div class="section-heading questionnaire-heading">
-
           <div class="heading-main">
-
-            <div class="section-number">
-              02
-            </div>
+            <div class="section-number">02</div>
 
             <div>
-
-              <h2>
-                Cuestionario de postulación
-              </h2>
+              <h2>Cuestionario de postulación</h2>
 
               <p>
                 Define las preguntas que deberán responder
                 los candidatos antes de enviar su postulación.
               </p>
-
             </div>
-
           </div>
 
-
           <div class="questionnaire-actions">
-
             <div
               class="score-pill"
               *ngIf="puntajeMaximo > 0">
 
-              <span>
-                Puntaje máximo
-              </span>
-
-              <strong>
-                {{ puntajeMaximo }} pts
-              </strong>
-
+              <span>Puntaje máximo</span>
+              <strong>{{ puntajeMaximo }} pts</strong>
             </div>
-
 
             <ion-button
               type="button"
@@ -689,31 +375,19 @@
               </ion-icon>
 
               Agregar pregunta
-
             </ion-button>
-
           </div>
-
         </div>
 
-
-        <!-- ================================================= -->
         <!-- SIN PREGUNTAS -->
-        <!-- ================================================= -->
 
         <div
           class="questions-empty"
-          *ngIf="
-            preguntas.length === 0
-          ">
+          *ngIf="preguntas.length === 0">
 
-          <div class="empty-icon">
-            📋
-          </div>
+          <div class="empty-icon">📋</div>
 
-          <h3>
-            No hay preguntas configuradas
-          </h3>
+          <h3>No hay preguntas configuradas</h3>
 
           <p>
             Agrega una pregunta para comenzar a crear
@@ -731,15 +405,10 @@
             </ion-icon>
 
             Crear primera pregunta
-
           </ion-button>
-
         </div>
 
-
-        <!-- ================================================= -->
-        <!-- PREGUNTAS -->
-        <!-- ================================================= -->
+        <!-- LISTADO DE PREGUNTAS -->
 
         <div
           formArrayName="preguntas"
@@ -755,31 +424,17 @@
 
             <ion-card-content>
 
-
-              <!-- CABECERA -->
+              <!-- CABECERA DE LA PREGUNTA -->
 
               <div class="question-header">
-
                 <div class="question-index">
-
-                  <span>
-                    {{ i + 1 }}
-                  </span>
+                  <span>{{ i + 1 }}</span>
 
                   <div>
-
-                    <strong>
-                      Pregunta {{ i + 1 }}
-                    </strong>
-
-                    <small>
-                      Configuración del cuestionario
-                    </small>
-
+                    <strong>Pregunta {{ i + 1 }}</strong>
+                    <small>Configuración del cuestionario</small>
                   </div>
-
                 </div>
-
 
                 <ion-button
                   type="button"
@@ -793,26 +448,15 @@
                     name="trash-outline"
                     slot="icon-only">
                   </ion-icon>
-
                 </ion-button>
-
               </div>
 
-
-              <!-- ================================================= -->
-              <!-- TEXTO -->
-              <!-- ================================================= -->
+              <!-- TEXTO DE LA PREGUNTA -->
 
               <div class="form-group">
-
                 <label>
-
                   Pregunta
-
-                  <span class="required">
-                    *
-                  </span>
-
+                  <span class="required">*</span>
                 </label>
 
                 <ion-textarea
@@ -828,26 +472,16 @@
                     pregunta.get('texto')?.touched &&
                     pregunta.get('texto')?.invalid
                   ">
-
                   La pregunta debe contener
                   al menos 5 caracteres.
-
                 </span>
-
               </div>
 
-
-              <!-- ================================================= -->
-              <!-- TIPO + OBLIGATORIA -->
-              <!-- ================================================= -->
+              <!-- TIPO Y OBLIGATORIEDAD -->
 
               <div class="question-config-row">
-
                 <div class="form-group question-type">
-
-                  <label>
-                    Tipo de respuesta
-                  </label>
+                  <label>Tipo de respuesta</label>
 
                   <ion-select
                     formControlName="tipo"
@@ -855,51 +489,29 @@
                     interface="popover"
                     (ionChange)="cambiarTipoPregunta(i)">
 
-                    <ion-select-option
-                      value="texto">
-
+                    <ion-select-option value="texto">
                       Respuesta escrita
-
                     </ion-select-option>
 
-                    <ion-select-option
-                      value="seleccion">
-
+                    <ion-select-option value="seleccion">
                       Selección con alternativas
-
                     </ion-select-option>
-
                   </ion-select>
-
                 </div>
 
-
                 <label class="required-toggle">
-
                   <ion-checkbox
                     formControlName="requerida">
                   </ion-checkbox>
 
                   <div>
-
-                    <strong>
-                      Obligatoria
-                    </strong>
-
-                    <span>
-                      El candidato debe responderla.
-                    </span>
-
+                    <strong>Obligatoria</strong>
+                    <span>El candidato debe responderla.</span>
                   </div>
-
                 </label>
-
               </div>
 
-
-              <!-- ================================================= -->
               <!-- ALTERNATIVAS -->
-              <!-- ================================================= -->
 
               <div
                 class="options-section"
@@ -909,20 +521,14 @@
                 formArrayName="opciones">
 
                 <div class="options-title">
-
                   <div>
-
-                    <h4>
-                      Alternativas de respuesta
-                    </h4>
+                    <h4>Alternativas de respuesta</h4>
 
                     <p>
                       Define las opciones y el puntaje
                       correspondiente a cada una.
                     </p>
-
                   </div>
-
 
                   <ion-button
                     type="button"
@@ -936,11 +542,8 @@
                     </ion-icon>
 
                     Alternativa
-
                   </ion-button>
-
                 </div>
-
 
                 <div
                   class="option-row"
@@ -954,27 +557,18 @@
                     {{ j + 1 }}
                   </div>
 
-
                   <div class="option-content-field">
-
-                    <label>
-                      Respuesta
-                    </label>
+                    <label>Respuesta</label>
 
                     <ion-input
                       formControlName="texto"
                       fill="outline"
                       placeholder="Texto de la alternativa">
                     </ion-input>
-
                   </div>
 
-
                   <div class="option-score-field">
-
-                    <label>
-                      Puntaje
-                    </label>
+                    <label>Puntaje</label>
 
                     <ion-input
                       formControlName="puntaje"
@@ -982,9 +576,7 @@
                       min="0"
                       fill="outline">
                     </ion-input>
-
                   </div>
-
 
                   <ion-button
                     class="remove-option"
@@ -998,29 +590,18 @@
                       name="trash-outline"
                       slot="icon-only">
                     </ion-icon>
-
                   </ion-button>
-
                 </div>
-
               </div>
-
             </ion-card-content>
-
           </ion-card>
-
         </div>
 
-
-        <!-- ================================================= -->
-        <!-- BOTÓN INFERIOR -->
-        <!-- ================================================= -->
+        <!-- AGREGAR OTRA PREGUNTA -->
 
         <div
           class="add-question-bottom"
-          *ngIf="
-            preguntas.length > 0
-          ">
+          *ngIf="preguntas.length > 0">
 
           <ion-button
             type="button"
@@ -1033,57 +614,34 @@
             </ion-icon>
 
             Agregar otra pregunta
-
           </ion-button>
-
         </div>
-
       </section>
 
-
-      <!-- =================================================== -->
-      <!-- 03 DETALLES -->
-      <!-- =================================================== -->
+      <!-- 03: DETALLES DEL PUESTO -->
 
       <section class="form-section">
-
         <div class="section-heading">
-
-          <div class="section-number">
-            03
-          </div>
+          <div class="section-number">03</div>
 
           <div>
-
-            <h2>
-              Detalles del puesto
-            </h2>
+            <h2>Detalles del puesto</h2>
 
             <p>
               Agrega información útil para que los candidatos
               entiendan claramente la oportunidad.
             </p>
-
           </div>
-
         </div>
 
-
         <div class="form-grid two-columns">
-
 
           <!-- DIRECCIÓN -->
 
           <div class="form-group">
-
             <label>
-
               Dirección / ubicación
-
-              <span class="optional">
-                Opcional
-              </span>
-
+              <span class="optional">Opcional</span>
             </label>
 
             <ion-input
@@ -1091,22 +649,14 @@
               placeholder="Ej: Providencia, Santiago"
               fill="outline">
             </ion-input>
-
           </div>
-
 
           <!-- HABILIDADES -->
 
           <div class="form-group">
-
             <label>
-
               Habilidades o conocimientos
-
-              <span class="optional">
-                Opcional
-              </span>
-
+              <span class="optional">Opcional</span>
             </label>
 
             <ion-input
@@ -1114,26 +664,15 @@
               placeholder="Ej: Excel, atención al cliente..."
               fill="outline">
             </ion-input>
-
           </div>
-
         </div>
 
-
-        <!-- ================================================= -->
         <!-- DESCRIPCIÓN -->
-        <!-- ================================================= -->
 
         <div class="form-group">
-
           <label>
-
             Descripción del trabajo y funciones
-
-            <span class="required">
-              *
-            </span>
-
+            <span class="required">*</span>
           </label>
 
           <ion-textarea
@@ -1149,60 +688,36 @@
               ofertaForm.get('descripcion')?.touched &&
               ofertaForm.get('descripcion')?.invalid
             ">
-
             La descripción debe contener
             al menos 15 caracteres.
-
           </span>
-
         </div>
-
       </section>
 
-
-      <!-- =================================================== -->
-      <!-- 04 CONTACTO -->
-      <!-- =================================================== -->
+      <!-- 04: INFORMACIÓN DE CONTACTO -->
 
       <section class="form-section">
-
         <div class="section-heading">
-
-          <div class="section-number">
-            04
-          </div>
+          <div class="section-number">04</div>
 
           <div>
-
-            <h2>
-              Información de contacto
-            </h2>
+            <h2>Información de contacto</h2>
 
             <p>
               Datos que permitirán gestionar el proceso
               de reclutamiento.
             </p>
-
           </div>
-
         </div>
-
 
         <div class="form-grid two-columns">
 
-
-          <!-- EMAIL -->
+          <!-- CORREO -->
 
           <div class="form-group">
-
             <label>
-
               Email de contacto
-
-              <span class="required">
-                *
-              </span>
-
+              <span class="required">*</span>
             </label>
 
             <ion-input
@@ -1218,26 +733,16 @@
                 ofertaForm.get('contactoEmail')?.touched &&
                 ofertaForm.get('contactoEmail')?.invalid
               ">
-
               Ingresa un correo electrónico válido.
-
             </span>
-
           </div>
-
 
           <!-- TELÉFONO -->
 
           <div class="form-group">
-
             <label>
-
               Teléfono de contacto
-
-              <span class="optional">
-                Opcional
-              </span>
-
+              <span class="optional">Opcional</span>
             </label>
 
             <ion-input
@@ -1246,57 +751,39 @@
               placeholder="+56 9 1234 5678"
               fill="outline">
             </ion-input>
-
           </div>
-
         </div>
-
       </section>
 
-
-      <!-- =================================================== -->
-      <!-- ACCIONES -->
-      <!-- =================================================== -->
+      <!-- ACCIONES DEL FORMULARIO -->
 
       <div class="form-actions">
-
         <div class="actions-help">
-
           <strong>
-
             {{
               isEditMode
                 ? '¿Terminaste los cambios?'
                 : '¿Lista la oferta?'
             }}
-
           </strong>
 
           <span>
-
             {{
               isEditMode
                 ? 'Guarda para actualizar la publicación.'
                 : 'Publica para que los candidatos puedan visualizarla.'
             }}
-
           </span>
-
         </div>
 
-
         <div class="action-buttons">
-
           <ion-button
             type="button"
             fill="outline"
             color="medium"
             (click)="volver()">
-
             Cancelar
-
           </ion-button>
-
 
           <ion-button
             type="submit"
@@ -1308,9 +795,7 @@
               name="crescent">
             </ion-spinner>
 
-            <ng-container
-              *ngIf="!isLoading">
-
+            <ng-container *ngIf="!isLoading">
               <ion-icon
                 name="save-outline"
                 slot="start">
@@ -1321,17 +806,11 @@
                   ? 'Guardar cambios'
                   : 'Publicar oferta'
               }}
-
             </ng-container>
-
           </ion-button>
-
         </div>
-
       </div>
 
     </form>
-
   </div>
-
 </ion-content>

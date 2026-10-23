@@ -8,7 +8,15 @@ import {
 } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+
+import {
+  ActivatedRoute,
+  Router,
+  ParamMap,
+  convertToParamMap
+} from '@angular/router';
+
+import { Subscription } from 'rxjs';
 
 import {
   IonContent,
@@ -17,11 +25,9 @@ import {
   IonButton,
   IonIcon,
   IonSpinner,
-  IonModal,
   IonTitle,
   IonButtons,
-  ToastController,
-  AlertController
+  ToastController
 } from '@ionic/angular';
 
 import { addIcons } from 'ionicons';
@@ -60,6 +66,8 @@ import {
 
 import {
   Firestore,
+  runTransaction,
+  serverTimestamp,
   doc,
   getDoc,
   collection,
@@ -69,8 +77,7 @@ import {
   deleteDoc,
   updateDoc,
   getDocs,
-  getDocsFromServer,
-  addDoc
+  getDocsFromServer
 } from '@angular/fire/firestore';
 
 import {
@@ -85,6 +92,10 @@ import {
 import {
   RankingCargoComponent
 } from './ranking-cargo.component';
+
+import {
+  ReclutadorHerramientasComponent
+} from './reclutador-herramientas.component';
 
 export interface OfertaTrabajo {
   id: string;
@@ -112,9 +123,7 @@ export interface OfertaTrabajo {
 export interface RespuestaCuestionario {
   preguntaId: string;
   preguntaTexto: string;
-
   tipo: 'texto' | 'seleccion';
-
   respuesta: string;
   puntajeObtenido?: number;
 }
@@ -122,7 +131,6 @@ export interface RespuestaCuestionario {
 export interface PostulanteCompleto {
   postulacionId: string;
   postulanteId: string;
-
   fechaPostulacion?: any;
 
   estado: 'Pendiente' | 'Aceptado' | 'Rechazado';
@@ -188,30 +196,46 @@ export interface PostulanteBusqueda {
     IonButton,
     IonIcon,
     IonSpinner,
-    IonModal,
     IonTitle,
     IonButtons,
     PerfilChatReclutadorComponent,
-    RankingCargoComponent
+    RankingCargoComponent,
+    ReclutadorHerramientasComponent
   ]
 })
 export class HomePage implements OnInit, OnDestroy {
   private auth = inject(Auth);
   private firestore = inject(Firestore);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   private toastController = inject(ToastController);
-  private alertController = inject(AlertController);
-
   private cdr = inject(ChangeDetectorRef);
   private ngZone = inject(NgZone);
 
-  // PERFIL DEL RECLUTADOR
+  private navegacion?: Subscription;
+  private cancelarAvisos?: () => void;
+  private authUnsubscribe?: Unsubscribe;
+  private snapshotUnsubscribe?: Unsubscribe;
+
+  // Se actualiza con cada emisión de queryParamMap.
+  private parametrosActuales: ParamMap =
+    convertToParamMap({});
+
+  // NAVEGACIÓN
+
+  vista = 'inicio';
+  paginaActiva = true;
+  avisosSinLeer = 0;
+  eliminarPendiente = '';
+
+  // PERFIL
 
   nombreReclutador = '';
   nombreEmpresa = '';
 
-  estadoReclutador: 'aprobado' | 'pendiente' = 'pendiente';
+  estadoReclutador:
+    'aprobado' | 'pendiente' = 'pendiente';
 
   isLoading = true;
 
@@ -219,7 +243,7 @@ export class HomePage implements OnInit, OnDestroy {
 
   ofertas: OfertaTrabajo[] = [];
 
-  // POSTULANTES DE UNA OFERTA
+  // POSTULANTES DE OFERTA
 
   isModalPostulantesOpen = false;
   cargandoPostulantes = false;
@@ -230,7 +254,7 @@ export class HomePage implements OnInit, OnDestroy {
   modalPostulantesFullscreen = false;
   mostrarRankingCompleto = false;
 
-  // BÚSQUEDA POR CARGO DE PREFERENCIA
+  // BÚSQUEDA
 
   isModalBusquedaPostulantesOpen = false;
   cargandoBusquedaPostulantes = false;
@@ -249,27 +273,56 @@ export class HomePage implements OnInit, OnDestroy {
 
   private solicitudBusquedaActual = 0;
 
-  // RESPUESTAS DE UNA POSTULACIÓN A OFERTA
+  // RESPUESTAS
 
   isModalRespuestasOpen = false;
 
   postulanteRespuestasSeleccionado:
     PostulanteCompleto | null = null;
 
-  // SUSCRIPCIONES
+  // COMPATIBILIDAD CON REFERENCIAS ANTIGUAS DEL PROYECTO
 
-  private authUnsubscribe?: Unsubscribe;
-  private snapshotUnsubscribe?: Unsubscribe;
-
-  // EMPRESAS MOCK ANTIGUAS
-
-  private empresasMockMap: { [key: string]: string } = {
+  private empresasMockMap: Record<string, string> = {
     emp_001: 'Tech Corp Chile',
     emp_002: 'Innovación Global S.A.',
     emp_003: 'Desarrollos Rápidos'
   };
 
-  // GETTERS GENERALES
+  constructor() {
+    addIcons({
+      'briefcase-outline': briefcaseOutline,
+      'add-outline': addOutline,
+      'log-out-outline': logOutOutline,
+      'create-outline': createOutline,
+      'trash-outline': trashOutline,
+      'power-outline': powerOutline,
+      'location-outline': locationOutline,
+      'mail-outline': mailOutline,
+      'call-outline': callOutline,
+      'people-outline': peopleOutline,
+      'close-outline': closeOutline,
+      'checkmark-circle-outline': checkmarkCircleOutline,
+      'close-circle-outline': closeCircleOutline,
+      'person-outline': personOutline,
+      'document-text-outline': documentTextOutline,
+      'school-outline': schoolOutline,
+      'time-outline': timeOutline,
+      'star-outline': starOutline,
+      'lock-closed-outline': lockClosedOutline,
+      'expand-outline': expandOutline,
+      'contract-outline': contractOutline
+    });
+  }
+
+  // GETTERS
+
+  get usuarioId(): string {
+    return this.auth.currentUser?.uid || '';
+  }
+
+  get candidatoPagina(): string {
+    return this.parametrosActuales.get('postulante') || '';
+  }
 
   get primerNombre(): string {
     if (
@@ -281,7 +334,10 @@ export class HomePage implements OnInit, OnDestroy {
       if (email) {
         const handle = email.split('@')[0];
 
-        return handle.charAt(0).toUpperCase() + handle.slice(1);
+        return (
+          handle.charAt(0).toUpperCase() +
+          handle.slice(1)
+        );
       }
 
       return 'Usuario';
@@ -299,8 +355,6 @@ export class HomePage implements OnInit, OnDestroy {
   get puedePublicarOfertas(): boolean {
     return this.estadoReclutador === 'aprobado';
   }
-
-  // RANKING EXISTENTE DE UNA OFERTA
 
   get rankingPostulantes(): PostulanteCompleto[] {
     return this.postulantesList
@@ -332,8 +386,6 @@ export class HomePage implements OnInit, OnDestroy {
   get top3Postulantes(): PostulanteCompleto[] {
     return this.rankingPostulantes.slice(0, 3);
   }
-
-  // SUGERENCIAS DE CARGOS
 
   get cargosBusquedaDisponibles(): string[] {
     const nombres = [
@@ -378,8 +430,6 @@ export class HomePage implements OnInit, OnDestroy {
     );
   }
 
-  // RESULTADOS DE BÚSQUEDA POR PREFERENCIA
-
   get postulantesBusquedaFiltrados(): PostulanteBusqueda[] {
     if (!this.busquedaRealizada) {
       return [];
@@ -388,27 +438,155 @@ export class HomePage implements OnInit, OnDestroy {
     const textoCargo =
       this.normalizarTexto(this.cargoBuscado);
 
-    if (!textoCargo) {
+    if (!textoCargo && !this.filtroArea) {
       return [];
     }
 
     return this.postulantesBusqueda.filter(postulante => {
-      const coincideCargo = postulante.cargos.some(
-        cargo =>
+      const coincideCargo =
+        !textoCargo ||
+        postulante.cargos.some(cargo =>
           this.normalizarTexto(cargo).includes(textoCargo)
-      );
+        );
 
       const coincideArea =
         !this.filtroArea ||
-        postulante.areasLaborales.some(
-          area =>
-            this.normalizarTexto(area) ===
-            this.normalizarTexto(this.filtroArea)
+        postulante.areasLaborales.some(area =>
+          this.normalizarTexto(area) ===
+          this.normalizarTexto(this.filtroArea)
         );
 
       return coincideCargo && coincideArea;
     });
   }
+
+  // CICLO DE VIDA
+
+  ngOnInit() {
+    this.cargosCatalogoBusqueda =
+      generarCatalogoCargos();
+
+    this.navegacion = this.route.queryParamMap.subscribe(
+      parametros => {
+        // Usamos los parámetros recibidos.
+        this.parametrosActuales = parametros;
+        this.aplicarRuta(parametros);
+      }
+    );
+
+    this.iniciarObservadorAuth();
+  }
+
+  ionViewWillEnter() {
+    this.paginaActiva = true;
+    this.cdr.markForCheck();
+
+    const user = this.auth.currentUser;
+
+    if (user) {
+      void this.cargarTodo(user);
+    } else {
+      this.iniciarObservadorAuth();
+    }
+  }
+
+  ionViewWillLeave() {
+    this.paginaActiva = false;
+
+    this.cancelarAvisos?.();
+    this.limpiarSuscripcionOfertas();
+
+    this.solicitudBusquedaActual++;
+
+    this.cdr.markForCheck();
+  }
+
+  ngOnDestroy() {
+    this.cancelarAvisos?.();
+    this.navegacion?.unsubscribe();
+    this.authUnsubscribe?.();
+
+    this.solicitudBusquedaActual++;
+
+    this.limpiarSuscripcionOfertas();
+  }
+
+  // NAVEGACIÓN
+
+  ir(vista: string) {
+    this.router.navigate(
+      ['/home'],
+      {
+        queryParams: {
+          vista
+        }
+      }
+    );
+  }
+
+  private aplicarRuta(
+    parametros: ParamMap = this.parametrosActuales
+  ) {
+    const permitidas = [
+      'inicio',
+      'buscar',
+      'postulantes',
+      'respuestas',
+      'aceptados',
+      'solicitudes',
+      'comentarios',
+      'mensajes',
+      'perfil',
+      'chat'
+    ];
+
+    const solicitada =
+      parametros.get('vista') || 'inicio';
+
+    this.vista = permitidas.includes(solicitada)
+      ? solicitada
+      : 'inicio';
+
+    this.isModalBusquedaPostulantesOpen =
+      this.vista === 'buscar';
+
+    this.isModalPostulantesOpen =
+      this.vista === 'postulantes';
+
+    this.isModalRespuestasOpen =
+      this.vista === 'respuestas';
+
+    if (this.vista === 'respuestas') {
+      const postulacionId =
+        parametros.get('postulacion');
+
+      this.postulanteRespuestasSeleccionado =
+        this.postulantesList.find(
+          p => p.postulacionId === postulacionId
+        ) || null;
+    }
+
+    const ofertaId = parametros.get('oferta');
+
+    if (
+      ['postulantes', 'respuestas'].includes(this.vista) &&
+      ofertaId &&
+      !this.cargandoPostulantes &&
+      this.ofertaSeleccionada?.id !== ofertaId
+    ) {
+      const oferta = this.ofertas.find(
+        o => o.id === ofertaId
+      );
+
+      if (oferta) {
+        void this.verPostulantes(oferta, false);
+      }
+    }
+
+    this.cdr.markForCheck();
+  }
+
+  // UTILIDADES
 
   private normalizarTexto(texto: string): string {
     return String(texto ?? '')
@@ -419,74 +597,12 @@ export class HomePage implements OnInit, OnDestroy {
       .toLowerCase();
   }
 
-  constructor() {
-    addIcons({
-      'briefcase-outline': briefcaseOutline,
-      'add-outline': addOutline,
-      'log-out-outline': logOutOutline,
-      'create-outline': createOutline,
-      'trash-outline': trashOutline,
-      'power-outline': powerOutline,
-      'location-outline': locationOutline,
-      'mail-outline': mailOutline,
-      'call-outline': callOutline,
-      'people-outline': peopleOutline,
-      'close-outline': closeOutline,
-      'checkmark-circle-outline': checkmarkCircleOutline,
-      'close-circle-outline': closeCircleOutline,
-      'person-outline': personOutline,
-      'document-text-outline': documentTextOutline,
-      'school-outline': schoolOutline,
-      'time-outline': timeOutline,
-      'star-outline': starOutline,
-      'lock-closed-outline': lockClosedOutline,
-      'expand-outline': expandOutline,
-      'contract-outline': contractOutline
-    });
-  }
-
-  // CICLO DE VIDA
-
-  ngOnInit() {
-    this.cargosCatalogoBusqueda =
-      generarCatalogoCargos();
-
-    this.iniciarObservadorAuth();
-  }
-
-  ionViewWillEnter() {
-    const user = this.auth.currentUser;
-
-    if (user) {
-      this.cargarTodo(user);
-    } else {
-      this.iniciarObservadorAuth();
-    }
-  }
-
-  ionViewWillLeave() {
-    this.limpiarSuscripcionOfertas();
-    this.cerrarBusquedaPostulantes();
-  }
-
-  ngOnDestroy() {
-    this.solicitudBusquedaActual++;
-
-    if (this.authUnsubscribe) {
-      this.authUnsubscribe();
-    }
-
-    this.limpiarSuscripcionOfertas();
-  }
-
-  // SUSCRIPCIONES
-
   private limpiarSuscripcionOfertas() {
-    if (this.snapshotUnsubscribe) {
-      this.snapshotUnsubscribe();
-      this.snapshotUnsubscribe = undefined;
-    }
+    this.snapshotUnsubscribe?.();
+    this.snapshotUnsubscribe = undefined;
   }
+
+  // AUTENTICACIÓN
 
   private iniciarObservadorAuth() {
     if (this.authUnsubscribe) {
@@ -497,10 +613,10 @@ export class HomePage implements OnInit, OnDestroy {
       this.auth,
       (user: User | null) => {
         if (user) {
-          this.cargarTodo(user);
+          void this.cargarTodo(user);
         } else {
           this.ngZone.run(() => {
-            this.router.navigate(['/auth/login']);
+            this.router.navigate(['/login']);
           });
         }
       }
@@ -517,7 +633,54 @@ export class HomePage implements OnInit, OnDestroy {
 
     await this.cargarPerfilReclutador(user);
 
+    if (this.puedePublicarOfertas) {
+      void getDocsFromServer(
+        collection(this.firestore, 'cargos')
+      )
+        .then(snapshot => {
+          const catalogo = generarCatalogoCargos();
+
+          for (const documento of snapshot.docs) {
+            const data = documento.data();
+
+            if (data['nombre'] && data['areaLaboral']) {
+              catalogo.push({
+                nombre: String(data['nombre']),
+                areaLaboral: String(data['areaLaboral'])
+              });
+            }
+          }
+
+          this.cargosCatalogoBusqueda = catalogo;
+          this.cdr.markForCheck();
+        })
+        .catch(() => {});
+    }
+
+    this.cancelarAvisos?.();
+
+    this.cancelarAvisos = onSnapshot(
+      query(
+        collection(
+          this.firestore,
+          'notificaciones-reclutador'
+        ),
+        where('reclutadorId', '==', user.uid)
+      ),
+      snapshot => {
+        this.ngZone.run(() => {
+          this.avisosSinLeer = snapshot.docs.filter(
+            documento => !documento.data()['leido']
+          ).length;
+
+          this.cdr.markForCheck();
+        });
+      },
+      () => {}
+    );
+
     this.escucharOfertasReales(user.uid);
+    this.aplicarRuta();
   }
 
   // PERFIL DEL RECLUTADOR
@@ -526,19 +689,19 @@ export class HomePage implements OnInit, OnDestroy {
     this.estadoReclutador = 'pendiente';
 
     try {
-      const docRef = doc(
+      const referencia = doc(
         this.firestore,
         'reclutadores',
         user.uid
       );
 
-      const docSnap = await getDoc(docRef);
+      const snapshot = await getDoc(referencia);
 
       let nombreEncontrado = '';
       let empresaEncontrada = '';
 
-      if (docSnap.exists()) {
-        const data = docSnap.data();
+      if (snapshot.exists()) {
+        const data = snapshot.data();
         const estadoBD = data['estado'];
 
         const estadoNormalizado =
@@ -556,7 +719,7 @@ export class HomePage implements OnInit, OnDestroy {
           estadoBD === null ||
           String(estadoBD).trim() === ''
         ) {
-          await updateDoc(docRef, {
+          await updateDoc(referencia, {
             estado: 'Pendiente'
           });
         }
@@ -567,24 +730,24 @@ export class HomePage implements OnInit, OnDestroy {
           data['nombreReclutador'] ||
           '';
 
-        const empId = data['empresaId'];
+        const empresaId = data['empresaId'];
 
-        if (empId) {
-          if (this.empresasMockMap[empId]) {
+        if (empresaId) {
+          if (this.empresasMockMap[empresaId]) {
             empresaEncontrada =
-              this.empresasMockMap[empId];
+              this.empresasMockMap[empresaId];
           } else {
-            const empRef = doc(
-              this.firestore,
-              'empresas',
-              empId
+            const empresaSnapshot = await getDoc(
+              doc(
+                this.firestore,
+                'empresas',
+                empresaId
+              )
             );
 
-            const empSnap = await getDoc(empRef);
-
-            if (empSnap.exists()) {
+            if (empresaSnapshot.exists()) {
               empresaEncontrada =
-                empSnap.data()['nombre'] || '';
+                empresaSnapshot.data()['nombre'] || '';
             }
           }
         }
@@ -612,18 +775,18 @@ export class HomePage implements OnInit, OnDestroy {
     }
   }
 
-  // OFERTAS EN TIEMPO REAL
+  // OFERTAS
 
   escucharOfertasReales(reclutadorUid: string) {
     this.limpiarSuscripcionOfertas();
 
-    const q = query(
+    const consulta = query(
       collection(this.firestore, 'ofertas'),
       where('reclutadorId', '==', reclutadorUid)
     );
 
     this.snapshotUnsubscribe = onSnapshot(
-      q,
+      consulta,
       snapshot => {
         this.ngZone.run(() => {
           this.ofertas = snapshot.docs.map(documento => {
@@ -649,11 +812,13 @@ export class HomePage implements OnInit, OnDestroy {
                   : 'Activa',
               fechaPublicacion:
                 data['fechaPublicacion'],
-              reclutadorId: data['reclutadorId']
+              reclutadorId:
+                data['reclutadorId']
             };
           });
 
           this.isLoading = false;
+          this.aplicarRuta();
           this.cdr.detectChanges();
         });
       },
@@ -673,35 +838,84 @@ export class HomePage implements OnInit, OnDestroy {
 
   // POSTULANTES DE UNA OFERTA
 
-  async verPostulantes(oferta: OfertaTrabajo) {
+  async verPostulantes(
+    oferta: OfertaTrabajo,
+    navegar = true
+  ) {
+    if (
+      !this.puedePublicarOfertas ||
+      oferta.reclutadorId !== this.usuarioId
+    ) {
+      return;
+    }
+
     this.ofertaSeleccionada = oferta;
     this.modalPostulantesFullscreen = false;
     this.mostrarRankingCompleto = false;
-    this.isModalPostulantesOpen = true;
+
+    if (navegar) {
+      this.router.navigate(
+        ['/home'],
+        {
+          queryParams: {
+            vista: 'postulantes',
+            oferta: oferta.id
+          }
+        }
+      );
+    }
+
+    this.isModalPostulantesOpen =
+      this.vista !== 'respuestas';
+
     this.cargandoPostulantes = true;
     this.postulantesList = [];
 
     this.cdr.detectChanges();
 
     try {
-      const q = query(
+      const consulta = query(
         collection(this.firestore, 'postulaciones'),
         where('ofertaId', '==', oferta.id)
       );
 
-      const querySnapshot = await getDocs(q);
+      const snapshot = await getDocs(consulta);
+      const postulantes: PostulanteCompleto[] = [];
 
-      const tempPostulantes: PostulanteCompleto[] = [];
+      for (const documento of snapshot.docs) {
+        const data = documento.data();
+        const postulanteId = data['postulanteId'];
 
-      for (const postulacionDoc of querySnapshot.docs) {
-        const dataPostulacion = postulacionDoc.data();
+        if (!postulanteId) {
+          continue;
+        }
 
-        const postulanteId =
-          dataPostulacion['postulanteId'];
+        const perfilSnapshot = await getDoc(
+          doc(
+            this.firestore,
+            'postulantes',
+            postulanteId
+          )
+        );
+
+        if (!perfilSnapshot.exists()) {
+          continue;
+        }
+
+        const perfil = perfilSnapshot.data();
+
+        const apellidos =
+          perfil['apellidos'] ||
+          [
+            perfil['apellidoPaterno'],
+            perfil['apellidoMaterno']
+          ]
+            .filter(Boolean)
+            .join(' ');
 
         const puntajeRaw =
-          dataPostulacion['puntajeInoeidad'] ??
-          dataPostulacion['puntajeIdoneidad'];
+          data['puntajeInoeidad'] ??
+          data['puntajeIdoneidad'];
 
         const puntajeInoeidad =
           puntajeRaw !== undefined &&
@@ -710,98 +924,83 @@ export class HomePage implements OnInit, OnDestroy {
             ? Number(puntajeRaw)
             : undefined;
 
-        if (postulanteId) {
-          const userDocRef = doc(
-            this.firestore,
-            `postulantes/${postulanteId}`
-          );
+        const estadoFirestore =
+          String(data['estado'] ?? '')
+            .trim()
+            .toLowerCase();
 
-          const userDocSnap = await getDoc(userDocRef);
+        let estado:
+          'Pendiente' | 'Aceptado' | 'Rechazado' =
+          'Pendiente';
 
-          if (userDocSnap.exists()) {
-            const userData = userDocSnap.data();
-
-            const apellidos =
-              userData['apellidos'] ||
-              [
-                userData['apellidoPaterno'],
-                userData['apellidoMaterno']
-              ]
-                .filter(Boolean)
-                .join(' ');
-
-            const fotoPerfil =
-              userData['fotoPerfil'] || '';
-
-            const estadoFirestore = String(
-              dataPostulacion['estado'] ?? ''
-            )
-              .trim()
-              .toLowerCase();
-
-            let estadoVista:
-              | 'Pendiente'
-              | 'Aceptado'
-              | 'Rechazado' = 'Pendiente';
-
-            if (estadoFirestore === 'aceptado') {
-              estadoVista = 'Aceptado';
-            } else if (estadoFirestore === 'rechazado') {
-              estadoVista = 'Rechazado';
-            }
-
-            tempPostulantes.push({
-              postulacionId: postulacionDoc.id,
-              postulanteId,
-              fechaPostulacion:
-                dataPostulacion['fechaPostulacion'],
-              estado: estadoVista,
-              puntajeInoeidad,
-              areaLaboral:
-                dataPostulacion['areaLaboral'] ||
-                oferta.areaLaboral ||
-                '',
-              cargoId:
-                dataPostulacion['cargoId'] ||
-                oferta.cargoId ||
-                '',
-              cargoNombre:
-                dataPostulacion['cargoNombre'] ||
-                oferta.cargoNombre ||
-                '',
-              ofertaTitulo:
-                dataPostulacion['tituloOferta'] ||
-                oferta.titulo ||
-                '',
-              respuestas:
-                this.normalizarRespuestasCuestionario(
-                  dataPostulacion['respuestasDetalle'] ??
-                  dataPostulacion['respuestas']
-                ),
-              nombres:
-                userData['nombres'] ||
-                userData['nombre'] ||
-                'Candidato',
-              apellidos,
-              fotoPerfil,
-              correo:
-                userData['correo'] ||
-                userData['email'] ||
-                'Sin correo',
-              telefono:
-                userData['telefono'] ||
-                userData['celular'] ||
-                '',
-              cvManual:
-                userData['cvManual'] || undefined,
-              cvBase64:
-                userData['cvBase64'] || undefined
-            });
-          }
+        if (estadoFirestore === 'aceptado') {
+          estado = 'Aceptado';
+        } else if (estadoFirestore === 'rechazado') {
+          estado = 'Rechazado';
         }
+
+        postulantes.push({
+          postulacionId: documento.id,
+          postulanteId,
+          fechaPostulacion: data['fechaPostulacion'],
+          estado,
+          puntajeInoeidad,
+
+          nombres:
+            perfil['nombres'] ||
+            perfil['nombre'] ||
+            'Candidato',
+
+          apellidos,
+
+          correo:
+            perfil['correo'] ||
+            perfil['email'] ||
+            'Sin correo',
+
+          telefono:
+            perfil['telefono'] ||
+            perfil['celular'] ||
+            '',
+
+          fotoPerfil:
+            perfil['fotoPerfil'] || '',
+
+          areaLaboral:
+            data['areaLaboral'] ||
+            oferta.areaLaboral ||
+            '',
+
+          cargoId:
+            data['cargoId'] ||
+            oferta.cargoId ||
+            '',
+
+          cargoNombre:
+            data['cargoNombre'] ||
+            oferta.cargoNombre ||
+            '',
+
+          ofertaTitulo:
+            data['tituloOferta'] ||
+            oferta.titulo ||
+            '',
+
+          respuestas:
+            this.normalizarRespuestasCuestionario(
+              data['respuestasDetalle'] ??
+              data['respuestas']
+            ),
+
+          cvManual:
+            perfil['cvManual'] || undefined,
+
+          cvBase64:
+            perfil['cvBase64'] || undefined
+        });
       }
 
-      tempPostulantes.sort((a, b) => {
+      postulantes.sort((a, b) => {
         const puntajeA =
           typeof a.puntajeInoeidad === 'number'
             ? a.puntajeInoeidad
@@ -816,7 +1015,18 @@ export class HomePage implements OnInit, OnDestroy {
       });
 
       this.ngZone.run(() => {
-        this.postulantesList = tempPostulantes;
+        this.postulantesList = postulantes;
+
+        if (this.vista === 'respuestas') {
+          const postulacionId =
+            this.parametrosActuales.get('postulacion');
+
+          this.postulanteRespuestasSeleccionado =
+            postulantes.find(
+              p => p.postulacionId === postulacionId
+            ) || null;
+        }
+
         this.cargandoPostulantes = false;
         this.cdr.detectChanges();
       });
@@ -833,7 +1043,7 @@ export class HomePage implements OnInit, OnDestroy {
     }
   }
 
-  // CONTROLES DE LA VISTA DE POSTULANTES
+  // CONTROLES DE POSTULANTES
 
   togglePantallaCompletaPostulantes() {
     this.modalPostulantesFullscreen =
@@ -858,7 +1068,7 @@ export class HomePage implements OnInit, OnDestroy {
       );
 
       if (!elemento) {
-        this.mostrarToast(
+        void this.mostrarToast(
           'No fue posible localizar la ficha del candidato.'
         );
 
@@ -880,84 +1090,115 @@ export class HomePage implements OnInit, OnDestroy {
     }, 100);
   }
 
-  // CAMBIAR ESTADO DE UNA POSTULACIÓN
+  // ACEPTAR O RECHAZAR
 
   async cambiarEstadoPostulante(
-    p: PostulanteCompleto,
+    postulante: PostulanteCompleto,
     nuevoEstado: 'Aceptado' | 'Rechazado'
   ) {
     try {
-      p.estado = nuevoEstado;
+      const uid = this.auth.currentUser?.uid;
+      const oferta = this.ofertaSeleccionada;
 
-      if (p.postulacionId) {
-        await updateDoc(
-          doc(
+      if (
+        !uid ||
+        !oferta ||
+        !this.puedePublicarOfertas ||
+        !postulante.postulacionId
+      ) {
+        return;
+      }
+
+      const aviso = doc(
+        this.firestore,
+        'notificaciones',
+        `oferta_${postulante.postulacionId}_${nuevoEstado}`
+      );
+
+      await runTransaction(
+        this.firestore,
+        async transaccion => {
+          const ofertaSnapshot = await transaccion.get(
+            doc(
+              this.firestore,
+              'ofertas',
+              oferta.id
+            )
+          );
+
+          const reclutadorSnapshot =
+            await transaccion.get(
+              doc(
+                this.firestore,
+                'reclutadores',
+                uid
+              )
+            );
+
+          const postulacionRef = doc(
             this.firestore,
             'postulaciones',
-            p.postulacionId
-          ),
-          {
-            estado: nuevoEstado
+            postulante.postulacionId
+          );
+
+          const postulacionSnapshot =
+            await transaccion.get(postulacionRef);
+
+          if (
+            ofertaSnapshot.data()?.['reclutadorId'] !== uid ||
+            reclutadorSnapshot.data()?.['estado'] !==
+              'aprobado' ||
+            postulacionSnapshot.data()?.['ofertaId'] !==
+              oferta.id
+          ) {
+            throw new Error('Acceso no permitido');
           }
-        );
-      }
 
-      const tituloOferta =
-        this.ofertaSeleccionada?.titulo ||
-        'Oferta de empleo';
+          if (
+            postulacionSnapshot.data()?.['estado'] ===
+            nuevoEstado
+          ) {
+            return;
+          }
 
-      const ofertaId =
-        this.ofertaSeleccionada?.id || '';
+          transaccion.update(postulacionRef, {
+            estado: nuevoEstado,
+            reclutadorId: uid,
+            fechaDecision: serverTimestamp()
+          });
 
-      const nombreEmpresa =
-        this.nombreEmpresa || 'La Empresa';
+          transaccion.set(aviso, {
+            postulanteId: postulante.postulanteId,
+            ofertaId: oferta.id,
+            tituloOferta: oferta.titulo,
+            nombreEmpresa: this.nombreEmpresa,
 
-      if (nuevoEstado === 'Aceptado') {
-        await addDoc(
-          collection(
-            this.firestore,
-            'notificaciones'
-          ),
-          {
-            postulanteId: p.postulanteId,
-            ofertaId,
-            tituloOferta,
-            nombreEmpresa,
             mensaje:
-              `¡Felicidades ${p.nombres}! Has sido aceptado para el puesto de "${tituloOferta}". Se pondrán en contacto contigo.`,
-            fecha: new Date(),
-            leido: false,
-            tipo: 'seleccionado'
-          }
-        );
-      }
+              `Tu postulación a «${oferta.titulo}» fue ` +
+              (
+                nuevoEstado === 'Aceptado'
+                  ? 'aceptada.'
+                  : 'rechazada.'
+              ),
 
-      if (nuevoEstado === 'Rechazado') {
-        await addDoc(
-          collection(
-            this.firestore,
-            'notificaciones'
-          ),
-          {
-            postulanteId: p.postulanteId,
-            ofertaId,
-            tituloOferta,
-            nombreEmpresa,
-            mensaje:
-              `Hola ${p.nombres}. Tu postulación para "${tituloOferta}" ha sido revisada. En esta oportunidad no continuarás en el proceso de selección. Te invitamos a seguir revisando nuevas oportunidades en ExpertiMente.`,
-            fecha: new Date(),
+            fecha: serverTimestamp(),
             leido: false,
-            tipo: 'rechazado'
-          }
-        );
-      }
 
-      const mensajeToast =
+            tipo:
+              nuevoEstado === 'Aceptado'
+                ? 'seleccionado'
+                : 'rechazado'
+          });
+        }
+      );
+
+      postulante.estado = nuevoEstado;
+
+      void this.mostrarToast(
         nuevoEstado === 'Aceptado'
-          ? `Candidato ${p.nombres} aceptado y notificación enviada.`
-          : `Candidato ${p.nombres} rechazado y notificación enviada.`;
-
-      this.mostrarToast(mensajeToast);
+          ? `Candidato ${postulante.nombres} aceptado y notificación enviada.`
+          : `Candidato ${postulante.nombres} rechazado y notificación enviada.`
+      );
 
       this.ngZone.run(() => {
         this.cdr.detectChanges();
@@ -968,13 +1209,13 @@ export class HomePage implements OnInit, OnDestroy {
         error
       );
 
-      this.mostrarToast(
+      void this.mostrarToast(
         'Error al procesar la solicitud.'
       );
     }
   }
 
-  // RESPUESTAS DEL CUESTIONARIO DE UNA POSTULACIÓN
+  // RESPUESTAS
 
   private normalizarRespuestasCuestionario(
     respuestasRaw: any
@@ -986,26 +1227,23 @@ export class HomePage implements OnInit, OnDestroy {
       return [];
     }
 
-    const listaRespuestas: any[] =
+    const respuestas: any[] =
       Array.isArray(respuestasRaw)
         ? respuestasRaw
         : typeof respuestasRaw === 'object'
           ? Object.values(respuestasRaw)
           : [];
 
-    return listaRespuestas.map(
+    return respuestas.map(
       (item: any, index: number) => {
-        const tipoNormalizado =
-          String(item?.tipo ?? '')
-            .trim()
-            .toLowerCase();
+        const tipo = String(item?.tipo ?? '')
+          .trim()
+          .toLowerCase();
 
         const respuestaRaw = item?.respuesta;
 
         let respuestaTexto = '';
-
-        let puntajeObtenido:
-          number | undefined;
+        let puntajeObtenido: number | undefined;
 
         const puntajeExplicito =
           item?.puntajeObtenido ??
@@ -1020,22 +1258,19 @@ export class HomePage implements OnInit, OnDestroy {
             Number(puntajeExplicito);
         }
 
-        if (tipoNormalizado === 'seleccion') {
+        if (tipo === 'seleccion') {
           if (typeof respuestaRaw === 'number') {
-            respuestaTexto =
-              `${respuestaRaw} puntos`;
+            respuestaTexto = `${respuestaRaw} puntos`;
 
             if (puntajeObtenido === undefined) {
               puntajeObtenido = respuestaRaw;
             }
-          } else if (
-            respuestaRaw !== undefined &&
-            respuestaRaw !== null
-          ) {
-            respuestaTexto =
-              String(respuestaRaw);
           } else {
-            respuestaTexto = '';
+            respuestaTexto =
+              respuestaRaw !== undefined &&
+              respuestaRaw !== null
+                ? String(respuestaRaw)
+                : '';
           }
         } else {
           respuestaTexto = String(
@@ -1052,16 +1287,19 @@ export class HomePage implements OnInit, OnDestroy {
             item?.id ??
             `pregunta-${index + 1}`
           ),
+
           preguntaTexto: String(
             item?.preguntaTexto ??
             item?.pregunta ??
             item?.texto ??
             `Pregunta ${index + 1}`
           ),
+
           tipo:
-            tipoNormalizado === 'seleccion'
+            tipo === 'seleccion'
               ? 'seleccion'
               : 'texto',
+
           respuesta: respuestaTexto,
           puntajeObtenido
         };
@@ -1075,73 +1313,108 @@ export class HomePage implements OnInit, OnDestroy {
     this.postulanteRespuestasSeleccionado =
       postulante;
 
-    this.isModalRespuestasOpen = true;
+    this.router.navigate(
+      ['/home'],
+      {
+        queryParams: {
+          vista: 'respuestas',
+          oferta: this.ofertaSeleccionada?.id,
+          postulacion: postulante.postulacionId
+        }
+      }
+    );
 
+    this.isModalRespuestasOpen = true;
     this.cdr.detectChanges();
   }
 
   cerrarModalRespuestas() {
-    this.isModalRespuestasOpen = false;
+    this.router.navigate(
+      ['/home'],
+      {
+        queryParams: {
+          vista: 'postulantes',
+          oferta: this.ofertaSeleccionada?.id
+        }
+      }
+    );
 
-    this.postulanteRespuestasSeleccionado =
-      null;
+    this.isModalRespuestasOpen = false;
+    this.postulanteRespuestasSeleccionado = null;
 
     this.cdr.detectChanges();
   }
 
-  // VER CV
+  // CURRÍCULUM
 
   verCV(cvBase64: string) {
-    if (cvBase64) {
-      const ventana = window.open();
+    if (!cvBase64.startsWith('data:application/pdf')) {
+      void this.mostrarToast(
+        'No hay un PDF válido disponible.'
+      );
 
-      ventana?.document.write(`
-        <body style="margin:0;padding:0;background-color:#ffffff;">
-          <iframe
-            width="100%"
-            height="100%"
-            style="border:none;"
-            src="${cvBase64}">
-          </iframe>
-        </body>
-      `);
-    } else {
-      this.mostrarToast(
-        'Este postulante no adjuntó archivo PDF.'
+      return;
+    }
+
+    try {
+      const binario = atob(cvBase64.split(',')[1]);
+
+      const bytes = Uint8Array.from(
+        binario,
+        caracter => caracter.charCodeAt(0)
+      );
+
+      const url = URL.createObjectURL(
+        new Blob(
+          [bytes],
+          {
+            type: 'application/pdf'
+          }
+        )
+      );
+
+      window.open(
+        url,
+        '_blank',
+        'noopener,noreferrer'
+      );
+
+      setTimeout(
+        () => URL.revokeObjectURL(url),
+        60000
+      );
+    } catch {
+      void this.mostrarToast(
+        'No se pudo abrir el CV.'
       );
     }
   }
 
-  // CERRAR VISTA DE POSTULANTES DE UNA OFERTA
+  // CERRAR VISTA DE POSTULANTES
 
   cerrarModalPostulantes() {
-    this.isModalRespuestasOpen = false;
+    this.ir('inicio');
 
-    this.postulanteRespuestasSeleccionado =
-      null;
+    this.isModalRespuestasOpen = false;
+    this.postulanteRespuestasSeleccionado = null;
 
     this.isModalPostulantesOpen = false;
     this.ofertaSeleccionada = null;
     this.postulantesList = [];
+
     this.modalPostulantesFullscreen = false;
     this.mostrarRankingCompleto = false;
   }
 
-  // SCROLL A OFERTAS
+  // ACCESOS
 
   scrollAOfertas() {
-    const elemento = document.getElementById(
-      'seccion-ofertas'
-    );
-
-    if (elemento) {
-      elemento.scrollIntoView({
+    document
+      .getElementById('seccion-ofertas')
+      ?.scrollIntoView({
         behavior: 'smooth'
       });
-    }
   }
-
-  // CREAR OFERTA
 
   crearOferta() {
     if (!this.puedePublicarOfertas) {
@@ -1151,9 +1424,30 @@ export class HomePage implements OnInit, OnDestroy {
     this.router.navigate(['/crear-oferta']);
   }
 
-  // ABRIR BUSCADOR
+  // BUSCADOR
 
   buscarPostulantes() {
+    this.ir('buscar');
+
+    void getDocsFromServer(
+      collection(this.firestore, 'cargos')
+    )
+      .then(snapshot => {
+        for (const documento of snapshot.docs) {
+          const data = documento.data();
+
+          if (data['nombre'] && data['areaLaboral']) {
+            this.cargosCatalogoBusqueda.push({
+              nombre: String(data['nombre']),
+              areaLaboral: String(data['areaLaboral'])
+            });
+          }
+        }
+
+        this.cdr.markForCheck();
+      })
+      .catch(() => {});
+
     if (!this.puedePublicarOfertas) {
       return;
     }
@@ -1163,39 +1457,31 @@ export class HomePage implements OnInit, OnDestroy {
     this.cargosCatalogoBusqueda =
       generarCatalogoCargos();
 
-    this.isModalBusquedaPostulantesOpen =
-      true;
+    this.isModalBusquedaPostulantesOpen = true;
 
     this.cdr.detectChanges();
   }
 
   actualizarFiltroCargo(valor: string) {
     this.filtroCargo = valor;
-
     this.busquedaRealizada = false;
     this.cargoBuscado = '';
     this.errorBusquedaPostulantes = '';
   }
 
-  // LEER CARGOS DE PREFERENCIA
-
-  private obtenerCargosInteres(
-    data: any
-  ): string[] {
-    const cargosPrincipales =
-      data['cargosInteres'];
+  private obtenerCargosInteres(data: any): string[] {
+    const principales = data['cargosInteres'];
 
     const origen: unknown[] =
-      Array.isArray(cargosPrincipales)
-        ? cargosPrincipales
+      Array.isArray(principales)
+        ? principales
         : Array.isArray(
             data['cvManual']?.cargosInteres
           )
           ? data['cvManual'].cargosInteres
           : [];
 
-    const cargosUnicos =
-      new Map<string, string>();
+    const unicos = new Map<string, string>();
 
     for (const elemento of origen) {
       if (
@@ -1205,31 +1491,26 @@ export class HomePage implements OnInit, OnDestroy {
         continue;
       }
 
-      const cargoRaw = (
-        elemento as { cargo?: unknown }
+      const nombreRaw = (
+        elemento as {
+          cargo?: unknown;
+        }
       ).cargo;
 
-      if (typeof cargoRaw !== 'string') {
+      if (typeof nombreRaw !== 'string') {
         continue;
       }
 
-      const nombre = cargoRaw.trim();
+      const nombre = nombreRaw.trim();
+      const clave = this.normalizarTexto(nombre);
 
-      const clave =
-        this.normalizarTexto(nombre);
-
-      if (
-        clave &&
-        !cargosUnicos.has(clave)
-      ) {
-        cargosUnicos.set(clave, nombre);
+      if (clave && !unicos.has(clave)) {
+        unicos.set(clave, nombre);
       }
     }
 
-    return Array.from(cargosUnicos.values());
+    return Array.from(unicos.values());
   }
-
-  // EJECUTAR BÚSQUEDA POR PREFERENCIAS
 
   async cargarPostulantesBusqueda() {
     if (
@@ -1243,9 +1524,9 @@ export class HomePage implements OnInit, OnDestroy {
     const cargoIngresado =
       this.filtroCargo.trim();
 
-    if (!cargoIngresado) {
-      this.mostrarToast(
-        'Escribe el cargo que quieres buscar.'
+    if (!cargoIngresado && !this.filtroArea) {
+      void this.mostrarToast(
+        'Escribe un cargo o selecciona un área.'
       );
 
       return;
@@ -1263,13 +1544,63 @@ export class HomePage implements OnInit, OnDestroy {
     this.cdr.detectChanges();
 
     try {
-      const snapshot =
-        await getDocsFromServer(
-          collection(
-            this.firestore,
-            'postulantes'
-          )
+      const catalogoRemoto = await getDocsFromServer(
+        collection(this.firestore, 'cargos')
+      );
+
+      for (const documento of catalogoRemoto.docs) {
+        const data = documento.data();
+
+        const yaExiste =
+          this.cargosCatalogoBusqueda.some(cargo =>
+            this.normalizarTexto(cargo.nombre) ===
+            this.normalizarTexto(data['nombre'])
+          );
+
+        if (
+          data['nombre'] &&
+          data['areaLaboral'] &&
+          !yaExiste
+        ) {
+          this.cargosCatalogoBusqueda.push({
+            nombre: String(data['nombre']),
+            areaLaboral: String(data['areaLaboral'])
+          });
+        }
+      }
+
+      const areasPorId =
+        new Map<string, string>();
+
+      const areasPorNombre =
+        new Map<string, string>();
+
+      for (const cargo of this.cargosCatalogoBusqueda) {
+        areasPorNombre.set(
+          this.normalizarTexto(cargo.nombre),
+          cargo.areaLaboral
         );
+      }
+
+      for (const documento of catalogoRemoto.docs) {
+        const data = documento.data();
+
+        if (data['areaLaboral']) {
+          areasPorId.set(
+            documento.id,
+            String(data['areaLaboral'])
+          );
+
+          areasPorNombre.set(
+            this.normalizarTexto(data['nombre']),
+            String(data['areaLaboral'])
+          );
+        }
+      }
+
+      const snapshot = await getDocsFromServer(
+        collection(this.firestore, 'postulantes')
+      );
 
       if (
         solicitud !==
@@ -1278,8 +1609,7 @@ export class HomePage implements OnInit, OnDestroy {
         return;
       }
 
-      const postulantes:
-        PostulanteBusqueda[] = [];
+      const postulantes: PostulanteBusqueda[] = [];
 
       for (const documento of snapshot.docs) {
         const data = documento.data();
@@ -1307,36 +1637,64 @@ export class HomePage implements OnInit, OnDestroy {
           cvManual?.areaExperiencia ?? ''
         ).trim();
 
+        const intereses: any[] =
+          Array.isArray(data['cargosInteres'])
+            ? data['cargosInteres']
+            : cvManual?.cargosInteres || [];
+
+        const areasIntereses =
+          intereses.map(cargo =>
+            String(
+              cargo?.areaLaboral ||
+              areasPorId.get(cargo?.id) ||
+              areasPorNombre.get(
+                this.normalizarTexto(cargo?.cargo)
+              ) ||
+              ''
+            )
+          );
+
         postulantes.push({
           postulanteId: documento.id,
+
           nombres: String(
             data['nombres'] ||
             data['nombre'] ||
             'Candidato'
           ),
-          apellidos:
-            String(apellidos || ''),
+
+          apellidos: String(apellidos || ''),
+
           correo: String(
             data['correo'] ||
             data['email'] ||
             ''
           ),
+
           telefono: String(
             data['telefono'] ||
             data['celular'] ||
             ''
           ),
+
           fotoPerfil:
             data['fotoPerfil'] || '',
+
           cargos,
-          areasLaborales:
-            areaExperiencia
-              ? [areaExperiencia]
-              : [],
+
+          areasLaborales: Array.from(
+            new Set(
+              [
+                areaExperiencia,
+                ...areasIntereses
+              ].filter(Boolean)
+            )
+          ),
+
           cvManual,
+
           cvBase64:
-            data['cvBase64'] ||
-            undefined
+            data['cvBase64'] || undefined
         });
       }
 
@@ -1344,17 +1702,16 @@ export class HomePage implements OnInit, OnDestroy {
         `${a.nombres} ${a.apellidos}`
           .trim()
           .localeCompare(
-            `${b.nombres} ${b.apellidos}`
-              .trim(),
+            `${b.nombres} ${b.apellidos}`.trim(),
             'es',
-            { sensitivity: 'base' }
+            {
+              sensitivity: 'base'
+            }
           )
       );
 
       this.ngZone.run(() => {
-        this.postulantesBusqueda =
-          postulantes;
-
+        this.postulantesBusqueda = postulantes;
         this.busquedaRealizada = true;
       });
     } catch (error: unknown) {
@@ -1366,7 +1723,7 @@ export class HomePage implements OnInit, OnDestroy {
       }
 
       console.error(
-        'Error al buscar postulantes por cargo de preferencia:',
+        'Error al buscar postulantes:',
         error
       );
 
@@ -1392,16 +1749,12 @@ export class HomePage implements OnInit, OnDestroy {
         this.solicitudBusquedaActual
       ) {
         this.ngZone.run(() => {
-          this.cargandoBusquedaPostulantes =
-            false;
-
+          this.cargandoBusquedaPostulantes = false;
           this.cdr.detectChanges();
         });
       }
     }
   }
-
-  // LIMPIAR FILTROS
 
   limpiarFiltrosBusqueda() {
     this.solicitudBusquedaActual++;
@@ -1413,22 +1766,20 @@ export class HomePage implements OnInit, OnDestroy {
     this.busquedaRealizada = false;
     this.errorBusquedaPostulantes = '';
     this.cargandoBusquedaPostulantes = false;
-
     this.postulantesBusqueda = [];
 
     this.cdr.detectChanges();
   }
 
-  // CERRAR BUSCADOR
-
   cerrarBusquedaPostulantes() {
-    this.isModalBusquedaPostulantesOpen =
-      false;
+    this.ir('inicio');
+
+    this.isModalBusquedaPostulantesOpen = false;
 
     this.limpiarFiltrosBusqueda();
   }
 
-  // EDITAR OFERTA
+  // GESTIÓN DE OFERTAS
 
   editarOferta(ofertaId: string) {
     this.router.navigate([
@@ -1436,8 +1787,6 @@ export class HomePage implements OnInit, OnDestroy {
       ofertaId
     ]);
   }
-
-  // ACTIVAR O DESACTIVAR OFERTA
 
   async cambiarEstadoOferta(
     oferta: OfertaTrabajo
@@ -1459,7 +1808,7 @@ export class HomePage implements OnInit, OnDestroy {
         }
       );
 
-      this.mostrarToast(
+      void this.mostrarToast(
         `Oferta marcada como ${nuevoEstado.toLowerCase()}.`
       );
     } catch (error) {
@@ -1470,49 +1819,48 @@ export class HomePage implements OnInit, OnDestroy {
     }
   }
 
-  // ELIMINAR OFERTA
+  confirmarEliminarOferta(ofertaId: string) {
+    this.eliminarPendiente = ofertaId;
+  }
 
-  async confirmarEliminarOferta(
-    ofertaId: string
-  ) {
-    const alert =
-      await this.alertController.create({
-        header: 'Eliminar oferta',
-        message:
-          '¿Estás seguro de que deseas eliminar esta oferta? Esta acción no se puede deshacer.',
-        buttons: [
-          {
-            text: 'Cancelar',
-            role: 'cancel'
-          },
-          {
-            text: 'Eliminar',
-            role: 'destructive',
-            handler: async () => {
-              try {
-                await deleteDoc(
-                  doc(
-                    this.firestore,
-                    'ofertas',
-                    ofertaId
-                  )
-                );
+  async eliminarOfertaConfirmada() {
+    const id = this.eliminarPendiente;
 
-                this.mostrarToast(
-                  'Oferta eliminada correctamente.'
-                );
-              } catch (error) {
-                console.error(
-                  'Error al eliminar oferta:',
-                  error
-                );
-              }
-            }
-          }
-        ]
-      });
+    if (
+      !id ||
+      !this.puedePublicarOfertas
+    ) {
+      return;
+    }
 
-    await alert.present();
+    try {
+      const referencia = doc(
+        this.firestore,
+        'ofertas',
+        id
+      );
+
+      const oferta = await getDoc(referencia);
+
+      if (
+        oferta.data()?.['reclutadorId'] !==
+        this.usuarioId
+      ) {
+        throw new Error('Acceso no permitido');
+      }
+
+      await deleteDoc(referencia);
+
+      this.eliminarPendiente = '';
+
+      void this.mostrarToast(
+        'Oferta eliminada correctamente.'
+      );
+    } catch {
+      void this.mostrarToast(
+        'No se pudo eliminar la oferta.'
+      );
+    }
   }
 
   // CERRAR SESIÓN
@@ -1522,23 +1870,15 @@ export class HomePage implements OnInit, OnDestroy {
       this.cerrarBusquedaPostulantes();
       this.limpiarSuscripcionOfertas();
 
-      if (this.authUnsubscribe) {
-        this.authUnsubscribe();
-        this.authUnsubscribe = undefined;
-      }
+      this.authUnsubscribe?.();
+      this.authUnsubscribe = undefined;
 
       await signOut(this.auth);
 
       this.ngZone.run(() => {
-        this.router
-          .navigate(['/login'])
+        this.router.navigate(['/login'])
           .catch(() => {
-            this.router
-              .navigate(['/auth/login'])
-              .catch(() => {
-                window.location.href =
-                  '/login';
-              });
+            window.location.href = '/login';
           });
       });
     } catch (error) {
@@ -1551,17 +1891,16 @@ export class HomePage implements OnInit, OnDestroy {
     }
   }
 
-  // NOTIFICACIONES VISUALES
+  // AVISOS VISUALES
 
   private async mostrarToast(
     mensaje: string
   ) {
-    const toast =
-      await this.toastController.create({
-        message: mensaje,
-        duration: 2500,
-        position: 'top'
-      });
+    const toast = await this.toastController.create({
+      message: mensaje,
+      duration: 2500,
+      position: 'top'
+    });
 
     await toast.present();
   }

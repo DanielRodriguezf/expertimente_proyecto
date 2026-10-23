@@ -31,6 +31,10 @@ import {
 } from '@angular/fire/firestore';
 
 import {
+  generarCatalogoCargos
+} from '../cargos-catalogo/cargos-catalogo';
+
+import {
   PerfilChatReclutadorComponent
 } from './perfil-chat-reclutador.component';
 
@@ -99,9 +103,9 @@ interface Grupo {
           <h2>Ranking general</h2>
 
           <p>
-            Postulantes evaluados para los cargos que coinciden
-            con tu búsqueda. Las posiciones se actualizan
-            automáticamente.
+            Postulantes evaluados para los cargos
+            que coinciden con tu búsqueda.
+            Las posiciones se actualizan automáticamente.
           </p>
         </div>
 
@@ -145,14 +149,15 @@ interface Grupo {
           grupos.length === 0
         ">
         <h3>No encontramos cargos coincidentes</h3>
-        <p>
-          Intenta buscar con otro nombre de cargo.
-        </p>
+        <p>Intenta buscar con otro cargo o área.</p>
       </div>
 
       <article
         class="grupo"
-        *ngFor="let grupo of grupos; trackBy: identificarGrupo">
+        *ngFor="
+          let grupo of grupos;
+          trackBy: identificarGrupo
+        ">
 
         <div class="titulo-grupo">
           <div class="titulo-cargo">
@@ -161,10 +166,6 @@ interface Grupo {
             </span>
 
             <h3>{{ grupo.nombre }}</h3>
-
-            <small class="cargo-id">
-              {{ grupo.cargoId }}
-            </small>
           </div>
 
           <span
@@ -176,6 +177,7 @@ interface Grupo {
               !grupo.error
             ">
             {{ grupo.candidatos.length }}
+
             {{
               grupo.candidatos.length === 1
                 ? 'disponible'
@@ -244,9 +246,15 @@ interface Grupo {
             <div class="fila-principal">
               <span
                 class="posicion"
-                [class.posicion-primera]="candidato.posicion === 1"
-                [class.posicion-segunda]="candidato.posicion === 2"
-                [class.posicion-tercera]="candidato.posicion === 3"
+                [class.posicion-primera]="
+                  candidato.posicion === 1
+                "
+                [class.posicion-segunda]="
+                  candidato.posicion === 2
+                "
+                [class.posicion-tercera]="
+                  candidato.posicion === 3
+                "
                 [attr.aria-label]="
                   'Posición ' + candidato.posicion
                 ">
@@ -254,7 +262,10 @@ interface Grupo {
               </span>
 
               <ng-container
-                *ngIf="candidato.fotoPerfil; else sinFoto">
+                *ngIf="
+                  candidato.fotoPerfil;
+                  else sinFoto
+                ">
                 <img
                   class="foto-postulante"
                   [src]="candidato.fotoPerfil"
@@ -281,7 +292,10 @@ interface Grupo {
 
               <div class="puntaje">
                 <strong>
-                  {{ candidato.porcentaje | number:'1.0-0' }} %
+                  {{
+                    candidato.porcentaje |
+                    number:'1.0-0'
+                  }} %
                 </strong>
 
                 <small>
@@ -298,6 +312,7 @@ interface Grupo {
               [attr.aria-valuenow]="candidato.porcentaje"
               aria-valuemin="0"
               aria-valuemax="100">
+
               <span
                 [style.width.%]="candidato.porcentaje">
               </span>
@@ -306,6 +321,7 @@ interface Grupo {
             <div class="acciones">
               <app-perfil-chat-reclutador
                 [postulanteId]="candidato.postulanteId"
+                [nombrePostulante]="candidato.nombre"
                 [nombreReclutador]="nombreReclutador"
                 [nombreEmpresa]="nombreEmpresa">
               </app-perfil-chat-reclutador>
@@ -427,13 +443,6 @@ interface Grupo {
       font-size: 1.15rem;
       font-weight: 800;
       color: #2d4722;
-    }
-
-    .cargo-id {
-      display: block;
-      color: #72806b;
-      font-size: 0.68rem;
-      overflow-wrap: anywhere;
     }
 
     .cantidad {
@@ -697,8 +706,11 @@ interface Grupo {
     }
   `]
 })
-export class RankingCargoComponent implements OnChanges, OnDestroy {
+export class RankingCargoComponent
+  implements OnChanges, OnDestroy {
+
   @Input() cargo = '';
+  @Input() area = '';
   @Input() nombreReclutador = '';
   @Input() nombreEmpresa = '';
 
@@ -744,7 +756,10 @@ export class RankingCargoComponent implements OnChanges, OnDestroy {
   }
 
   obtenerInicial(nombre: string): string {
-    return nombre.trim().charAt(0).toUpperCase() || '?';
+    return (
+      nombre.trim().charAt(0).toUpperCase() ||
+      '?'
+    );
   }
 
   ocultarFoto(candidato: Candidato): void {
@@ -790,10 +805,12 @@ export class RankingCargoComponent implements OnChanges, OnDestroy {
     ) {
       const milisegundos = valor.toMillis();
 
-      return typeof milisegundos === 'number' &&
+      return (
+        typeof milisegundos === 'number' &&
         Number.isFinite(milisegundos)
-          ? milisegundos
-          : 0;
+      )
+        ? milisegundos
+        : 0;
     }
 
     if (valor instanceof Date) {
@@ -837,7 +854,7 @@ export class RankingCargoComponent implements OnChanges, OnDestroy {
     try {
       const texto = this.normalizar(this.cargo);
 
-      if (!texto) {
+      if (!texto && !this.area) {
         return;
       }
 
@@ -852,7 +869,31 @@ export class RankingCargoComponent implements OnChanges, OnDestroy {
         return;
       }
 
+      const catalogo = generarCatalogoCargos();
+
       const grupos: Grupo[] = snapshot.docs
+        .filter(documento => {
+          if (!this.area) {
+            return true;
+          }
+
+          const datos = documento.data();
+
+          const cargoCatalogo = catalogo.find(cargo =>
+            this.normalizar(cargo.nombre) ===
+            this.normalizar(datos['nombre'])
+          );
+
+          const areaCargo =
+            datos['areaLaboral'] ||
+            cargoCatalogo?.areaLaboral ||
+            '';
+
+          return (
+            this.normalizar(areaCargo) ===
+            this.normalizar(this.area)
+          );
+        })
         .map((documento): Grupo => ({
           cargoId: documento.id,
           nombre: String(
@@ -876,7 +917,9 @@ export class RankingCargoComponent implements OnChanges, OnDestroy {
           a.nombre.localeCompare(
             b.nombre,
             'es',
-            { sensitivity: 'base' }
+            {
+              sensitivity: 'base'
+            }
           )
         );
 
@@ -890,7 +933,11 @@ export class RankingCargoComponent implements OnChanges, OnDestroy {
             this.firestore,
             'postulaciones-terna'
           ),
-          where('cargoId', '==', grupo.cargoId)
+          where(
+            'cargoId',
+            '==',
+            grupo.cargoId
+          )
         );
 
         const fallo = (error: unknown): void => {
@@ -955,7 +1002,10 @@ export class RankingCargoComponent implements OnChanges, OnDestroy {
 
             grupo.resultadosListos = true;
 
-            void this.reconstruir(grupo, version);
+            void this.reconstruir(
+              grupo,
+              version
+            );
           },
           fallo
         );
@@ -967,7 +1017,11 @@ export class RankingCargoComponent implements OnChanges, OnDestroy {
             this.firestore,
             'selecciones-cargo'
           ),
-          where('cargoId', '==', grupo.cargoId)
+          where(
+            'cargoId',
+            '==',
+            grupo.cargoId
+          )
         );
 
         const cancelarSelecciones = onSnapshot(
@@ -989,7 +1043,8 @@ export class RankingCargoComponent implements OnChanges, OnDestroy {
                 )
                 .map(documento =>
                   String(
-                    documento.data()['postulanteId'] ?? ''
+                    documento.data()['postulanteId'] ??
+                    ''
                   ).trim()
                 )
                 .filter(uid => uid !== '')
@@ -997,7 +1052,10 @@ export class RankingCargoComponent implements OnChanges, OnDestroy {
 
             grupo.seleccionesListas = true;
 
-            void this.reconstruir(grupo, version);
+            void this.reconstruir(
+              grupo,
+              version
+            );
           },
           fallo
         );
@@ -1068,7 +1126,8 @@ export class RankingCargoComponent implements OnChanges, OnDestroy {
         }
 
         if (
-          this.normalizar(resultado.estado) === 'aceptado'
+          this.normalizar(resultado.estado) ===
+          'aceptado'
         ) {
           aceptados.add(uid);
         }
@@ -1082,7 +1141,8 @@ export class RankingCargoComponent implements OnChanges, OnDestroy {
           (
             this.fecha(resultado.fechaRespuesta) ===
               this.fecha(anterior.fechaRespuesta) &&
-            resultado.documentoId > anterior.documentoId
+            resultado.documentoId >
+              anterior.documentoId
           )
         ) {
           ultimos.set(uid, resultado);
@@ -1102,18 +1162,21 @@ export class RankingCargoComponent implements OnChanges, OnDestroy {
 
       const candidatos = await Promise.all(
         disponibles.map(
-          async ([uid, resultado]): Promise<Candidato | null> => {
+          async (
+            [uid, resultado]
+          ): Promise<Candidato | null> => {
             try {
               let perfil = grupo.perfiles.get(uid);
 
               if (!perfil) {
-                const snapshot = await getDocFromServer(
-                  doc(
-                    this.firestore,
-                    'postulantes',
-                    uid
-                  )
-                );
+                const snapshot =
+                  await getDocFromServer(
+                    doc(
+                      this.firestore,
+                      'postulantes',
+                      uid
+                    )
+                  );
 
                 if (!snapshot.exists()) {
                   perfilesIncompletos = true;
@@ -1153,7 +1216,8 @@ export class RankingCargoComponent implements OnChanges, OnDestroy {
                 ),
                 obtenido,
                 maximo,
-                porcentaje: obtenido / maximo * 100,
+                porcentaje:
+                  obtenido / maximo * 100,
                 posicion: 0
               };
             } catch (error) {
@@ -1185,9 +1249,13 @@ export class RankingCargoComponent implements OnChanges, OnDestroy {
           a.nombre.localeCompare(
             b.nombre,
             'es',
-            { sensitivity: 'base' }
+            {
+              sensitivity: 'base'
+            }
           ) ||
-          a.postulanteId.localeCompare(b.postulanteId)
+          a.postulanteId.localeCompare(
+            b.postulanteId
+          )
         );
 
       ordenados.forEach((candidato, indice) => {
@@ -1195,7 +1263,8 @@ export class RankingCargoComponent implements OnChanges, OnDestroy {
 
         candidato.posicion =
           anterior &&
-          candidato.porcentaje === anterior.porcentaje
+          candidato.porcentaje ===
+            anterior.porcentaje
             ? anterior.posicion
             : indice + 1;
       });
@@ -1318,13 +1387,15 @@ export class RankingCargoComponent implements OnChanges, OnDestroy {
             ) !== 'aprobado'
           ) {
             throw new Error(
-              'Tu cuenta debe estar aprobada como reclutador.'
+              'Tu cuenta debe estar aprobada ' +
+              'como reclutador.'
             );
           }
 
           if (!resultado.exists()) {
             throw new Error(
-              'La evaluación del postulante ya no existe.'
+              'La evaluación del postulante ' +
+              'ya no existe.'
             );
           }
 
@@ -1332,7 +1403,8 @@ export class RankingCargoComponent implements OnChanges, OnDestroy {
 
           if (
             datos['cargoId'] !== grupo.cargoId ||
-            datos['postulanteId'] !== candidato.postulanteId
+            datos['postulanteId'] !==
+              candidato.postulanteId
           ) {
             throw new Error(
               'La evaluación no corresponde al cargo ' +
@@ -1347,13 +1419,15 @@ export class RankingCargoComponent implements OnChanges, OnDestroy {
             )
           ) {
             throw new Error(
-              'La evaluación no contiene un puntaje válido.'
+              'La evaluación no contiene ' +
+              'un puntaje válido.'
             );
           }
 
           if (
             seleccion.exists() ||
-            this.normalizar(datos['estado']) === 'aceptado'
+            this.normalizar(datos['estado']) ===
+              'aceptado'
           ) {
             throw new Error(
               'Este postulante ya fue seleccionado ' +
@@ -1391,7 +1465,7 @@ export class RankingCargoComponent implements OnChanges, OnDestroy {
             nombreEmpresa: this.nombreEmpresa,
             resultadoId: candidato.documentoId,
             mensaje:
-              `Has sido seleccionado para el cargo ` +
+              'Has sido seleccionado para el cargo ' +
               `"${grupo.nombre}"${empresaTexto}. ` +
               'El reclutador podrá contactarte ' +
               'dentro de la aplicación.',
@@ -1428,7 +1502,6 @@ export class RankingCargoComponent implements OnChanges, OnDestroy {
   ngOnDestroy(): void {
     this.destruido = true;
     this.version++;
-
     this.detenerEscuchas();
   }
 }
