@@ -1,0 +1,181 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home" class="custom-back-btn"></ion-back-button>
+    </ion-buttons>
+    <ion-title class="header-title">Mis Cargos de Interés</ion-title>
+  </ion-toolbar>
+
+  <!-- SEGMENTO DE NAVEGACIÓN INTERNA -->
+  <ion-toolbar class="segment-toolbar">
+    <ion-segment [(ngModel)]="vistaActiva" mode="ios" class="custom-segment">
+      <ion-segment-button value="catalogo">
+        <ion-label>Explorar Catálogo</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="activos">
+        <ion-label>Mis Cargos ({{ cargosInteres.length }})</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="main-content">
+  <div class="page-container fade-in">
+
+    @if (cargando) {
+      <div class="loading-container">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+        <p>Sincronizando tus intereses...</p>
+      </div>
+    } @else {
+
+      <!-- VISTA 1: CATÁLOGO DISPONIBLE -->
+      @if (vistaActiva === 'catalogo') {
+        <div class="fade-in">
+          <!-- Banner informativo simplificado y limpio -->
+          @if (mostrarAyudaCatalogo) {
+            <div class="section-banner-info fade-in">
+              <ion-icon name="sparkles-outline"></ion-icon>
+              <p>Selecciona los puestos que buscas y responde un cuestionario rápido para entrar directo al ranking de los reclutadores.</p>
+              <ion-button fill="clear" size="small" class="btn-close-banner" (click)="mostrarAyudaCatalogo = false">
+                <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+              </ion-button>
+            </div>
+          }
+
+          <ion-searchbar 
+            placeholder="Buscar cargo (ej. Conserje, Vendedor)..." 
+            [(ngModel)]="filtroCatalogo"
+            [debounce]="150"
+            class="catalog-searchbar">
+          </ion-searchbar>
+
+          @if (cargandoCargos) {
+            <div class="loading-catalog">
+              <ion-spinner name="dots" color="primary"></ion-spinner>
+              <span>Cargando puestos disponibles...</span>
+            </div>
+          } @else if (cargosDisponiblesNoSeleccionados.length === 0 && filtroCatalogo === '') {
+            <div class="all-selected-box fade-in">
+              <ion-icon name="checkmark-done-circle" color="primary"></ion-icon>
+              <span>¡Excelente! Ya tienes todos los cargos disponibles en tu lista.</span>
+            </div>
+          } @else if (cargosCatalogoFiltrados.length === 0) {
+            <div class="all-selected-box">
+              <ion-icon name="search-outline" color="medium"></ion-icon>
+              <span>No encontramos cargos con "{{ filtroCatalogo }}".</span>
+            </div>
+          } @else {
+            <div class="catalog-grid">
+              @for (cargo of cargosCatalogoFiltrados; track cargo.id) {
+                <button 
+                  type="button" 
+                  class="catalog-pill fade-in" 
+                  [disabled]="guardando"
+                  (click)="agregarCargoDirecto(cargo)">
+                  <div class="pill-info">
+                    <span class="pill-title">{{ cargo.nombre }}</span>
+                    @if (cargo.descripcion) {
+                      <span class="pill-desc">{{ cargo.descripcion }}</span>
+                    }
+                  </div>
+                  <div class="pill-action">
+                    <ion-icon name="add-circle" color="primary"></ion-icon>
+                  </div>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- VISTA 2: CARGOS ACTIVOS DEL USUARIO -->
+      @if (vistaActiva === 'activos') {
+        <div class="fade-in">
+          <!-- Banner informativo simplificado y limpio -->
+          @if (mostrarAyudaActivos) {
+            <div class="section-banner-info fade-in">
+              <ion-icon name="briefcase-outline"></ion-icon>
+              <p>Administra tus puestos activos y mantén al día tus evaluaciones de terna ante los reclutadores.</p>
+              <ion-button fill="clear" size="small" class="btn-close-banner" (click)="mostrarAyudaActivos = false">
+                <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+              </ion-button>
+            </div>
+          }
+
+          @if (cargosInteres.length === 0) {
+            <div class="empty-card">
+              <ion-icon name="sparkles-outline" class="empty-icon"></ion-icon>
+              <h4>No has seleccionado cargos</h4>
+              <p>Ve a la pestaña <strong>"Explorar Catálogo"</strong> arriba para añadir puestos a tu perfil con un solo toque.</p>
+              <ion-button expand="block" class="btn-primary-custom mt-15" (click)="vistaActiva = 'catalogo'">
+                Explorar Catálogo Ahora
+              </ion-button>
+            </div>
+          } @else {
+            <div class="selected-cards-grid">
+              @for (item of cargosInteres; track item.id; let i = $index) {
+                <ion-card class="job-card" [class.card-completed]="resultadosMap[item.id]">
+                  <ion-card-content>
+                    
+                    <div class="card-top-row">
+                      <div class="badge-container">
+                        @if (resultadosMap[item.id]) {
+                          <span class="badge-status completado">
+                            <ion-icon name="checkmark-circle"></ion-icon> Evaluación Lista
+                          </span>
+                        } @else {
+                          <span class="badge-status pendiente">
+                            <ion-icon name="time-outline"></ion-icon> Evaluación Pendiente
+                          </span>
+                        }
+                      </div>
+
+                      <!-- Solo se muestra la opción de eliminar si la evaluación aún está pendiente -->
+                      @if (!resultadosMap[item.id]) {
+                        <ion-button 
+                          fill="clear" 
+                          color="danger" 
+                          size="small" 
+                          class="btn-remove-icon" 
+                          [disabled]="guardando"
+                          (click)="confirmarEliminarCargo(i, item.cargo)">
+                          <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+                        </ion-button>
+                      }
+                    </div>
+
+                    <h2 class="job-title">{{ item.cargo }}</h2>
+                    
+                    @if (item.descripcion) {
+                      <p class="terna-description">{{ item.descripcion }}</p>
+                    }
+
+                    <div class="card-actions-row">
+                      <ion-button 
+                        expand="block" 
+                        class="btn-primary-custom full-width-btn" 
+                        (click)="verDetallesCargo(item.id)">
+                        <ion-icon [name]="resultadosMap[item.id] ? 'eye-outline' : 'clipboard-outline'" slot="start"></ion-icon>
+                        {{ resultadosMap[item.id] ? 'Ver Detalles del Cargo' : 'Ver Cargo y Responder Terna' }}
+                      </ion-button>
+                    </div>
+
+                  </ion-card-content>
+                </ion-card>
+              }
+            </div>
+          }
+        </div>
+      }
+
+    }
+
+  </div>
+</ion-content>
+
+<ion-footer class="ion-no-border">
+  <ion-toolbar class="footer-toolbar">
+    <p class="footer-text">© ExpertiMente 2026</p>
+  </ion-toolbar>
+</ion-footer>

@@ -1,0 +1,340 @@
+/* =======================================================
+   PANTALLA DE BIENVENIDA / SPLASH SCREEN RESPONSIVA
+======================================================= */
+.splash-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  padding-top: var(--app-safe-top, env(safe-area-inset-top, 0px));
+  padding-bottom: var(--app-safe-bottom, env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+
+  background: linear-gradient(
+    135deg,
+    var(--ion-color-secondary-shade),
+    var(--ion-color-primary),
+    var(--ion-color-tertiary),
+    var(--ion-color-medium)
+  );
+  background-size: 300% 300%;
+  animation: gradientAnimation 10s ease infinite;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.6s ease, visibility 0.6s ease;
+
+  &.splash-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+
+.splash-content {
+  text-align: center;
+  padding: 24px 20px;
+  max-width: 380px;
+  width: 90%;
+  box-sizing: border-box;
+  animation: fadeInScale 0.8s ease-out forwards;
+}
+
+.splash-logo-container {
+  width: clamp(72px, 20vw, 88px);
+  height: clamp(72px, 20vw, 88px);
+  background: rgba(255, 255, 255, 0.18);
+  border: 3px solid rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  margin: 0 auto 18px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+  animation: bounceLogo 2s infinite ease-in-out;
+
+  .splash-icon {
+    font-size: clamp(36px, 10vw, 46px);
+    color: #ffffff;
+  }
+}
+
+.splash-title {
+  color: #ffffff;
+  font-size: clamp(1.85rem, 6vw, 2.4rem);
+  font-weight: 800;
+  margin: 0 0 12px 0;
+  letter-spacing: 0.5px;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.splash-subtitle {
+  color: var(--ion-color-light);
+  font-size: clamp(0.95rem, 3.5vw, 1.05rem);
+  line-height: 1.5;
+  margin: 0 0 24px 0;
+  opacity: 0.95;
+
+  strong {
+    color: #ffffff;
+    font-weight: 700;
+  }
+}
+
+.splash-loader {
+  width: 120px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+  margin: 0 auto;
+  overflow: hidden;
+
+  .loader-bar {
+    width: 100%;
+    height: 100%;
+    background: #ffffff;
+    border-radius: 4px;
+    animation: loadingBar 2.5s infinite ease-in-out;
+    transform-origin: left;
+  }
+}
+
+@keyframes gradientAnimation {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes fadeInScale {
+  0% { opacity: 0; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes bounceLogo {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes loadingBar {
+  0% { transform: scaleX(0); }
+  50% { transform: scaleX(0.75); }
+  100% { transform: scaleX(1); transform-origin: right; }
+}
+
+/* =======================================================
+   MENÚ LATERAL ACCESIBLE Y RESPONSIVO
+======================================================= */
+.custom-side-menu {
+  --width: min(300px, 84vw);
+}
+
+.menu-content {
+  --background: var(--ion-color-light);
+}
+
+.menu-header {
+  background: linear-gradient(
+    135deg,
+    var(--ion-color-secondary-shade) 0%,
+    var(--ion-color-primary-shade) 100%
+  );
+  padding: calc(28px + var(--app-safe-top, env(safe-area-inset-top, 12px))) 18px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(var(--ion-color-primary-rgb), 0.2);
+  border-bottom-right-radius: 22px;
+  border-bottom-left-radius: 22px;
+}
+
+.menu-avatar {
+  width: 82px;
+  height: 82px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: 3px solid #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+  flex-shrink: 0;
+
+  .avatar-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  ion-icon {
+    font-size: 42px;
+    color: #ffffff;
+  }
+}
+
+.menu-user-name {
+  color: #ffffff;
+  font-size: clamp(1.08rem, 4vw, 1.2rem);
+  font-weight: 800;
+  margin: 12px 0 0 0;
+  text-align: center;
+  letter-spacing: 0.2px;
+  line-height: 1.3;
+  max-width: 100%;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.menu-list {
+  background: transparent;
+  padding: 18px 12px 12px;
+}
+
+.menu-item {
+  --background: #ffffff;
+  --border-radius: 14px;
+  --padding-start: 14px;
+  --inner-padding-end: 12px;
+  --min-height: 52px;
+  margin-bottom: 10px;
+  border: 1.5px solid rgba(var(--ion-color-primary-rgb), 0.14);
+  box-shadow: 0 3px 10px rgba(var(--ion-color-primary-rgb), 0.05);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+
+  .menu-item-icon {
+    color: var(--ion-color-primary);
+    font-size: 1.4rem;
+    margin-right: 14px;
+    flex-shrink: 0;
+  }
+
+  .menu-item-label {
+    color: var(--ion-color-primary-shade);
+    font-weight: 700;
+    font-size: 1rem;
+    white-space: normal;
+    line-height: 1.25;
+  }
+
+  .arrow-icon {
+    color: var(--ion-color-tertiary);
+    font-size: 1.15rem;
+    opacity: 0.8;
+    flex-shrink: 0;
+  }
+
+  .lock-icon {
+    color: var(--ion-color-medium);
+    font-size: 1.2rem;
+    opacity: 0.75;
+    flex-shrink: 0;
+  }
+
+  &.menu-item-locked {
+    --background: rgba(255, 255, 255, 0.55);
+    border-style: dashed;
+
+    .menu-item-icon,
+    .menu-item-label {
+      opacity: 0.48;
+    }
+  }
+
+  &:active {
+    --background: rgba(var(--ion-color-primary-rgb), 0.1);
+    transform: scale(0.98);
+  }
+}
+
+/* =======================================================
+   FOOTER DEL MENÚ (PROTEGIDO CONTRA BARRA DE 3 BOTONES)
+======================================================= */
+.menu-footer-container {
+  --background: var(--ion-color-light);
+  background: var(--ion-color-light);
+
+  .menu-footer {
+    padding: 10px 12px max(18px, calc(12px + var(--app-safe-bottom, env(safe-area-inset-bottom, 0px))));
+    border-top: 1.5px solid rgba(var(--ion-color-primary-rgb), 0.15);
+  }
+
+  .logout-item {
+    --background: #fff5f5;
+    --border-radius: 14px;
+    --min-height: 50px;
+    margin: 0;
+    border: 1.5px solid rgba(229, 83, 83, 0.28);
+    box-shadow: 0 3px 10px rgba(229, 83, 83, 0.08);
+
+    ion-icon {
+      color: #d32f2f;
+      font-size: 1.4rem;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+
+    ion-label {
+      color: #d32f2f;
+      font-weight: 800;
+      font-size: 1rem;
+    }
+
+    &:active {
+      --background: rgba(229, 83, 83, 0.16);
+      transform: scale(0.98);
+    }
+  }
+}
+
+/* =======================================================
+   AJUSTES PARA PANTALLAS DE POCA ALTURA (MÓVILES COMPACTOS)
+======================================================= */
+@media (max-height: 660px) {
+  .menu-header {
+    padding: calc(16px + var(--app-safe-top, env(safe-area-inset-top, 8px))) 16px 16px;
+  }
+
+  .menu-avatar {
+    width: 64px;
+    height: 64px;
+
+    ion-icon {
+      font-size: 32px;
+    }
+  }
+
+  .menu-user-name {
+    font-size: 1.05rem;
+    margin-top: 8px;
+  }
+
+  .menu-list {
+    padding: 12px 10px 8px;
+  }
+
+  .menu-item {
+    --min-height: 46px;
+    margin-bottom: 7px;
+  }
+
+  .splash-logo-container {
+    width: 68px;
+    height: 68px;
+    margin-bottom: 12px;
+    .splash-icon { font-size: 34px; }
+  }
+
+  .splash-subtitle {
+    margin-bottom: 16px;
+  }
+}

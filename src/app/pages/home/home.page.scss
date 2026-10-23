@@ -1,0 +1,229 @@
+/* --- NAVBAR (HEADER) --- */
+ion-header {
+  ion-toolbar {
+    --background: linear-gradient(135deg, var(--ion-color-secondary-shade) 0%, var(--ion-color-tertiary-tint) 100%);
+    --border-width: 0;
+    --min-height: 60px;
+  }
+}
+
+.menu-btn-custom {
+  color: #ffffff;
+}
+
+.app-title {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: clamp(1.1rem, 4vw, 1.25rem);
+  letter-spacing: 0.4px;
+}
+
+.header-msg-btn {
+  --color: #ffffff;
+  --padding-start: 6px;
+  --padding-end: 6px;
+  margin-right: 8px;
+  height: 44px;
+
+  .msg-icon-wrapper {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.14);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease, transform 0.2s ease;
+
+    ion-icon {
+      font-size: 1.45rem;
+      color: #ffffff;
+    }
+  }
+
+  &.has-new-messages {
+    .msg-icon-wrapper {
+      background: rgba(255, 255, 255, 0.22);
+    }
+  }
+
+  .header-unread-dot {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    background: #e53935;
+    color: #ffffff;
+    font-size: 0.68rem;
+    font-weight: 800;
+    line-height: 1;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    border: 1.8px solid #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);
+    animation: badgePulse 2s infinite;
+  }
+}
+
+@keyframes badgePulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+/* --- FONDO GENERAL --- */
+ion-content {
+  --background: var(--ion-color-light);
+}
+
+.home-container {
+  max-width: 600px;
+  width: 100%;
+  margin: 0 auto;
+  padding: clamp(18px, 4vw, 25px) clamp(14px, 4vw, 20px) 30px;
+  box-sizing: border-box;
+}
+
+/* --- SECCIÓN DE BIENVENIDA --- */
+.welcome-section {
+  padding: 5px 4px clamp(20px, 4vh, 28px);
+}
+
+.welcome-title {
+  font-size: clamp(1.55rem, 6vw, 2rem);
+  font-weight: 800;
+  color: var(--ion-color-primary-shade);
+  margin: 0 0 8px 0;
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.welcome-subtitle {
+  font-size: clamp(0.95rem, 3.6vw, 1.05rem);
+  color: var(--ion-color-medium-shade);
+  margin: 0;
+  line-height: 1.45;
+}
+
+/* --- SECCIÓN DE ACCIONES --- */
+.actions-section {
+  .section-title {
+    padding-left: 5px;
+    font-size: clamp(1.05rem, 3.8vw, 1.15rem);
+    font-weight: 800;
+    color: var(--ion-color-primary-shade);
+    margin: 0 0 14px 0;
+  }
+
+  .action-card {
+    border-radius: 20px;
+    margin: 0 0 14px 0;
+    background: #ffffff;
+    border: 1px solid rgba(var(--ion-color-primary-rgb), 0.12);
+    box-shadow: 0 6px 20px rgba(79, 157, 20, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:active {
+      transform: scale(0.97);
+    }
+
+    &.accent-action-card {
+      border-left: 6px solid var(--ion-color-primary);
+    }
+
+    .action-item {
+      --background: transparent;
+      --padding-start: clamp(10px, 3vw, 14px);
+      --inner-padding-end: 8px;
+      padding: 10px 4px;
+      --detail-icon-color: var(--ion-color-primary);
+      --detail-icon-opacity: 0.85;
+      --detail-icon-font-size: 20px;
+
+      .icon-box {
+        width: clamp(46px, 12vw, 52px);
+        height: clamp(46px, 12vw, 52px);
+        border-radius: 14px;
+        margin-right: clamp(12px, 3.5vw, 16px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        ion-icon {
+          font-size: 25px;
+        }
+
+        &.doc-box {
+          background: rgba(var(--ion-color-secondary-rgb), 0.12);
+          color: var(--ion-color-secondary-shade);
+        }
+
+        &.cargo-box {
+          background: rgba(var(--ion-color-primary-rgb), 0.14);
+          color: var(--ion-color-primary-shade);
+        }
+      }
+
+      .action-title {
+        font-weight: 800;
+        font-size: clamp(1.02rem, 3.8vw, 1.12rem);
+        color: var(--ion-color-primary-shade);
+        margin: 0 0 4px 0;
+        line-height: 1.25;
+      }
+
+      .action-desc {
+        font-size: clamp(0.88rem, 3.2vw, 0.94rem);
+        color: var(--ion-color-medium-shade);
+        margin: 0;
+        line-height: 1.35;
+      }
+    }
+  }
+
+  /* TARJETA DESTACADA EN VERDE: BUSCAR EMPLEO */
+  .primary-action-card {
+    background: linear-gradient(135deg, var(--ion-color-secondary-shade) 0%, var(--ion-color-primary-shade) 100%);
+    border: none;
+    box-shadow: 0 8px 22px rgba(var(--ion-color-primary-rgb), 0.22);
+
+    .primary-item {
+      --detail-icon-color: #ffffff;
+      --detail-icon-opacity: 0.9;
+
+      .search-box {
+        background: rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+      }
+
+      .text-white {
+        color: #ffffff !important;
+      }
+
+      .action-desc.text-white {
+        opacity: 0.92;
+      }
+    }
+  }
+}
+
+/* --- FOOTER --- */
+ion-footer {
+  .footer-toolbar {
+    --background: var(--ion-color-light);
+    text-align: center;
+
+    .footer-text {
+      color: var(--ion-color-medium);
+      font-size: 0.85rem;
+      margin: 8px 0 15px 0;
+      font-weight: 500;
+    }
+  }
+}

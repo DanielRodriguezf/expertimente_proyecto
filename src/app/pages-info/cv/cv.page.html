@@ -1,0 +1,115 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home" class="menu-btn-custom"></ion-back-button>
+    </ion-buttons>
+    <ion-title class="app-title">Mi Currículum</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="cv-content">
+  <div class="cv-container">
+
+    <div class="form-section">
+      <div class="section-header">
+        <h2 class="section-title">Tu Currículum</h2>
+        <p class="section-subtitle">Sube tu documento en PDF o deja que la IA lo redacte por ti.</p>
+      </div>
+
+      <ion-segment [(ngModel)]="modoOpcion" class="custom-segment">
+        <ion-segment-button value="manual">
+          <ion-label>Subir PDF</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="ia">
+          <ion-label>Crear con IA</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+
+      @if (tieneCVSubido) {
+        <ion-card class="form-card">
+          <ion-card-content>
+            <ion-item lines="none" class="transparent-item">
+              <div slot="start" class="icon-box doc-box">
+                <ion-icon name="document-text-outline"></ion-icon>
+              </div>
+              <ion-label class="cv-saved-label">
+                <h3 class="action-title">PDF Guardado</h3>
+                <p class="action-desc">{{ nombreCVSaved }}</p>
+              </ion-label>
+            </ion-item>
+            
+            <div class="button-row mt-15">
+              <ion-button expand="block" fill="outline" class="btn-outline-danger" (click)="eliminarCVGuardado()">
+                <ion-icon slot="start" name="trash-outline"></ion-icon> Quitar
+              </ion-button>
+              <ion-button expand="block" color="primary" class="btn-ver-pdf" (click)="verCVSaved()">
+                <ion-icon slot="start" name="download-outline"></ion-icon> Ver / Descargar
+              </ion-button>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      }
+
+      @if (modoOpcion === 'manual') {
+        <ion-card class="form-card fade-in">
+          <ion-card-content>
+            <div class="drop-zone">
+              <input type="file" #fileInput (change)="alSeleccionarArchivo($event)" accept="application/pdf" class="hidden-input">
+              
+              <ion-icon name="cloud-upload-outline" class="upload-icon"></ion-icon>
+              <h4 class="drop-title">{{ tieneCVSubido ? 'Reemplazar PDF' : 'Subir CV Manual' }}</h4>
+              <p class="drop-desc">Formato PDF (Máx. 600KB)</p>
+              
+              <ion-button fill="solid" class="btn-secondary-custom" (click)="abrirSelectorArchivo()" shape="round">
+                Buscar Archivo
+              </ion-button>
+            </div>
+
+            @if (archivoSeleccionadoNombre) {
+              <ion-item lines="none" class="pending-file">
+                <ion-icon name="checkmark-circle" class="icon-green" slot="start"></ion-icon>
+                <ion-label>
+                  <h4 class="pending-title">{{ archivoSeleccionadoNombre }}</h4>
+                  <p class="pending-desc">Listo para guardar</p>
+                </ion-label>
+                <ion-button fill="clear" class="btn-clear-danger" slot="end" (click)="quitarArchivoPendiente()">
+                  <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                </ion-button>
+              </ion-item>
+
+              <ion-button expand="block" class="btn-primary-custom" (click)="guardarDatos()">
+                Guardar PDF
+              </ion-button>
+            }
+          </ion-card-content>
+        </ion-card>
+      }
+
+      @if (modoOpcion === 'ia') {
+        <ion-card class="form-card fade-in">
+          <ion-card-content class="ia-card-content">
+            <div class="icon-box ia-box">
+              <ion-icon name="hardware-chip-outline" color="tertiary"></ion-icon>
+            </div>
+            
+            <h3 class="action-title mb-15">Generación Inteligente</h3>
+            <p class="action-desc ia-desc mb-15">
+              La Inteligencia Artificial redactará tu Perfil Profesional automáticamente utilizando la experiencia laboral, nivel educativo y habilidades que ya registraste en tu cuenta.
+            </p>
+
+            <ion-button expand="block" class="btn-primary-custom btn-ia" (click)="generarCVConIA()">
+              <ion-icon slot="start" name="sparkles-outline"></ion-icon> Generar CV con IA
+            </ion-button>
+          </ion-card-content>
+        </ion-card>
+      }
+
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer class="ion-no-border">
+  <ion-toolbar class="footer-toolbar">
+    <p class="footer-text">© ExpertiMente 2026</p>
+  </ion-toolbar>
+</ion-footer>

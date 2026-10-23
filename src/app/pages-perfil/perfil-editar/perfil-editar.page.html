@@ -1,0 +1,201 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      <!-- Botón para retroceder de paso o volver al perfil -->
+      <ion-button (click)="pasoAnterior()" *ngIf="pasoActual > 1">
+        <ion-icon slot="icon-only" name="arrow-back-outline" class="custom-back-btn"></ion-icon>
+      </ion-button>
+      <ion-button routerLink="/perfil" *ngIf="pasoActual === 1">
+        <ion-icon slot="icon-only" name="arrow-back-outline" class="custom-back-btn"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="header-title">Editar Perfil</ion-title>
+  </ion-toolbar>
+  
+  <!-- Barra de progreso visual -->
+  <ion-progress-bar 
+    [value]="pasoActual / totalPasos" 
+    class="custom-progress-bar">
+  </ion-progress-bar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="edit-content">
+  <div class="edit-container fade-in" *ngIf="!cargando"> 
+
+    <div class="step-indicator">
+      <span class="step-badge">Paso {{ pasoActual }} de {{ totalPasos }}</span>
+    </div>
+
+    <!-- Contenedor blanco (Tarjeta) para los formularios -->
+    <div class="form-card">
+
+      <!-- PASO 1: Identidad -->
+      <div class="form-section fade-in" *ngIf="pasoActual === 1">
+        <h2 class="section-title">Tu Identidad</h2>
+        <p class="section-subtitle">Actualiza tus nombres y documento.</p>
+
+        <!-- RUT bloqueado por seguridad -->
+        <div class="input-wrapper disabled-input">
+          <ion-input
+            label="RUT"
+            labelPlacement="floating"
+            fill="outline"
+            [(ngModel)]="usuario.rut"
+            type="text"
+            readonly="true"
+            class="modern-input">
+          </ion-input>
+          <p class="input-hint">El RUT no puede modificarse por seguridad.</p>
+        </div>
+
+        <div class="input-wrapper">
+          <ion-input
+            label="Primer Nombre"
+            labelPlacement="floating"
+            fill="outline"
+            [(ngModel)]="usuario.nombre" 
+            type="text"
+            class="modern-input">
+          </ion-input>
+        </div>
+
+        <div class="input-wrapper">
+          <ion-input
+            label="Apellido Paterno"
+            labelPlacement="floating"
+            fill="outline"
+            [(ngModel)]="usuario.apellidoPaterno" 
+            type="text"
+            class="modern-input">
+          </ion-input>
+        </div>
+
+        <div class="input-wrapper">
+          <ion-input
+            label="Apellido Materno"
+            labelPlacement="floating"
+            fill="outline"
+            [(ngModel)]="usuario.apellidoMaterno"
+            type="text"
+            class="modern-input">
+          </ion-input>
+        </div>
+
+        <div class="action-section">
+          <ion-button expand="block" class="btn-primary-custom" (click)="siguientePaso()">
+            Continuar
+          </ion-button>
+        </div>
+      </div>
+
+      <!-- PASO 2: Contacto -->
+      <div class="form-section fade-in" *ngIf="pasoActual === 2">
+        <h2 class="section-title">Datos de Contacto</h2>
+        <p class="section-subtitle">¿Cómo podemos comunicarnos contigo?</p>
+
+        <!-- Correo bloqueado -->
+        <div class="input-wrapper disabled-input">
+          <ion-input
+            label="Correo Electrónico"
+            labelPlacement="floating"
+            fill="outline"
+            [(ngModel)]="usuario.correo"
+            type="email"
+            readonly="true"
+            class="modern-input">
+          </ion-input>
+          <p class="input-hint">El correo no puede modificarse desde aquí.</p>
+        </div>
+
+        <div class="input-wrapper">
+          <ion-input
+            label="Teléfono Celular"
+            labelPlacement="floating"
+            fill="outline"
+            [(ngModel)]="usuario.telefono"
+            type="tel"
+            class="modern-input">
+          </ion-input>
+        </div>
+
+        <div class="action-section">
+          <ion-button expand="block" class="btn-primary-custom" (click)="siguientePaso()">
+            Continuar
+          </ion-button>
+        </div>
+      </div>
+
+      <!-- PASO 3: Ubicación Completa -->
+      <div class="form-section fade-in" *ngIf="pasoActual === 3">
+        <h2 class="section-title">Tu Ubicación</h2>
+        <p class="section-subtitle">¿Dónde te encuentras actualmente?</p>
+
+        <div class="input-wrapper">
+          <ion-input
+            label="País"
+            labelPlacement="floating"
+            fill="outline"
+            [(ngModel)]="usuario.pais"
+            type="text"
+            class="modern-input">
+          </ion-input>
+        </div>
+
+        <div class="input-wrapper">
+          <ion-input
+            label="Ciudad"
+            labelPlacement="floating"
+            fill="outline"
+            [(ngModel)]="usuario.ciudad"
+            type="text"
+            class="modern-input">
+          </ion-input>
+        </div>
+
+        <div class="input-wrapper">
+          <ion-input
+            label="Comuna"
+            labelPlacement="floating"
+            fill="outline"
+            [(ngModel)]="usuario.comuna"
+            type="text"
+            class="modern-input">
+          </ion-input>
+        </div>
+
+        <div class="input-wrapper">
+          <ion-input
+            label="Dirección"
+            labelPlacement="floating"
+            fill="outline"
+            [(ngModel)]="usuario.direccion"
+            type="text"
+            class="modern-input">
+          </ion-input>
+        </div>
+
+        <div class="action-section">
+          <ion-button expand="block" class="btn-primary-custom" (click)="guardarCambios()" [disabled]="guardando">
+            {{ guardando ? 'Guardando...' : 'Guardar Cambios' }}
+          </ion-button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Spinner mientras carga los datos iniciales -->
+  @if (cargando) {
+    <div class="loading-container">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+    </div>
+  }
+</ion-content>
+
+<!-- FOOTER FIJO -->
+<ion-footer class="ion-no-border">
+  <ion-toolbar class="footer-toolbar">
+    <p class="footer-text">© ExpertiMente 2026</p>
+  </ion-toolbar>
+</ion-footer>

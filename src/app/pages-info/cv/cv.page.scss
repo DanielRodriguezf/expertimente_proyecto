@@ -1,0 +1,325 @@
+ion-header {
+  ion-toolbar {
+    --background: linear-gradient(135deg, var(--ion-color-secondary-shade) 0%, var(--ion-color-tertiary-tint) 100%);
+    --border-width: 0;
+    --min-height: 60px;
+  }
+}
+
+.menu-btn-custom {
+  color: #ffffff; 
+}
+
+.app-title {
+  color: #ffffff; 
+  font-weight: 600;
+  font-size: clamp(1.1rem, 4vw, 1.25rem);
+  letter-spacing: 0.5px; 
+}
+
+.cv-content {
+  --background: var(--ion-color-light); 
+}
+
+.cv-container {
+  max-width: 600px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 10px clamp(12px, 4vw, 20px) 30px;
+  box-sizing: border-box;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section-header {
+  margin-top: 10px;
+  margin-bottom: 5px;
+  padding: 0 5px;
+  text-align: center;
+  
+  .section-title {
+    color: var(--ion-color-primary-shade);
+    font-size: clamp(1.4rem, 5vw, 1.6rem);
+    font-weight: 800;
+    margin: 0 0 6px 0;
+  }
+  
+  .section-subtitle {
+    color: var(--ion-color-medium-shade);
+    font-size: clamp(0.95rem, 3.5vw, 1rem);
+    margin: 0;
+    line-height: 1.4;
+  }
+}
+
+.custom-segment {
+  margin-bottom: 8px;
+  background: rgba(var(--ion-color-primary-rgb), 0.08);
+  border-radius: 12px;
+  padding: 4px;
+  
+  ion-segment-button {
+    --color: var(--ion-color-medium);
+    --color-checked: var(--ion-color-primary-shade);
+    --indicator-color: #ffffff;
+    --indicator-box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    font-weight: 600;
+    font-size: clamp(0.85rem, 3.5vw, 0.95rem);
+    letter-spacing: 0.2px;
+    border-radius: 10px;
+    min-height: 42px;
+  }
+}
+
+.form-card {
+  border-radius: 20px;
+  background: #ffffff;
+  margin: 0 0 10px 0;
+  box-shadow: 0 8px 24px rgba(79, 157, 20, 0.08);
+  
+  ion-card-content {
+    padding: clamp(16px, 4.5vw, 24px);
+  }
+}
+
+.ia-card-content {
+  text-align: center;
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.transparent-item {
+  --background: transparent;
+  --padding-start: 0;
+  --inner-padding-end: 0;
+}
+
+.cv-saved-label {
+  min-width: 0; /* Permite que flexbox trunque correctamente nombres largos */
+  
+  .action-desc {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.icon-box {
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 15px;
+  flex-shrink: 0;
+  
+  &.doc-box {
+    background: rgba(var(--ion-color-primary-rgb), 0.15);
+    ion-icon {
+      font-size: 1.5rem;
+      color: var(--ion-color-primary);
+    }
+  }
+
+  &.ia-box {
+    background: rgba(var(--ion-color-tertiary-rgb), 0.15);
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 15px auto;
+    ion-icon {
+      font-size: 2rem;
+      margin: 0;
+    }
+  }
+}
+
+.action-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--ion-color-primary-shade);
+  margin: 0 0 4px 0;
+}
+
+.action-desc {
+  font-size: 0.95rem;
+  color: var(--ion-color-medium-shade);
+  margin: 0;
+  line-height: 1.3;
+
+  &.ia-desc {
+    white-space: normal;
+    line-height: 1.5;
+  }
+}
+
+.drop-zone {
+  border: 2px dashed rgba(var(--ion-color-primary-rgb), 0.4);
+  border-radius: 16px;
+  background: rgba(var(--ion-color-primary-rgb), 0.02);
+  padding: clamp(20px, 6vw, 30px) 15px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: background 0.2s ease;
+
+  &:active {
+    background: rgba(var(--ion-color-primary-rgb), 0.08);
+  }
+
+  .hidden-input {
+    display: none;
+  }
+
+  .upload-icon {
+    font-size: clamp(2.5rem, 8vw, 3rem);
+    color: var(--ion-color-primary);
+    margin-bottom: 10px;
+  }
+
+  .drop-title {
+    font-size: clamp(1.1rem, 4vw, 1.2rem);
+    font-weight: 800;
+    color: var(--ion-color-primary-shade);
+    margin: 0 0 5px 0;
+  }
+
+  .drop-desc {
+    font-size: 0.9rem;
+    color: var(--ion-color-medium);
+    margin: 0 0 18px 0;
+  }
+}
+
+.pending-file {
+  --background: rgba(var(--ion-color-primary-rgb), 0.05);
+  --border-radius: 12px;
+  margin-top: 16px;
+  padding: 4px 0;
+
+  .icon-green {
+    color: var(--ion-color-primary);
+    font-size: 1.5rem;
+    margin-right: 10px;
+  }
+
+  .pending-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--ion-color-primary-shade);
+    margin: 0 0 2px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .pending-desc {
+    font-size: 0.85rem;
+    color: var(--ion-color-medium);
+    margin: 0;
+  }
+}
+
+.mb-15 {
+  margin-bottom: 15px;
+}
+
+.mt-15 {
+  margin-top: 15px;
+}
+
+/* Fila de botones adaptable para móviles estrechos */
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+}
+
+.btn-secondary-custom {
+  --background: rgba(var(--ion-color-primary-rgb), 0.15);
+  --color: var(--ion-color-primary-shade);
+  --box-shadow: none;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  min-height: 44px;
+}
+
+.btn-primary-custom {
+  --background: linear-gradient(135deg, var(--ion-color-secondary-shade) 0%, var(--ion-color-primary-shade) 100%);
+  --border-radius: 16px;
+  --box-shadow: 0 6px 15px rgba(var(--ion-color-primary-rgb), 0.25);
+  --color: #ffffff;
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.3px;
+  margin-top: 12px;
+  min-height: 50px;
+}
+
+.btn-ia {
+  --background: linear-gradient(135deg, var(--ion-color-tertiary-shade) 0%, var(--ion-color-secondary) 100%);
+}
+
+.btn-outline-danger {
+  flex: 1 1 120px;
+  margin: 0;
+  --border-color: rgba(var(--ion-color-danger-rgb), 0.5);
+  --color: var(--ion-color-danger);
+  --border-radius: 12px;
+  font-weight: 600;
+  min-height: 46px;
+}
+
+.btn-ver-pdf {
+  flex: 1 1 150px;
+  margin: 0;
+  --border-radius: 12px;
+  font-weight: 600;
+  min-height: 46px;
+}
+
+.btn-clear-danger {
+  --color: var(--ion-color-danger);
+  min-width: 44px;
+  min-height: 44px;
+}
+
+ion-footer {
+  .footer-toolbar {
+    --background: var(--ion-color-light);
+    text-align: center;
+    
+    .footer-text {
+      color: var(--ion-color-medium);
+      font-size: 0.85rem;
+      margin: 8px 0 15px 0;
+      font-weight: 500;
+    }
+  }
+}
+
+/* En celulares muy estrechos (<360px) apila los botones para que no se corte el texto */
+@media (max-width: 360px) {
+  .button-row {
+    flex-direction: column;
+    
+    .btn-outline-danger,
+    .btn-ver-pdf {
+      flex: 1 1 100%;
+      width: 100%;
+    }
+  }
+}

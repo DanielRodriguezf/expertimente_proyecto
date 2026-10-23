@@ -1,0 +1,125 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/search" class="custom-back-btn"></ion-back-button>
+    </ion-buttons>
+    <ion-title class="header-title">
+      {{ esTerna ? 'Detalle del Cargo' : 'Detalle del Empleo' }}
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="detail-content">
+  
+  <!-- SPINNER DE CARGA -->
+  @if (cargando) {
+    <div class="loading-container">
+      <ion-spinner name="crescent" class="custom-spinner"></ion-spinner>
+      <p class="loading-text">Cargando información...</p>
+    </div>
+  }
+
+  <!-- CONTENIDO PRINCIPAL -->
+  @if (!cargando && oferta) {
+    <div class="detail-container">
+
+      <ion-card class="detail-card" [class.terna-detail-card]="esTerna">
+        <ion-card-content class="card-inner">
+          
+          <!-- CABECERA: TÍTULO Y BADGE MINIMALISTA -->
+          <div class="header-info">
+            @if (esTerna) {
+              <span class="pill-badge terna-pill">
+                <ion-icon name="sparkles"></ion-icon> Terna General
+              </span>
+            } @else {
+              <span class="pill-badge">{{ oferta.modalidad }}</span>
+            }
+            
+            <h1 class="job-title">{{ esTerna ? oferta.nombre : oferta.titulo }}</h1>
+            
+            @if (!esTerna) {
+              <h2 class="job-company">{{ oferta.nombreEmpresa }}</h2>
+            } @else {
+              <p class="terna-subtitle">Postulación directa al cargo</p>
+            }
+          </div>
+
+          <!-- BLOQUE DE METADATOS (Diseño en línea sutil) -->
+          <div class="meta-row">
+            @if (!esTerna && oferta.direccion) {
+              <div class="meta-item">
+                <ion-icon name="location-outline"></ion-icon>
+                <span>{{ oferta.direccion }}</span>
+              </div>
+            }
+            @if (esTerna) {
+              <div class="meta-item">
+                <ion-icon name="help-circle-outline"></ion-icon>
+                <span>Evaluación: {{ oferta.preguntas?.length || 0 }} preguntas</span>
+              </div>
+            }
+          </div>
+
+          <!-- AVISO DE PARTICIPACIÓN EN TERNA (Limpio y sin puntajes visibles) -->
+          @if (esTerna && resultadoTerna) {
+            <div class="success-banner">
+              <ion-icon name="checkmark-circle"></ion-icon>
+              <span>¡Cuestionario enviado! Ya estás participando en esta terna.</span>
+            </div>
+          }
+
+          <!-- DESCRIPCIÓN -->
+          <div class="section-block">
+            <h3 class="section-heading">{{ esTerna ? 'Acerca del cargo' : 'Descripción del puesto' }}</h3>
+            <p class="job-description">{{ oferta.descripcion }}</p>
+          </div>
+
+          <!-- REQUISITOS (Ofertas normales) -->
+          @if (!esTerna && oferta.habilidades) {
+            <div class="section-block">
+              <h3 class="section-heading">Requisitos</h3>
+              <p class="job-description">{{ oferta.habilidades }}</p>
+            </div>
+          }
+
+          <!-- CONTACTO DIRECTO (Ofertas normales, más sutil) -->
+          @if (!esTerna && (oferta.contactoTelefono || oferta.contactoEmail)) {
+            <div class="contact-strip">
+              @if (oferta.contactoTelefono) {
+                <div><ion-icon name="call-outline"></ion-icon> <span>{{ oferta.contactoTelefono }}</span></div>
+              }
+              @if (oferta.contactoEmail) {
+                <div><ion-icon name="mail-outline"></ion-icon> <span>{{ oferta.contactoEmail }}</span></div>
+              }
+            </div>
+          }
+
+        </ion-card-content>
+      </ion-card>
+
+      <!-- BOTÓN DE ACCIÓN PRINCIPAL -->
+      <div class="action-section">
+        <ion-button 
+          expand="block" 
+          class="btn-primary-custom" 
+          [disabled]="yaPostulado"
+          (click)="irAlCuestionario()">
+          @if (esTerna) {
+            {{ yaPostulado ? 'Cuestionario Completado' : 'Responder Cuestionario y Postular' }}
+          } @else {
+            {{ yaPostulado ? 'Postulación Enviada' : 'Iniciar Cuestionario y Postular' }}
+          }
+        </ion-button>
+      </div>
+
+    </div>
+  }
+
+</ion-content>
+
+<ion-footer class="ion-no-border">
+  <ion-toolbar class="footer-toolbar">
+    <p class="footer-text">© ExpertiMente 2026</p>
+  </ion-toolbar>
+</ion-footer>

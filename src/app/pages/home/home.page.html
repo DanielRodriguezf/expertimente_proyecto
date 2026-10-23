@@ -1,0 +1,90 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button class="menu-btn-custom"></ion-menu-button>
+    </ion-buttons>
+    <ion-title class="app-title">Inicio</ion-title>
+
+    <!-- Acceso rápido a Mensajes en el Header con badge limpio en la esquina -->
+    <ion-buttons slot="end">
+      <ion-button 
+        class="header-msg-btn" 
+        [class.has-new-messages]="mensajesNuevosCount > 0"
+        routerLink="/mensajes">
+        <div class="msg-icon-wrapper">
+          <ion-icon 
+            [name]="mensajesNuevosCount > 0 ? 'chatbubble-ellipses-outline' : 'chatbubbles-outline'">
+          </ion-icon>
+          @if (mensajesNuevosCount > 0) {
+            <span class="header-unread-dot">
+              {{ mensajesNuevosCount > 9 ? '9+' : mensajesNuevosCount }}
+            </span>
+          }
+        </div>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="home-container">
+
+    <!-- SALUDO DE BIENVENIDA SIMPLE -->
+    <div class="welcome-section">
+      <h1 class="welcome-title">¡Hola, {{ nombreUsuario || 'Usuario' }}!</h1>
+      <p class="welcome-subtitle">Bienvenido a ExpertiMente, tu espacio para encontrar nuevas oportunidades.</p>
+    </div>
+
+    <!-- SECCIÓN DE ACCIONES -->
+    <div class="actions-section">
+      <h3 class="section-title">¿Qué deseas hacer hoy?</h3>
+
+      <!-- 1. MI PERFIL -->
+      <ion-card class="action-card accent-action-card" routerLink="/perfil-cv" button="true">
+        <ion-item class="action-item" lines="none" detail="true">
+          <div slot="start" class="icon-box doc-box">
+            <ion-icon name="document-text-outline"></ion-icon>
+          </div>
+          <ion-label class="ion-text-wrap">
+            <h4 class="action-title">Mi Perfil</h4>
+            <p class="action-desc">Gestiona tu experiencia, habilidades y currículum.</p>
+          </ion-label>
+        </ion-item>
+      </ion-card>
+
+      <!-- 2. BUSCAR EMPLEO (Destacado en verde) -->
+      <ion-card class="action-card primary-action-card" routerLink="/search" button="true">
+        <ion-item class="action-item primary-item" lines="none" detail="true">
+          <div slot="start" class="icon-box search-box">
+            <ion-icon name="search-outline"></ion-icon>
+          </div>
+          <ion-label class="ion-text-wrap">
+            <h4 class="action-title text-white">Buscar Empleo</h4>
+            <p class="action-desc text-white">Explora las ofertas de trabajo disponibles.</p>
+          </ion-label>
+        </ion-item>
+      </ion-card>
+
+      <!-- 3. CARGOS DE INTERÉS (Blanca con acento verde para diferenciarla) -->
+      <ion-card class="action-card accent-action-card" routerLink="/cargos-interes" button="true">
+        <ion-item class="action-item" lines="none" detail="true">
+          <div slot="start" class="icon-box cargo-box">
+            <ion-icon name="briefcase-outline"></ion-icon>
+          </div>
+          <ion-label class="ion-text-wrap">
+            <h4 class="action-title">Mis Cargos de Interés</h4>
+            <p class="action-desc">Elige los puestos que buscas y responde tus cuestionarios.</p>
+          </ion-label>
+        </ion-item>
+      </ion-card>
+
+    </div>
+  </div>
+</ion-content>
+
+<!-- FOOTER FIJO -->
+<ion-footer class="ion-no-border">
+  <ion-toolbar class="footer-toolbar">
+    <p class="footer-text">© ExpertiMente 2026</p>
+  </ion-toolbar>
+</ion-footer>
