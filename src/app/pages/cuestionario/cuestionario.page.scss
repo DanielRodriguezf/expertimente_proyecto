@@ -1,0 +1,238 @@
+/* --- HEADER Y BARRA DE PROGRESO --- */
+ion-header {
+  background-color: var(--ion-color-light); 
+}
+
+.header-toolbar {
+  --background: var(--ion-color-light);
+  --border-width: 0;
+}
+
+.custom-back-btn {
+  color: var(--ion-color-primary-shade);
+}
+
+.header-title {
+  color: var(--ion-color-primary-shade);
+  font-weight: 800;
+  font-size: clamp(1.1rem, 4vw, 1.25rem);
+}
+
+.custom-progress-bar {
+  --background: rgba(var(--ion-color-primary-rgb), 0.15);
+  --progress-background: var(--ion-color-primary);
+  height: 6px;
+  border-radius: 0 0 4px 4px;
+}
+
+/* --- FONDO GENERAL Y CONTENEDOR RESPONSIVE --- */
+.questionnaire-content {
+  --background: var(--ion-color-light); 
+}
+
+.responsive-wrapper {
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: clamp(8px, 3vw, 16px);
+  box-sizing: border-box;
+}
+
+.form-container {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: clamp(14px, 4vw, 24px) clamp(6px, 2.5vw, 12px) 35px;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+/* --- ESTADO DE CARGA --- */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  width: 100%;
+  
+  .custom-spinner {
+    color: var(--ion-color-primary);
+    transform: scale(1.5);
+    margin-bottom: 15px;
+  }
+
+  .loading-text {
+    color: var(--ion-color-medium-shade);
+    font-size: 1rem;
+    font-weight: 500;
+  }
+}
+
+/* --- INDICADOR DE PASOS --- */
+.step-indicator {
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.step-badge {
+  background: rgba(var(--ion-color-secondary-rgb), 0.15);
+  color: var(--ion-color-secondary-shade);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: inline-block;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* --- TEXTOS DE LA PREGUNTA --- */
+.form-section {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.question-text {
+  font-size: clamp(1.2rem, 4.8vw, 1.45rem);
+  font-weight: 800;
+  color: var(--ion-color-primary-shade);
+  margin: 0 0 10px 0;
+  line-height: 1.4;
+  text-align: center;
+  word-break: break-word;
+}
+
+/* --- ESTILOS PARA LAS OPCIONES DEL CUESTIONARIO --- */
+.subtitle.text-sub {
+  font-size: clamp(0.92rem, 3.5vw, 1rem);
+  color: var(--ion-color-medium-shade);
+  margin: 0 0 18px 0;
+  text-align: center;
+}
+
+.radio-card {
+  background: #ffffff;
+  border: 1.5px solid var(--ion-color-light-shade);
+  border-radius: 14px;
+  padding: clamp(14px, 4vw, 18px) clamp(14px, 4vw, 20px);
+  margin-bottom: 12px;
+  width: 100%;
+  display: block;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease-in-out;
+  box-sizing: border-box;
+
+  --color: var(--ion-color-light-contrast);
+  --color-checked: var(--ion-color-primary);
+  font-size: clamp(0.98rem, 3.6vw, 1.05rem);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.radio-card.ion-checked {
+  border-color: var(--ion-color-primary);
+  background: rgba(var(--ion-color-primary-rgb), 0.06);
+  box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.15);
+  font-weight: 600;
+}
+
+.radio-card::part(label) {
+  white-space: normal;
+  margin-right: 12px;
+}
+
+/* Estilo base para Textarea en móvil (antes faltaba fuera del media query) */
+.textarea-card {
+  --background: #ffffff;
+  background: #ffffff;
+  border: 1.5px solid rgba(var(--ion-color-primary-rgb), 0.35);
+  border-radius: 14px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 14px;
+  --padding-bottom: 14px;
+  --color: var(--ion-color-light-contrast);
+  --placeholder-color: var(--ion-color-medium);
+  font-size: 1rem; /* 16px evita auto-zoom en iOS */
+  line-height: 1.45;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+  box-sizing: border-box;
+
+  &.ion-focused {
+    border-color: var(--ion-color-primary);
+    box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.15);
+  }
+}
+
+/* --- BOTONES DE ACCIÓN --- */
+.action-section {
+  margin-top: 26px;
+  
+  .btn-primary-custom {
+    --background: linear-gradient(135deg, var(--ion-color-secondary-shade) 0%, var(--ion-color-primary-shade) 100%);
+    --border-radius: 16px;
+    --box-shadow: 0 6px 15px rgba(var(--ion-color-primary-rgb), 0.25);
+    --color: #ffffff;
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: 0.3px;
+    min-height: 52px;
+  }
+}
+
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (min-width: 768px) {
+  .questionnaire-content {
+    --background: #f4f6f8; 
+  }
+
+  .responsive-wrapper {
+    padding: 40px 20px;
+    align-items: center; 
+  }
+
+  .form-container {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 40px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06); 
+  }
+
+  .question-text {
+    font-size: 1.8rem; 
+    margin-bottom: 15px;
+  }
+
+  .subtitle.text-sub {
+    font-size: 1.15rem;
+    margin-bottom: 35px;
+  }
+
+  .radio-card {
+    padding: 22px 24px;
+    font-size: 1.15rem;
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(var(--ion-color-primary-rgb), 0.12);
+    }
+  }
+
+  .textarea-card {
+    font-size: 1.1rem;
+    --padding-start: 20px;
+    --padding-end: 20px;
+  }
+
+  .action-section .btn-primary-custom {
+    font-size: 1.15rem;
+    min-height: 55px; 
+  }
+}

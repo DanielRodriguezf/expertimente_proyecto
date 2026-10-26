@@ -1,0 +1,92 @@
+<ion-app>
+
+  <!-- ANIMACIÓN DE BIENVENIDA / SPLASH CON EL LEMA -->
+  <div class="splash-screen" [class.splash-hidden]="!mostrandoSplash" aria-hidden="true">
+    <div class="splash-content">
+      <div class="splash-logo-container">
+        <ion-icon name="ribbon-outline" class="splash-icon"></ion-icon>
+      </div>
+      <h1 class="splash-title">ExpertiMente</h1>
+      <p class="splash-subtitle">
+        Tu <strong>Experiencia</strong> te respalda, tu <strong>Mente</strong> te impulsa y tu talento te convierte en un <strong>Experto</strong>.
+      </p>
+      <div class="splash-loader">
+        <div class="loader-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Menú Lateral -->
+  <ion-menu contentId="main-content" type="overlay" [disabled]="!sesionActiva" class="custom-side-menu">
+
+    <ion-content class="menu-content">
+      <!-- Encabezado de perfil -->
+      <div class="menu-header">
+        <div class="menu-avatar">
+          <!-- Si el usuario tiene foto de perfil -->
+          <img *ngIf="usuarioData?.fotoPerfil" [src]="usuarioData.fotoPerfil" alt="Foto de perfil" class="avatar-image" />
+
+          <!-- Si NO tiene foto, mostramos el ícono -->
+          <ion-icon *ngIf="!usuarioData?.fotoPerfil" name="person-outline"></ion-icon>
+        </div>
+
+        <!-- Nombre Dinámico protegido contra valores vacíos -->
+        <h2 class="menu-user-name">
+          {{ usuarioData ? ((usuarioData.nombre || '') + ' ' + (usuarioData.apellidoPaterno || '')).trim() : 'Cargando...' }}
+        </h2>
+      </div>
+
+      <!-- Opciones de navegación -->
+      <ion-list lines="none" class="menu-list">
+        <ion-item 
+          *ngFor="let p of appPages" 
+          (click)="seleccionarOpcion(p)" 
+          class="menu-item"
+          [class.menu-item-locked]="p.requiereDatos && !tieneDatosCompletos()"
+          button
+          detail="false">
+
+          <ion-icon slot="start" [name]="p.icon" class="menu-item-icon"></ion-icon>
+
+          <ion-label class="menu-item-label">
+            {{ p.title }}
+          </ion-label>
+
+          <!-- Candado visual cuando faltan datos personales -->
+          <ion-icon 
+            *ngIf="p.requiereDatos && !tieneDatosCompletos()" 
+            slot="end" 
+            name="lock-closed-outline" 
+            class="lock-icon">
+          </ion-icon>
+
+          <!-- Flecha indicadora cuando la opción está desbloqueada -->
+          <ion-icon 
+            *ngIf="!p.requiereDatos || tieneDatosCompletos()" 
+            slot="end" 
+            name="chevron-forward-outline" 
+            class="arrow-icon">
+          </ion-icon>
+
+        </ion-item>
+      </ion-list>
+    </ion-content>
+
+    <!-- FOOTER FIJO DEL MENÚ (Cerrar Sesión + Copyright respetando barra de navegación móvil) -->
+    <ion-footer class="ion-no-border menu-footer-container">
+      <div class="menu-footer">
+        <ion-item (click)="cerrarSesion()" lines="none" class="menu-item logout-item" button detail="false">
+          <ion-icon slot="start" name="log-out-outline"></ion-icon>
+          <ion-label>Cerrar Sesión</ion-label>
+        </ion-item>
+
+        <p class="menu-copyright">© ExpertiMente 2026</p>
+      </div>
+    </ion-footer>
+
+  </ion-menu>
+
+  <!-- Contenido Principal de la App -->
+  <ion-router-outlet id="main-content"></ion-router-outlet>
+
+</ion-app>

@@ -1,0 +1,223 @@
+/* --- HEADER Y TOOLBARS --- */
+ion-header {
+  background-color: var(--ion-color-light);
+}
+
+.header-toolbar {
+  --background: var(--ion-color-light);
+  --border-width: 0;
+}
+
+.searchbar-toolbar {
+  --background: var(--ion-color-light);
+  padding: 0 clamp(8px, 3vw, 14px) 6px;
+}
+
+.custom-back-btn {
+  color: var(--ion-color-primary-shade); 
+}
+
+.header-title {
+  color: var(--ion-color-primary-shade);
+  font-weight: 800;
+  font-size: clamp(1.1rem, 4vw, 1.25rem);
+}
+
+/* --- BARRA DE BÚSQUEDA --- */
+.custom-searchbar {
+  --background: #ffffff;
+  --color: var(--ion-color-primary-shade);
+  --placeholder-color: var(--ion-color-medium);
+  --icon-color: var(--ion-color-primary);
+  --clear-button-color: var(--ion-color-medium);
+  --border-radius: 14px;
+  --box-shadow: 0 4px 12px rgba(79, 157, 20, 0.08);
+  padding: 0;
+  max-width: 600px;
+  margin: 0 auto;
+  font-size: 1rem; /* Evita auto-zoom en iOS */
+}
+
+/* --- FILTRO DE ÁREA LABORAL --- */
+.filter-toolbar {
+  --background: var(--ion-color-light);
+  padding: 0 clamp(8px, 3vw, 14px) 10px;
+}
+
+.filter-item {
+  --background: #ffffff;
+  --min-height: 46px;
+  border: 1.5px solid rgba(var(--ion-color-primary-rgb), 0.22);
+  border-radius: 14px;
+  max-width: 600px;
+  margin: 0 auto;
+  box-shadow: 0 2px 8px rgba(79, 157, 20, 0.05);
+
+  .custom-select {
+    width: 100%;
+    font-size: 0.96rem;
+    font-weight: 600;
+    color: var(--ion-color-primary-shade);
+    --placeholder-color: var(--ion-color-medium-shade);
+    --placeholder-opacity: 0.9;
+  }
+}
+
+/* --- CONTENEDOR GENERAL --- */
+ion-content {
+  --background: var(--ion-color-light);
+}
+
+.feed-container {
+  max-width: 600px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 10px clamp(12px, 4vw, 16px) 25px;
+  box-sizing: border-box;
+}
+
+/* --- ESTADOS DE CARGA Y VACÍO --- */
+.loading-container, .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 50px 20px;
+  text-align: center;
+  
+  .custom-spinner {
+    color: var(--ion-color-primary);
+    transform: scale(1.5);
+    margin-bottom: 15px;
+  }
+
+  ion-icon {
+    font-size: 60px;
+    color: var(--ion-color-medium-tint);
+    margin-bottom: 15px;
+  }
+
+  .loading-text, .empty-title, .empty-desc {
+    margin: 0;
+  }
+
+  .empty-title {
+    color: var(--ion-color-primary-shade);
+    font-weight: 800;
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+  }
+
+  .loading-text, .empty-desc {
+    color: var(--ion-color-medium-shade);
+    font-size: 1rem;
+  }
+}
+
+/* --- TARJETAS DE OFERTA DE EMPLEO --- */
+.job-card {
+  border-radius: 20px;
+  background: #ffffff;
+  margin: 0 0 16px 0;
+  box-shadow: 0 8px 24px rgba(79, 157, 20, 0.08);
+  
+  ion-card-content {
+    padding: clamp(15px, 4.5vw, 20px);
+  }
+}
+
+.badge-container {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.badge-modalidad {
+  background: rgba(var(--ion-color-secondary-rgb), 0.15);
+  color: var(--ion-color-secondary-shade);
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  display: inline-block;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.badge-area {
+  background-color: #e0f2fe;
+  color: #0284c7;
+  padding: 5px 10px;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.job-title {
+  color: var(--ion-color-primary-shade);
+  font-size: clamp(1.18rem, 4.5vw, 1.3rem);
+  font-weight: 800;
+  margin: 0 0 4px 0;
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+.job-company {
+  color: var(--ion-color-medium);
+  font-size: 0.98rem;
+  font-weight: 600;
+  margin: 0 0 14px 0;
+  word-break: break-word;
+}
+
+.job-info-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+  min-width: 0;
+
+  .icon-green {
+    color: var(--ion-color-primary);
+    font-size: 1.2rem;
+    margin-right: 8px;
+    flex-shrink: 0;
+  }
+
+  .text-main {
+    color: var(--ion-color-primary-shade);
+    font-weight: 500;
+    word-break: break-word;
+    min-width: 0;
+  }
+
+  .text-sub {
+    color: var(--ion-color-medium-shade);
+    min-width: 0;
+    flex: 1;
+  }
+
+  .truncate-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.mt-15 {
+  margin-top: 16px;
+}
+
+/* --- BOTÓN DE DETALLES --- */
+.btn-primary-custom {
+  --background: linear-gradient(135deg, var(--ion-color-secondary-shade) 0%, var(--ion-color-primary-shade) 100%);
+  --border-radius: 14px;
+  --box-shadow: 0 6px 15px rgba(var(--ion-color-primary-rgb), 0.25);
+  --color: #ffffff;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.3px;
+  min-height: 48px;
+  margin-bottom: 0;
+}

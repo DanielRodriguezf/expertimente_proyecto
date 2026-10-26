@@ -1,0 +1,286 @@
+ion-header {
+  ion-toolbar {
+    --background: linear-gradient(135deg, var(--ion-color-secondary-shade) 0%, var(--ion-color-tertiary-tint) 100%);
+    --border-width: 0;
+    --min-height: 60px;
+  }
+}
+
+.menu-btn-custom {
+  color: #ffffff; 
+}
+
+.app-title {
+  color: #ffffff; 
+  font-weight: 600;
+  font-size: clamp(1.1rem, 4vw, 1.25rem);
+  letter-spacing: 0.5px; 
+}
+
+.main-content {
+  --background: var(--ion-color-light);
+}
+
+.page-container {
+  max-width: 580px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 12px 16px 40px;
+  box-sizing: border-box;
+}
+
+/* --- CAJAS SIMPLES Y LIMPIAS --- */
+.simple-box {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 20px;
+  border: 2px solid rgba(var(--ion-color-primary-rgb), 0.2);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+.top-summary-box {
+  margin-bottom: 24px;
+
+  .areas-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+
+    .box-label {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--ion-color-primary-shade);
+    }
+
+    .link-change-areas {
+      background: rgba(var(--ion-color-primary-rgb), 0.1);
+      border: 1px solid var(--ion-color-primary);
+      color: var(--ion-color-primary-shade);
+      font-weight: 700;
+      font-size: 0.92rem;
+      padding: 6px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+  }
+
+  .areas-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+
+  .area-tag {
+    background: #eaf4e0;
+    color: var(--ion-color-primary-shade);
+    font-weight: 800;
+    font-size: 1rem;
+    padding: 8px 14px;
+    border-radius: 12px;
+  }
+
+  .scan-action-zone {
+    border-top: 1px solid rgba(var(--ion-color-primary-rgb), 0.15);
+    padding-top: 16px;
+  }
+
+  .helper-message {
+    margin: 0 0 14px 0;
+    font-size: 1.02rem;
+    color: var(--ion-color-light-contrast);
+    line-height: 1.45;
+    font-weight: 500;
+
+    &.success-text {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #256f1b;
+      font-weight: 700;
+
+      ion-icon {
+        font-size: 1.5rem;
+        flex-shrink: 0;
+      }
+    }
+  }
+}
+
+/* --- BOTÓN PRINCIPAL GRANDE (ACCESIBLE PARA PERSONAS MAYORES) --- */
+.btn-main-action {
+  --background: var(--ion-color-primary);
+  --background-activated: var(--ion-color-primary-shade);
+  --color: #ffffff;
+  --border-radius: 14px;
+  --box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.25);
+  font-weight: 800;
+  font-size: 1.08rem;
+  min-height: 56px;
+  margin: 0;
+}
+
+/* --- TÍTULO DE SECCIÓN --- */
+.section-heading {
+  color: var(--ion-color-primary-shade);
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin: 0 0 14px 4px;
+}
+
+/* --- TARJETAS DE CARGOS SIMPLIFICADAS --- */
+.jobs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.job-card {
+  margin: 0;
+  border-radius: 18px;
+  background: #ffffff;
+  border: 2px solid rgba(var(--ion-color-primary-rgb), 0.18);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+
+  &.evaluated {
+    border-left: 7px solid var(--ion-color-primary);
+  }
+
+  .job-card-body {
+    padding: 18px;
+  }
+}
+
+.job-main-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+
+  .job-text {
+    flex: 1;
+    min-width: 0;
+
+    .job-area {
+      display: block;
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--ion-color-medium-shade);
+      margin-bottom: 4px;
+    }
+
+    .job-title {
+      margin: 0;
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--ion-color-primary-shade);
+      line-height: 1.25;
+    }
+  }
+}
+
+/* --- CUADRO DE PORCENTAJE GRANDE Y CLARO --- */
+.score-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 96px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  text-align: center;
+  flex-shrink: 0;
+
+  .score-number {
+    font-size: 1.45rem;
+    font-weight: 900;
+    line-height: 1.1;
+  }
+
+  .score-caption {
+    font-size: 0.82rem;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+
+  &.score-high {
+    background: #dff3d8;
+    color: #1e5e15;
+    border: 1.5px solid #9fd48e;
+  }
+
+  &.score-medium {
+    background: #fff3cd;
+    color: #7a5a00;
+    border: 1.5px solid #ebd07a;
+  }
+
+  &.score-low {
+    background: #f8d7da;
+    color: #842029;
+    border: 1.5px solid #e4a2a8;
+  }
+
+  &.pending {
+    background: #f3f3f3;
+    color: #666666;
+    border: 1.5px dashed #cccccc;
+    min-height: 54px;
+  }
+}
+
+.btn-view-job {
+  --border-radius: 12px;
+  --border-width: 2px;
+  --border-color: var(--ion-color-primary);
+  --color: var(--ion-color-primary-shade);
+  font-weight: 800;
+  font-size: 1rem;
+  min-height: 50px;
+  margin: 0;
+}
+
+/* --- ESTADOS VACÍOS Y CARGA --- */
+.empty-state {
+  text-align: center;
+  padding: 28px 20px;
+
+  .big-icon {
+    font-size: 3.4rem;
+    color: var(--ion-color-primary);
+    margin-bottom: 10px;
+  }
+
+  h2 {
+    margin: 0 0 10px 0;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--ion-color-primary-shade);
+  }
+
+  p {
+    margin: 0 0 18px 0;
+    font-size: 1.05rem;
+    color: var(--ion-color-light-contrast);
+    line-height: 1.45;
+  }
+}
+
+.loading-container {
+  text-align: center;
+  padding: 60px 20px;
+  font-size: 1.1rem;
+  color: var(--ion-color-primary-shade);
+  font-weight: 700;
+}
+
+.fade-in {
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}

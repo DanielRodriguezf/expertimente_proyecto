@@ -1,0 +1,230 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      @if (conversacionActiva) {
+        <ion-button class="menu-btn-custom" (click)="volverABandeja()" aria-label="Volver a la bandeja">
+          <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+        </ion-button>
+      } @else {
+        <ion-back-button defaultHref="/home" class="menu-btn-custom"></ion-back-button>
+      }
+    </ion-buttons>
+
+    @if (!conversacionActiva) {
+      <ion-title class="app-title">Mis Mensajes</ion-title>
+    } @else {
+      <div class="chat-header-wrapper">
+        <div class="chat-header-avatar">
+          <ion-icon name="person-outline"></ion-icon>
+        </div>
+        <div class="chat-header-info">
+          <h2 class="chat-recruiter-name">{{ conversacionActiva.nombreReclutador }}</h2>
+          <span class="chat-company-name">
+            <ion-icon name="business-outline"></ion-icon>
+            <span class="company-text">{{ conversacionActiva.nombreEmpresa }}</span>
+          </span>
+        </div>
+      </div>
+    }
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="mensajes-content" [class.chat-bg]="!!conversacionActiva">
+  <div class="page-container" [class.chat-container]="!!conversacionActiva">
+
+    <!-- ========================================== -->
+    <!-- VISTA 1: BANDEJA DE CONVERSACIONES         -->
+    <!-- ========================================== -->
+    @if (!conversacionActiva) {
+      <div class="inbox-view fade-in">
+        <div class="highlight-banner">
+          <div class="highlight-icon">
+            <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+          </div>
+          <div class="highlight-text">
+            <h3>Contacto Directo</h3>
+            <p>Toca una conversación para abrir el chat y responder al reclutador.</p>
+          </div>
+        </div>
+
+        <h2 class="list-section-title">Tus conversaciones</h2>
+
+        @if (cargandoBandeja) {
+          <div class="status-box">
+            <ion-spinner name="crescent" color="primary" class="state-spinner"></ion-spinner>
+            <p class="state-text">Cargando tus conversaciones...</p>
+          </div>
+        }
+
+        @else if (errorBandeja) {
+          <div class="status-box error-box">
+            <ion-icon name="alert-circle-outline" class="state-icon danger-icon"></ion-icon>
+            <h3>Ocurrió un problema</h3>
+            <p>{{ errorBandeja }}</p>
+            <ion-button expand="block" class="btn-primary-custom" (click)="iniciarEscuchaBandeja()">
+              <ion-icon slot="start" name="refresh-outline"></ion-icon>
+              Reintentar
+            </ion-button>
+          </div>
+        }
+
+        @else if (conversaciones.length === 0) {
+          <div class="status-box">
+            <div class="empty-icon-wrap">
+              <ion-icon name="chatbubbles-outline"></ion-icon>
+            </div>
+            <h3>Aún no tienes mensajes</h3>
+            <p>
+              Cuando un reclutador revise tu perfil y te escriba, verás sus mensajes aquí para responderle directamente.
+            </p>
+          </div>
+        }
+
+        @else {
+          <div class="conv-list">
+            @for (conv of conversaciones; track conv.id) {
+              <button
+                type="button"
+                class="home-style-card fade-in"
+                [class.unread-card]="esNoLeido(conv)"
+                (click)="seleccionarConversacion(conv)">
+
+                <div class="card-icon-box" [class.unread-icon-box]="esNoLeido(conv)">
+                  <ion-icon name="person-outline"></ion-icon>
+                  @if (esNoLeido(conv)) {
+                    <span class="unread-dot"></span>
+                  }
+                </div>
+
+                <div class="card-body">
+                  <div class="card-top-line">
+                    <span class="recruiter-title">{{ conv.nombreReclutador }}</span>
+                    <span class="conv-time" [class.unread-time]="esNoLeido(conv)">
+                      {{ formatearFecha(conv.actualizadoEn) }}
+                    </span>
+                  </div>
+
+                  <div class="company-row">
+                    <span class="company-pill">
+                      <ion-icon name="business-outline"></ion-icon>
+                      <span class="company-pill-text">{{ conv.nombreEmpresa }}</span>
+                    </span>
+                    @if (esNoLeido(conv)) {
+                      <span class="new-tag">Nuevo</span>
+                    }
+                  </div>
+
+                  <p class="preview-msg" [class.unread-msg]="esNoLeido(conv)">
+                    @if (conv.ultimoEmisorId === uid) {
+                      <ion-icon name="checkmark-done-outline" class="check-icon"></ion-icon>
+                      <strong class="you-label">Tú: </strong>
+                    }
+                    {{ conv.ultimoMensaje }}
+                  </p>
+                </div>
+
+                <ion-icon name="chevron-forward-outline" class="card-chevron"></ion-icon>
+              </button>
+            }
+          </div>
+        }
+
+      </div>
+    }
+
+    <!-- ========================================== -->
+    <!-- VISTA 2: DETALLE DE LA CONVERSACIÓN (CHAT) -->
+    <!-- ========================================== -->
+    @if (conversacionActiva) {
+      <div class="chat-wrapper fade-in">
+
+        @if (cargandoMensajes) {
+          <div class="status-box">
+            <ion-spinner name="crescent" color="primary" class="state-spinner"></ion-spinner>
+            <p class="state-text">Cargando mensajes...</p>
+          </div>
+        } @else if (errorMensajes) {
+          <div class="status-box error-box">
+            <ion-icon name="alert-circle-outline" class="state-icon danger-icon"></ion-icon>
+            <h3>Error al abrir el chat</h3>
+            <p>{{ errorMensajes }}</p>
+            <ion-button expand="block" class="btn-primary-custom" (click)="iniciarEscuchaMensajes(conversacionActiva.id)">
+              <ion-icon slot="start" name="refresh-outline"></ion-icon>
+              Reintentar
+            </ion-button>
+          </div>
+        } @else if (mensajes.length === 0) {
+          <div class="status-box">
+            <div class="empty-icon-wrap">
+              <ion-icon name="chatbubbles-outline"></ion-icon>
+            </div>
+            <h3>Inicia la conversación</h3>
+            <p>Escribe tu mensaje en el recuadro inferior para responder al reclutador.</p>
+          </div>
+        } @else {
+          <div class="messages-list">
+            @for (msg of mensajes; track msg.id) {
+              <div
+                class="message-row"
+                [class.mine]="msg.emisorId === uid"
+                [class.theirs]="msg.emisorId !== uid">
+
+                <div class="message-bubble">
+                  <p class="message-text">{{ msg.texto }}</p>
+                  <div class="message-meta">
+                    <span class="message-time">{{ formatearFecha(msg.creadoEn) }}</span>
+                    @if (msg.emisorId === uid) {
+                      <ion-icon name="checkmark-done-outline" class="msg-check"></ion-icon>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+      </div>
+    }
+
+  </div>
+</ion-content>
+
+<!-- ========================================== -->
+<!-- FOOTER: CAJA DE RESPUESTA                  -->
+<!-- ========================================== -->
+@if (conversacionActiva) {
+  <ion-footer class="ion-no-border custom-page-footer">
+    <div class="composer-bar">
+      <div class="composer-container">
+        <div class="textarea-wrapper">
+          <ion-textarea
+            [(ngModel)]="nuevoMensaje"
+            placeholder="Escribe tu respuesta aquí..."
+            [autoGrow]="true"
+            [rows]="1"
+            [maxlength]="MAX_CARACTERES"
+            [disabled]="enviando"
+            class="chat-input">
+          </ion-textarea>
+          @if (nuevoMensaje.length > 1800) {
+            <span class="char-counter" [class.limit-near]="nuevoMensaje.length >= MAX_CARACTERES">
+              {{ nuevoMensaje.trim().length }} / {{ MAX_CARACTERES }}
+            </span>
+          }
+        </div>
+
+        <ion-button
+          class="send-btn"
+          [disabled]="!puedeEnviar"
+          (click)="enviarRespuesta()"
+          aria-label="Enviar mensaje">
+          @if (enviando) {
+            <ion-spinner name="crescent" class="send-spinner"></ion-spinner>
+          } @else {
+            <ion-icon slot="icon-only" name="send"></ion-icon>
+          }
+        </ion-button>
+      </div>
+    </div>
+  </ion-footer>
+}
