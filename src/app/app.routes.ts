@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth-guard';
 import { publicGuard } from './guards/public-guard'; 
+import { salirDelRegistroGuard } from './guards/unregister-guard';
 
 export const routes: Routes = [
   {
@@ -13,13 +14,14 @@ export const routes: Routes = [
     path: 'login',
     loadComponent: () => import('./pages-auth/login/login.page').then( m => m.LoginPage),
     title: 'Login - ExpertiMente',
-    canActivate: [publicGuard] // <-- 2. Protegemos el login de usuarios ya logueados
+    canActivate: [publicGuard]
   },
   {
     path: 'register',
     loadComponent: () => import('./pages-auth/register/register.page').then( m => m.RegisterPage),
     title: 'Registro - ExpertiMente',
-    canActivate: [publicGuard] // <-- 3. Protegemos el registro
+    canActivate: [publicGuard],
+    canDeactivate: [salirDelRegistroGuard]
   },
   {
     path: '',

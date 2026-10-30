@@ -16,8 +16,8 @@
     </div>
   </div>
 
-  <!-- Menú Lateral -->
-  <ion-menu contentId="main-content" type="overlay" [disabled]="!sesionActiva" class="custom-side-menu">
+  <!-- Menú Lateral (Solo habilitado si hay sesión activa Y estamos en /home) -->
+  <ion-menu contentId="main-content" type="overlay" [disabled]="!sesionActiva || !esRutaHome" class="custom-side-menu">
 
     <ion-content class="menu-content">
       <!-- Encabezado de perfil -->

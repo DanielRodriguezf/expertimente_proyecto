@@ -7,8 +7,8 @@
   flex-direction: column;
   justify-content: center;
   min-height: 100dvh;
-  padding: clamp(1.25rem, 5vw, 2rem);
-  max-width: 500px;
+  padding: clamp(1rem, 4vw, 1.75rem);
+  max-width: 460px;
   width: 100%;
   margin: 0 auto;
   box-sizing: border-box;
@@ -16,35 +16,38 @@
 
 .header-section {
   text-align: center;
-  margin-bottom: clamp(1.5rem, 4vh, 2.5rem);
+  margin-bottom: clamp(1.25rem, 3.5vh, 2rem);
 
   .brand-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    margin-bottom: 0.5rem;
+    gap: 8px;
+    margin-bottom: 0.4rem;
 
     .brand-logo {
-      width: clamp(90px, 25vw, 120px);
+      /* Tamaño del logo optimizado para móviles: ni muy grande ni muy pequeño */
+      width: clamp(180px, 22vw, 250px);
       height: auto;
       max-width: 100%;
       object-fit: contain;
+      filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.08));
     }
 
     .brand-title {
-      font-size: clamp(1.8rem, 6vw, 2.2rem); 
+      /* Título "ExpertiMente" con tamaño fluido y limpio */
+      font-size: clamp(2.4rem, 5.5vw, 2.8rem); 
       font-weight: 800;
       color: var(--ion-color-tertiary-shade); 
       margin: 0;
       letter-spacing: -0.5px;
-      line-height: 1.2;
+      line-height: 1.15;
     }
   }
 
   .brand-subtitle {
-    font-size: clamp(0.95rem, 3.5vw, 1.05rem); 
+    font-size: clamp(0.9rem, 3.2vw, 1rem); 
     font-weight: 500;
     color: var(--ion-color-medium); 
     margin: 0;
@@ -53,7 +56,7 @@
 
 .form-container {
   background: #ffffff;
-  padding: clamp(1.5rem, 5vw, 2rem);
+  padding: clamp(1.25rem, 4.5vw, 1.75rem);
   border-radius: 20px;
   box-shadow: 0 8px 24px rgba(79, 157, 20, 0.08); 
   width: 100%;
@@ -61,15 +64,15 @@
 }
 
 .input-group {
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
 }
 
 .custom-input-item {
   --background: var(--ion-color-light-tint); 
   --border-radius: 10px;
-  --padding-start: 0.9rem;
-  --inner-padding-end: 0.4rem;
-  margin-bottom: 0.5rem;
+  --padding-start: 0.8rem;
+  --inner-padding-end: 0.3rem;
+  margin-bottom: 0.25rem;
   border: 1px solid transparent;
   transition: border-color 0.3s ease;
 
@@ -79,15 +82,15 @@
 
   .input-icon {
     color: var(--ion-color-secondary); 
-    margin-right: 10px;
-    font-size: 1.3rem; 
+    margin-right: 8px;
+    font-size: 1.2rem; 
     flex-shrink: 0;
   }
 
   ion-input {
-    --padding-top: 1.2rem;
-    --padding-bottom: 1.2rem;
-    font-size: 1rem; /* 16px para legibilidad y evitar zoom automático en móviles */
+    --padding-top: 1rem;
+    --padding-bottom: 1rem;
+    font-size: 1rem; /* 16px asegura que los móviles no hagan zoom automático indeseado */
     font-weight: 600; 
     color: var(--ion-color-light-contrast); 
     caret-color: var(--ion-color-primary-shade); 
@@ -98,26 +101,26 @@
 
 .password-toggle {
   color: var(--ion-color-medium); 
-  min-width: 44px;
-  min-height: 44px;
+  min-width: 40px;
+  min-height: 40px;
   margin: 0;
   
   ion-icon {
-    font-size: 1.3rem; 
+    font-size: 1.2rem; 
   }
 }
 
 .actions-row {
-  margin-bottom: 1.5rem;
-  text-align: center;
+  margin-bottom: 1.25rem;
+  text-align: center; // Alineado a la derecha para mayor comodidad táctil
 
   .forgot-link {
     color: var(--ion-color-tertiary-shade); 
-    font-size: 0.95rem; 
+    font-size: 0.9rem; 
     font-weight: 600; 
     text-decoration: none;
     display: inline-block;
-    padding: 10px 12px; 
+    padding: 6px 8px; 
     border-radius: 6px;
     
     &:hover, &:active {
@@ -133,22 +136,67 @@
   --border-radius: 10px;
   --box-shadow: 0 4px 10px rgba(79, 157, 20, 0.2);
   margin: 0;
-  height: 52px; 
-  font-size: 1.05rem; 
+  height: 48px; 
+  font-size: 1rem; 
   font-weight: 700; 
   letter-spacing: 0.5px;
 }
 
+/* =======================================================
+   ACCESO CON GOOGLE
+======================================================= */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 1rem 0;
+  color: rgba(var(--ion-color-light-contrast-rgb), 0.8);
+  font-size: 0.9rem;
+  font-weight: 600;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--ion-color-light-shade);
+  }
+}
+
+.google-btn {
+  --background: #ffffff;
+  --background-hover: #f6f6f6;
+  --background-activated: #eeeeee;
+  --color: #1f1f1f;
+  --border-radius: 10px;
+  --border-color: #747775;
+  --border-style: solid;
+  --border-width: 1px;
+  --box-shadow: 0 1px 3px rgba(31, 45, 24, 0.12);
+  margin: 0;
+  height: 48px;
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: none;
+
+  .google-logo {
+    width: 20px;
+    height: 20px;
+    margin-inline-end: 10px;
+    flex-shrink: 0;
+  }
+}
+
 .register-container {
-  margin-top: 1.75rem;
+  margin-top: 1.25rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px; 
+  gap: 8px; 
   
   .register-text {
     color: var(--ion-color-medium); 
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     font-weight: 500;
   }
 
@@ -159,8 +207,8 @@
     --color: var(--ion-color-primary-shade);
     margin: 0;
     width: 100%; 
-    height: 50px;
-    font-size: 1rem;
+    height: 46px;
+    font-size: 0.95rem;
     font-weight: 700;
   }
 }
@@ -186,17 +234,38 @@
   }
 }
 
-/* Ajuste para pantallas bajas o modo horizontal */
-@media (max-height: 680px) {
+/* Ajuste específico para pantallas móviles reducidas o en modo horizontal */
+@media (max-height: 700px) {
   .login-wrapper {
     justify-content: flex-start;
-    padding-top: 1.5rem;
-    padding-bottom: 2rem;
+    padding-top: 1rem;
+    padding-bottom: 1.5rem;
   }
   .header-section {
-    margin-bottom: 1.25rem;
-    .brand-container .brand-logo {
-      width: 80px;
+    margin-bottom: 1rem;
+    .brand-container {
+      gap: 4px;
+      .brand-logo {
+        width: 85px;
+      }
+      .brand-title {
+        font-size: 1.6rem;
+      }
     }
+    .brand-subtitle {
+      font-size: 0.85rem;
+    }
+  }
+  .form-container {
+    padding: 1rem;
+  }
+  .input-group {
+    margin-bottom: 0.75rem;
+  }
+  .divider {
+    margin: 0.75rem 0;
+  }
+  .register-container {
+    margin-top: 1rem;
   }
 }

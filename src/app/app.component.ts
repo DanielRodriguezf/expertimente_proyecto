@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild, inject, ChangeDetectorRef } from '@angular/core'; 
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { 
   IonApp, 
   IonRouterOutlet, 
@@ -21,6 +21,7 @@ import {
   PopoverController
 } from '@ionic/angular';
 import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import { addIcons } from 'ionicons';
 import { 
   homeOutline, 
@@ -34,8 +35,9 @@ import {
   ribbonOutline 
 } from 'ionicons/icons';
 
-import { Auth, onAuthStateChanged, signOut } from '@angular/fire/auth';
+import { Auth, onAuthStateChanged } from '@angular/fire/auth';
 import { Firestore, doc, onSnapshot, Unsubscribe } from '@angular/fire/firestore'; 
+import { GoogleAuthService } from './services/google-auth';
 
 @Component({
   selector: 'app-root',
@@ -80,15 +82,17 @@ export class AppComponent implements OnInit, OnDestroy {
   private modalCtrl = inject(ModalController);
   private actionSheetCtrl = inject(ActionSheetController);
   private popoverCtrl = inject(PopoverController);
+  private googleAuth = inject(GoogleAuthService);
 
   usuarioData: any = null;
   sesionActiva: boolean = false; 
+  esRutaHome: boolean = false; // Controla si estamos exactamente en /home
   progresoPerfil: number = 0;
   
-  // Control para la animación de bienvenida / Splash
   mostrandoSplash: boolean = true;
 
   private backButtonSub: Subscription | null = null;
+  private routerSub: Subscription | null = null;
   private unsubPerfil: Unsubscribe | null = null;
 
   constructor() {
@@ -107,8 +111,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.configurarBotonAtrasGlobal();
+    this.monitorearRutaActiva();
 
-    // Duración de la pantalla de bienvenida (3.5 segundos)
     setTimeout(() => {
       this.mostrandoSplash = false;
       this.cdr.detectChanges();
@@ -129,12 +133,17 @@ export class AppComponent implements OnInit, OnDestroy {
               this.sesionActiva = true; 
               this.usuarioData = docSnap.data(); 
               this.calcularProgreso(this.usuarioData); 
+              this.actualizarEstadoMenu();
               this.cdr.detectChanges(); 
             } else {
+              if (this.googleAuth.registroGoogleEnCurso) {
+                return; // se está registrando con Google: todavía no tiene documento
+              }
               console.warn('Usuario fantasma detectado (sin BD). Expulsando...');
-              await signOut(this.auth); 
+              await this.googleAuth.cerrarSesion(); 
               this.sesionActiva = false;
               this.usuarioData = null;
+              this.actualizarEstadoMenu();
               this.router.navigate(['/login']); 
             }
           });
@@ -145,6 +154,7 @@ export class AppComponent implements OnInit, OnDestroy {
       } else {
         this.sesionActiva = false; 
         this.usuarioData = null;
+        this.actualizarEstadoMenu();
         this.cdr.detectChanges();
       }
     });
@@ -154,25 +164,50 @@ export class AppComponent implements OnInit, OnDestroy {
     if (this.backButtonSub) {
       this.backButtonSub.unsubscribe();
     }
+    if (this.routerSub) {
+      this.routerSub.unsubscribe();
+    }
     if (this.unsubPerfil) {
       this.unsubPerfil();
     }
   }
 
-  // =======================================================
-  // MANEJO GLOBAL DEL BOTÓN "ATRÁS" DE ANDROID (PRIORIDAD 5)
-  // =======================================================
+  private monitorearRutaActiva() {
+    // Evaluamos la ruta inicial
+    this.verificarSiEsHome(this.router.url);
+
+    // Escuchamos cada cambio de página
+    this.routerSub = this.router.events
+      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+      .subscribe((event: NavigationEnd) => {
+        this.verificarSiEsHome(event.urlAfterRedirects);
+      });
+  }
+
+  private verificarSiEsHome(url: string) {
+    const rutaLimpia = url.split('?')[0];
+    this.esRutaHome = rutaLimpia === '/home';
+    this.actualizarEstadoMenu();
+  }
+
+  private async actualizarEstadoMenu() {
+    const habilitar = this.sesionActiva && this.esRutaHome;
+    await this.menuCtrl.enable(habilitar);
+    if (!habilitar) {
+      await this.menuCtrl.close();
+    }
+    this.cdr.detectChanges();
+  }
+
   private configurarBotonAtrasGlobal() {
     this.platform.ready().then(() => {
       this.backButtonSub = this.platform.backButton.subscribeWithPriority(5, async () => {
-        // 1. Si el menú lateral está abierto, lo cierra primero
         const menuAbierto = await this.menuCtrl.isOpen();
         if (menuAbierto) {
           await this.menuCtrl.close();
           return;
         }
 
-        // 2. Si hay algún componente superpuesto abierto (Alert, Modal, ActionSheet, Popover), lo cierra
         const topModal = await this.modalCtrl.getTop();
         if (topModal) {
           await topModal.dismiss();
@@ -197,16 +232,13 @@ export class AppComponent implements OnInit, OnDestroy {
           return;
         }
 
-        // 3. Evaluar la ruta actual
         const urlActual = this.router.url.split('?')[0];
-        const rutasRaiz = ['/home', '/login', '/registro', '/'];
+        const rutasRaiz = ['/home', '/login', '/register', '/registro', '/'];
 
         if (rutasRaiz.includes(urlActual)) {
-          // Si ya está en una vista raíz (como /home o /login), evitamos retroceder a pantallas previas
           return;
         }
 
-        // 4. Si está en cualquier otra página de la app, retrocede en el historial o vuelve a /home
         if (this.routerOutlet && this.routerOutlet.canGoBack()) {
           this.navCtrl.pop();
         } else if (this.sesionActiva) {
@@ -261,7 +293,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   async cerrarSesion() {
     try {
-      await signOut(this.auth); 
+      await this.googleAuth.cerrarSesion(); 
       await this.menuCtrl.close(); 
       this.router.navigateByUrl('/login'); 
     } catch (error) {

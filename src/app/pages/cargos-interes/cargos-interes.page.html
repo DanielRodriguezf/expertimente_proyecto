@@ -49,7 +49,7 @@
           <div class="scan-action-zone">
             @if (!todosEvaluados) {
               <p class="helper-message">
-                Presiona el botón verde para analizar tu currículum y entrar a la lista de los reclutadores:
+                Presiona el botón verde para analizar tu currículum con Inteligencia Artificial y entrar a la lista de los reclutadores:
               </p>
             } @else {
               <p class="helper-message success-text">
@@ -65,7 +65,7 @@
               (click)="escanearTodosLosCargosDeMisAreas()">
               @if (escaneandoGlobal) {
                 <ion-spinner name="crescent" slot="start"></ion-spinner>
-                Analizando tu Currículum...
+                Analizando tu Currículum con IA...
               } @else {
                 <ion-icon [name]="todosEvaluados ? 'refresh-outline' : 'sparkles-outline'" slot="start"></ion-icon>
                 {{ todosEvaluados ? 'Actualizar mi Compatibilidad' : 'Escanear mi Currículum' }}

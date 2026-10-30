@@ -18,11 +18,14 @@ import {
   lockClosedOutline, 
   eyeOutline, 
   eyeOffOutline, 
-  warningOutline
+  warningOutline,
+  alertCircleOutline,
+  checkmarkCircleOutline
 } from 'ionicons/icons';
 
-import { Auth, signInWithEmailAndPassword, signOut } from '@angular/fire/auth'; 
+import { Auth, signInWithEmailAndPassword } from '@angular/fire/auth'; 
 import { Firestore, doc, getDoc, updateDoc } from '@angular/fire/firestore'; 
+import { GoogleAuthService } from '../../services/google-auth';
 
 @Component({
   selector: 'app-login',
@@ -50,6 +53,7 @@ export class LoginPage {
   private alertCtrl = inject(AlertController); 
   private toastCtrl = inject(ToastController); 
   private cdr = inject(ChangeDetectorRef);
+  private googleAuth = inject(GoogleAuthService);
 
   credenciales = {
     correo: '',
@@ -57,6 +61,7 @@ export class LoginPage {
   };
 
   cargando: boolean = false;
+  cargandoGoogle: boolean = false;
 
   constructor() {
     addIcons({
@@ -64,7 +69,9 @@ export class LoginPage {
       'lock-closed-outline': lockClosedOutline,
       'eye-outline': eyeOutline,
       'eye-off-outline': eyeOffOutline,
-      'warning-outline': warningOutline
+      'warning-outline': warningOutline,
+      'alert-circle-outline': alertCircleOutline,
+      'checkmark-circle-outline': checkmarkCircleOutline
     });
   }
 
@@ -74,6 +81,7 @@ export class LoginPage {
 
   resetearFormulario() {
     this.cargando = false;
+    this.cargandoGoogle = false;
     this.credenciales = { correo: '', password: '' };
     this.showPassword = false;
     this.cdr.detectChanges();
@@ -83,21 +91,34 @@ export class LoginPage {
     this.showPassword = !this.showPassword;
   }
 
-  async mostrarError(mensaje: string) {
+  /**
+   * Muestra el Toast accesible usando la clase 'toast-expertimente' definida en global.scss
+   */
+  async mostrarError(mensaje: string, color: 'danger' | 'warning' | 'success' = 'danger') {
+    const icono = color === 'success' 
+      ? 'checkmark-circle-outline' 
+      : color === 'warning' 
+        ? 'warning-outline' 
+        : 'alert-circle-outline';
+
     const toast = await this.toastCtrl.create({
       message: mensaje,
-      duration: 3500,
-      position: 'top',
-      color: 'danger',
-      icon: 'warning-outline',
-      buttons: [{ text: 'OK', role: 'cancel' }]
+      duration: 3000,
+      position: 'bottom',
+      color: color,
+      icon: icono,
+      cssClass: 'toast-expertimente'
     });
     await toast.present();
   }
 
   async iniciarSesion() {
+    if (this.cargandoGoogle) {
+      return;
+    }
+
     if (!this.credenciales.correo || !this.credenciales.password) {
-      await this.mostrarError('Por favor, ingresa tu correo y contraseña.');
+      await this.mostrarError('Por favor, ingresa tu correo y contraseña.', 'warning');
       return;
     }
 
@@ -115,42 +136,20 @@ export class LoginPage {
       const docRef = doc(this.firestore, `postulantes/${user.uid}`);
       const docSnap = await getDoc(docRef);
 
-      if (docSnap.exists()) {
-        const userData = docSnap.data();
+      // Validación: Si no tiene ficha en Firestore, no puede entrar al Home
+      if (!docSnap.exists()) {
+        await this.googleAuth.cerrarSesion();
+        this.cargando = false;
+        this.cdr.detectChanges();
+        await this.mostrarAlertaCuentaNoRegistrada();
+        return;
+      }
 
-        if (userData['estadoCuenta'] === 'inactiva') {
-          this.cargando = false; 
-          this.cdr.detectChanges();
+      const userData = docSnap.data();
 
-          const alert = await this.alertCtrl.create({
-            header: 'Cuenta Inactiva',
-            message: 'Habías desactivado tu cuenta anteriormente. ¿Deseas reactivarla para volver a usar ExpertiMente?',
-            backdropDismiss: false, 
-            buttons: [
-              {
-                text: 'No, cancelar',
-                role: 'cancel',
-                handler: async () => {
-                  await signOut(this.auth); 
-                  await this.mostrarError('Inicio de sesión cancelado.');
-                }
-              },
-              {
-                text: 'Sí, reactivar',
-                handler: async () => {
-                  this.cargando = true;
-                  this.cdr.detectChanges(); 
-                  await updateDoc(docRef, { estadoCuenta: 'activa' });
-                  
-                  this.ejecutarNavegacion();
-                }
-              }
-            ]
-          });
-          
-          await alert.present();
-          return; 
-        }
+      if (userData['estadoCuenta'] === 'inactiva') {
+        await this.mostrarAlertaCuentaInactiva(user.uid, 'correo');
+        return; 
       }
       
       this.ejecutarNavegacion();
@@ -169,6 +168,121 @@ export class LoginPage {
         await this.mostrarError('Ocurrió un error al intentar entrar. Inténtalo de nuevo.');
       }
     } 
+  }
+
+  async iniciarConGoogle() {
+    if (this.cargando || this.cargandoGoogle) {
+      return;
+    }
+
+    this.cargandoGoogle = true;
+    this.cdr.detectChanges();
+
+    try {
+      // Pasamos soloLogin = true para que NO deje abierta una cuenta que no está registrada
+      const { user, estado } = await this.googleAuth.iniciarConGoogle(true);
+
+      if (estado === 'nuevo') {
+        this.cargandoGoogle = false;
+        this.cdr.detectChanges();
+        await this.mostrarAlertaCuentaNoRegistrada();
+        return;
+      }
+
+      if (estado === 'inactiva') {
+        await this.mostrarAlertaCuentaInactiva(user.uid, 'google');
+        return;
+      }
+
+      // Solo llega aquí si estado === 'activa' (tiene documento en postulantes)
+      this.ejecutarNavegacion();
+
+    } catch (error: any) {
+      console.error('Error al iniciar sesión con Google:', error);
+
+      this.cargandoGoogle = false;
+      this.cdr.detectChanges();
+
+      await this.mostrarError(this.googleAuth.mensajeDeError(error));
+    }
+  }
+
+  /** Alerta cuando intenta iniciar sesión con una cuenta de Google que aún no se ha registrado */
+  private async mostrarAlertaCuentaNoRegistrada() {
+    const alert = await this.alertCtrl.create({
+      header: 'Cuenta no registrada',
+      message: 'Esta cuenta de Google aún no está registrada en ExpertiMente. Primero debes crear tu cuenta en la sección de Registro.',
+      cssClass: 'alerta-expertimente',
+      backdropDismiss: false,
+      buttons: [
+        {
+          text: 'Entendido',
+          role: 'cancel'
+        },
+        {
+          text: 'Ir a Registrarme',
+          handler: () => {
+            this.router.navigate(['/register']);
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  /** Alerta para reactivar una cuenta desactivada (la usan el ingreso con correo y el ingreso con Google) */
+  private async mostrarAlertaCuentaInactiva(uid: string, metodo: 'correo' | 'google') {
+    this.cargando = false;
+    this.cargandoGoogle = false;
+    this.cdr.detectChanges();
+
+    const docRef = doc(this.firestore, `postulantes/${uid}`);
+
+    const alert = await this.alertCtrl.create({
+      header: 'Cuenta Inactiva',
+      message: 'Habías desactivado tu cuenta anteriormente. ¿Deseas reactivarla para volver a usar ExpertiMente?',
+      backdropDismiss: false, 
+      cssClass: 'alerta-expertimente',
+      buttons: [
+        {
+          text: 'No, cancelar',
+          role: 'cancel',
+          handler: async () => {
+            await this.googleAuth.cerrarSesion(); 
+            await this.mostrarError('Inicio de sesión cancelado.', 'warning');
+          }
+        },
+        {
+          text: 'Sí, reactivar',
+          handler: async () => {
+            if (metodo === 'google') {
+              this.cargandoGoogle = true;
+            } else {
+              this.cargando = true;
+            }
+            this.cdr.detectChanges(); 
+
+            try {
+              await updateDoc(docRef, { estadoCuenta: 'activa' });
+              await this.mostrarError('¡Tu cuenta ha sido reactivada con éxito!', 'success');
+              this.ejecutarNavegacion();
+            } catch (error) {
+              console.error('Error al reactivar la cuenta:', error);
+              await this.googleAuth.cerrarSesion();
+
+              this.cargando = false;
+              this.cargandoGoogle = false;
+              this.cdr.detectChanges();
+
+              await this.mostrarError('No pudimos reactivar tu cuenta. Inténtalo de nuevo.');
+            }
+          }
+        }
+      ]
+    });
+    
+    await alert.present();
   }
 
   private ejecutarNavegacion() {

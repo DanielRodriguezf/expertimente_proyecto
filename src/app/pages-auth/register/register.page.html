@@ -27,6 +27,56 @@
       <h2>Tu Identidad</h2>
       <p class="subtitle">Queremos conocerte mejor.</p>
 
+      @if (!esRegistroGoogle) {
+        <ion-button 
+          type="button" 
+          expand="block" 
+          class="google-btn" 
+          [disabled]="cargandoGoogle"
+          (click)="registrarConGoogle()">
+          @if (cargandoGoogle) {
+            <ion-spinner name="crescent"></ion-spinner>
+          } @else {
+            <svg slot="start" class="google-logo" viewBox="0 0 48 48" aria-hidden="true">
+              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+              <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+            </svg>
+            Registrarme con Google
+          }
+        </ion-button>
+
+        @if (errorMessage) {
+          <p class="error-message">{{ errorMessage }}</p>
+        }
+
+        <div class="divider" aria-hidden="true">
+          <span>o completa tus datos</span>
+        </div>
+      } @else {
+        <div class="google-banner" role="status">
+          <svg class="google-logo" viewBox="0 0 48 48" aria-hidden="true">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+          </svg>
+          <div class="google-banner-text">
+            <strong>Cuenta de Google conectada</strong>
+            <span>{{ usuario.correo }}</span>
+          </div>
+          <ion-button 
+            type="button" 
+            fill="clear" 
+            size="small" 
+            class="google-banner-btn" 
+            (click)="cancelarModoGoogle()">
+            Usar otra
+          </ion-button>
+        </div>
+      }
+
       <ion-input
         label="RUT (con guión)"
         labelPlacement="floating"
@@ -118,13 +168,15 @@
       <p class="subtitle">¡Para que las empresas puedan llamarte!</p>
 
       <ion-input
-        label="Correo electrónico personal"
+        label="Correo electrónico"
         labelPlacement="floating"
         fill="outline"
         type="email"
+        [readonly]="esRegistroGoogle"
         [(ngModel)]="usuario.correo"
         color="primary">
       </ion-input>
+
 
       <ion-input
         label="Teléfono Celular"
@@ -135,9 +187,20 @@
         color="primary">
       </ion-input>
 
-      <ion-button expand="block" class="btn-primary" (click)="siguientePaso()">
-        Continuar
-      </ion-button>
+      @if (esRegistroGoogle) {
+        @if (errorMessage) {
+          <p class="error-message">{{ errorMessage }}</p>
+        }
+
+        <ion-button expand="block" class="btn-success" (click)="registrarUsuario()" [disabled]="cargando">
+          {{ cargando ? 'Creando cuenta...' : 'Crear Cuenta' }}
+        </ion-button>
+        <p class="info-text">Más adelante te pediremos tu currículum y experiencia laboral.</p>
+      } @else {
+        <ion-button expand="block" class="btn-primary" (click)="siguientePaso()">
+          Continuar
+        </ion-button>
+      }
     </div>
 
     <div class="form-section" *ngIf="pasoActual === 4">

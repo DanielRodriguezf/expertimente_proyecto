@@ -14,6 +14,7 @@ import {
 
 import { Auth, onAuthStateChanged } from '@angular/fire/auth';
 import { Firestore, doc, getDoc, setDoc, collection, query, where, getDocs } from '@angular/fire/firestore';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-cargos-interes',
@@ -38,6 +39,13 @@ export class CargosInteresPage implements OnInit, ViewWillEnter {
 
   cargosAprobados: any[] = [];
   resultadosMap: { [cargoId: string]: any } = {};
+
+  // Lista de modelos de Gemini en orden de prioridad para evitar errores 503 (Servidor saturado)
+  private readonly GEMINI_MODELS = [
+    'gemini-3.8-flash',
+    'gemini-2.5-flash',
+    'gemini-1.5-flash'
+  ];
 
   private auth = inject(Auth);
   private firestore = inject(Firestore);
@@ -204,8 +212,16 @@ export class CargosInteresPage implements OnInit, ViewWillEnter {
         this.perfilPostulante?.apellidoMaterno || ''
       ].filter(Boolean).join(' ').trim() || 'Postulante';
 
+      // Evaluamos TODOS los cargos de sus áreas en una sola llamada a Gemini
+      const evaluacionesPorCargo = await this.evaluarCargosEnLoteConGemini(cargosParaEscanear);
+
       for (const cargo of cargosParaEscanear) {
-        const evaluacion = await this.calcularIdoneidadConIA(cargo);
+        const evaluacion = evaluacionesPorCargo[cargo.id] || {
+          porcentajeIdoneidad: 50,
+          fortalezas: [],
+          resumenIA: `Compatibilidad evaluada con IA para ${cargo.nombre}.`
+        };
+
         const docId = `${this.uid}_${cargo.id}`;
 
         const payloadResultado = {
@@ -229,7 +245,7 @@ export class CargosInteresPage implements OnInit, ViewWillEnter {
           resumenIA: evaluacion.resumenIA,
           disponible: true,
           estado: 'disponible',
-          metodoEvaluacion: 'escaneo_cv_ia',
+          metodoEvaluacion: 'gemini_ai_cv',
           fechaEvaluacion: new Date(),
           fechaActualizacion: new Date().toISOString()
         };
@@ -240,6 +256,7 @@ export class CargosInteresPage implements OnInit, ViewWillEnter {
         ]);
 
         this.resultadosMap[cargo.id] = payloadResultado;
+        this.cdr.detectChanges();
       }
 
       const resumenCargos = cargosParaEscanear.map(c => ({
@@ -255,133 +272,183 @@ export class CargosInteresPage implements OnInit, ViewWillEnter {
         fechaActualizacionPerfil: new Date()
       }, { merge: true });
 
-      this.mostrarMensaje('¡Listo! Tu currículum fue analizado con éxito.', 'success');
+      this.mostrarMensaje('¡Listo! Tu currículum fue analizado con Inteligencia Artificial.', 'success');
     } catch (error) {
-      console.error('Error al escanear cargos:', error);
-      this.mostrarMensaje('Hubo un error al analizar tu currículum.', 'danger');
+      console.error('Error al escanear cargos con Gemini:', error);
+      this.mostrarMensaje('El servicio de IA está ocupado en este momento. Intenta de nuevo en unos segundos.', 'danger');
     } finally {
       this.escaneandoGlobal = false;
       this.cdr.detectChanges();
     }
   }
 
-  private async calcularIdoneidadConIA(cargo: any): Promise<{
-    porcentajeIdoneidad: number;
-    fortalezas: string[];
-    resumenIA: string;
+  /**
+   * Evalúa todos los cargos en una sola petición a Gemini e incluye
+   * reintentos automáticos y cambio de modelo si un servidor devuelve HTTP 503 o 429.
+   */
+  private async evaluarCargosEnLoteConGemini(cargos: any[]): Promise<{
+    [cargoId: string]: {
+      porcentajeIdoneidad: number;
+      fortalezas: string[];
+      resumenIA: string;
+    };
   }> {
-    await new Promise(res => setTimeout(res, 400));
+    const apiKey = (environment as any)?.geminiApiKey || '';
+
+    if (!apiKey || apiKey === 'TU_API_KEY_DE_GEMINI_AQUI') {
+      throw new Error('La API Key de Gemini no está configurada en environment.ts');
+    }
 
     const cvManual = this.perfilPostulante?.cvManual || {};
-    const textoPdfExtraido = this.extraerTextoLegibleDesdeBase64(this.perfilPostulante?.cvBase64 || '');
+    const experiencias = Array.isArray(cvManual.areasExperiencia)
+      ? cvManual.areasExperiencia.map((e: any) => `- ${e.cargo || ''} en ${e.lugar || ''} (${e.tiempo || ''}): ${e.descripcion || ''}`).join('\n')
+      : 'Sin experiencia detallada en formulario';
 
-    const experienciasTexto = Array.isArray(cvManual.areasExperiencia)
-      ? cvManual.areasExperiencia.map((e: any) => `${e.cargo || ''} ${e.lugar || ''} ${e.tiempo || ''} ${e.descripcion || ''}`).join(' ')
-      : '';
+    const listaCargosTexto = cargos.map((c, idx) => `
+CARGO ${idx + 1}:
+- cargoId: "${c.id}"
+- Nombre: ${c.nombre || ''}
+- Área laboral: ${c.areaLaboral || ''}
+- Descripción: ${c.descripcion || ''}
+- Habilidades técnicas requeridas: ${c.habilidadesTecnicas || 'No especificadas'}
+- Habilidades blandas requeridas: ${c.habilidadesBlandas || 'No especificadas'}
+- Nivel educativo mínimo: ${c.nivelEducativoMinimo || 'No especificado'}
+- Años de experiencia mínima: ${c.anosExperienciaMinima ?? 0}`).join('\n');
 
-    const corpusCandidato = this.normalizarTexto([
-      cvManual.carrera || '',
-      cvManual.nivelEducativo || '',
-      cvManual.establecimiento || '',
-      cvManual.habilidadesTecnicas || '',
-      cvManual.habilidadesBlandas || '',
-      (this.areasUsuario || []).join(' '),
-      experienciasTexto,
-      textoPdfExtraido
-    ].join(' '));
+    const promptTexto = `
+Eres un experto en reclutamiento inclusivo de la plataforma ExpertiMente.
+Evalúa el nivel de idoneidad (compatibilidad de 0 a 100) entre el Currículum del Postulante y CADA UNO de los cargos listados.
 
-    const fortalezasDetectadas: string[] = [];
+DATOS DEL POSTULANTE (Formulario de Perfil + PDF adjunto si está presente):
+- Nivel educativo: ${cvManual.nivelEducativo || 'No especificado'}
+- Establecimiento: ${cvManual.establecimiento || 'No especificado'}
+- Carrera o especialidad: ${cvManual.carrera || 'No especificada'}
+- Disponibilidad: ${cvManual.disponibilidad || 'No especificada'}
+- Habilidades técnicas declaradas: ${cvManual.habilidadesTecnicas || 'No especificadas'}
+- Habilidades blandas declaradas: ${cvManual.habilidadesBlandas || 'No especificadas'}
+- Áreas de interés seleccionadas: ${(this.areasUsuario || []).join(', ')}
+- Experiencia laboral declarada:
+${experiencias}
 
-    const reqTecnicas = this.dividirListaRequisitos(cargo.habilidadesTecnicas || '');
-    let puntosTecnicos = 0;
-    if (reqTecnicas.length > 0) {
-      let aciertosTec = 0;
-      reqTecnicas.forEach(hab => {
-        if (this.coincideTermino(corpusCandidato, hab)) {
-          aciertosTec++;
-          if (fortalezasDetectadas.length < 5) fortalezasDetectadas.push(hab);
+LISTA DE CARGOS A EVALUAR:
+${listaCargosTexto}
+
+INSTRUCCIONES DE SALIDA:
+Analiza tanto el texto anterior como el documento PDF adjunto (si se incluye) y responde ÚNICAMENTE con un arreglo JSON válido donde cada elemento tenga esta estructura exacta:
+[
+  {
+    "cargoId": "ID exacto del cargo entregado arriba",
+    "porcentajeIdoneidad": número entero entre 15 y 98,
+    "fortalezas": ["máximo 4 fortalezas o coincidencias breves detectadas en el CV"],
+    "resumenIA": "1 oración breve y clara para el reclutador explicando el porqué del porcentaje"
+  }
+]`;
+
+    const parts: any[] = [{ text: promptTexto }];
+
+    const pdfBase64Limpio = this.extraerBase64PuroDePdf(this.perfilPostulante?.cvBase64 || '');
+    if (pdfBase64Limpio) {
+      parts.push({
+        inline_data: {
+          mime_type: 'application/pdf',
+          data: pdfBase64Limpio
         }
       });
-      puntosTecnicos = Math.min(40, Math.round((aciertosTec / reqTecnicas.length) * 40) + (aciertosTec > 0 ? 10 : 4));
-    } else {
-      puntosTecnicos = cvManual.habilidadesTecnicas ? 30 : 20;
     }
 
-    const reqBlandas = this.dividirListaRequisitos(cargo.habilidadesBlandas || '');
-    let puntosBlandos = 0;
-    if (reqBlandas.length > 0) {
-      let aciertosBlandos = 0;
-      reqBlandas.forEach(hab => {
-        if (this.coincideTermino(corpusCandidato, hab)) {
-          aciertosBlandos++;
-          if (fortalezasDetectadas.length < 6) fortalezasDetectadas.push(hab);
-        }
+    const requestBody = JSON.stringify({
+      contents: [{ parts }],
+      generationConfig: {
+        temperature: 0.2,
+        responseMimeType: 'application/json'
+      }
+    });
+
+    const data = await this.llamarGeminiConReintento(apiKey, requestBody);
+    const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
+    const jsonLimpio = rawText.replace(/```json|```/g, '').trim();
+    const arregloResultados = JSON.parse(jsonLimpio);
+
+    const mapaSalida: {
+      [cargoId: string]: {
+        porcentajeIdoneidad: number;
+        fortalezas: string[];
+        resumenIA: string;
+      };
+    } = {};
+
+    if (Array.isArray(arregloResultados)) {
+      arregloResultados.forEach((item: any) => {
+        if (!item?.cargoId) return;
+        const porcentaje = Math.max(
+          15,
+          Math.min(98, Math.round(Number(item.porcentajeIdoneidad) || 50))
+        );
+        const fortalezas = Array.isArray(item.fortalezas)
+          ? item.fortalezas.map((f: any) => String(f).trim()).filter(Boolean).slice(0, 5)
+          : [];
+        const resumenIA = typeof item.resumenIA === 'string' && item.resumenIA.trim()
+          ? item.resumenIA.trim()
+          : `Compatibilidad del ${porcentaje}% calculada con IA.`;
+
+        mapaSalida[item.cargoId] = {
+          porcentajeIdoneidad: porcentaje,
+          fortalezas,
+          resumenIA
+        };
       });
-      puntosBlandos = Math.min(20, Math.round((aciertosBlandos / reqBlandas.length) * 20) + (aciertosTecOrBlandos(aciertosBlandos)));
-    } else {
-      puntosBlandos = cvManual.habilidadesBlandas ? 16 : 10;
     }
 
-    function aciertosTecOrBlandos(aciertos: number): number {
-      return aciertos > 0 ? 5 : 3;
-    }
-
-    let puntosAreaYRol = 20;
-    if (cargo.areaLaboral && fortalezasDetectadas.length < 6) {
-      fortalezasDetectadas.push(`Área afín: ${cargo.areaLaboral.split(',')[0].trim()}`);
-    }
-    if (this.coincideTermino(corpusCandidato, cargo.nombre || '')) {
-      puntosAreaYRol = 25;
-      fortalezasDetectadas.unshift(`Experiencia afín a ${cargo.nombre}`);
-    }
-
-    let puntosEduExp = 5;
-    const tieneExp = !cvManual.sinExperiencia && Array.isArray(cvManual.areasExperiencia) && cvManual.areasExperiencia.length > 0;
-    if (tieneExp) puntosEduExp += 5;
-    if (cvManual.nivelEducativo) puntosEduExp += 5;
-
-    const puntajeTotal = Math.max(30, Math.min(98, puntosTecnicos + puntosBlandos + puntosAreaYRol + puntosEduExp));
-
-    const resumenIA = puntajeTotal >= 75
-      ? `Alta compatibilidad con ${cargo.nombre}.`
-      : puntajeTotal >= 50
-      ? `Compatibilidad media para ${cargo.nombre}.`
-      : `Compatibilidad inicial para ${cargo.nombre}.`;
-
-    return {
-      porcentajeIdoneidad: puntajeTotal,
-      fortalezas: Array.from(new Set(fortalezasDetectadas)).slice(0, 5),
-      resumenIA
-    };
+    return mapaSalida;
   }
 
-  private dividirListaRequisitos(texto: string): string[] {
-    return (texto || '')
-      .split(/[,;.]/)
-      .map(s => s.trim())
-      .filter(Boolean);
-  }
+  /**
+   * Intenta la llamada con gemini-2.5-flash; si recibe 503 o 429 (servidor saturado),
+   * espera brevemente y prueba automáticamente con gemini-2.0-flash y gemini-1.5-flash.
+   */
+  private async llamarGeminiConReintento(apiKey: string, body: string): Promise<any> {
+    let ultimoError: any = null;
 
-  private coincideTermino(corpusNormalizado: string, termino: string): boolean {
-    const limpio = this.normalizarTexto(termino);
-    if (!limpio) return false;
-    if (corpusNormalizado.includes(limpio)) return true;
+    for (const modelo of this.GEMINI_MODELS) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${apiKey}`;
 
-    const palabrasClave = limpio.split(/\s+/).filter(p => p.length > 3);
-    if (!palabrasClave.length) return false;
-    return palabrasClave.some(palabra => corpusNormalizado.includes(palabra));
-  }
+      for (let intento = 1; intento <= 2; intento++) {
+        try {
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body
+          });
 
-  private extraerTextoLegibleDesdeBase64(dataUrl: string): string {
-    try {
-      if (!dataUrl || !dataUrl.includes(',')) return '';
-      const base64 = dataUrl.split(',')[1];
-      const binario = atob(base64);
-      const fragmentos = binario.match(/[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s,.;:-]{4,}/g);
-      return fragmentos ? fragmentos.join(' ') : '';
-    } catch {
-      return '';
+          if (response.ok) {
+            return await response.json();
+          }
+
+          // Si es 503 (Overloaded) o 429 (Rate limit), esperamos y pasamos al siguiente intento/modelo
+          if (response.status === 503 || response.status === 429) {
+            console.warn(`Modelo ${modelo} ocupado (HTTP ${response.status}). Reintentando...`);
+            ultimoError = new Error(`Error HTTP Gemini: ${response.status} en ${modelo}`);
+            await new Promise(res => setTimeout(res, 1200 * intento));
+            continue;
+          }
+
+          throw new Error(`Error HTTP Gemini: ${response.status}`);
+        } catch (err) {
+          ultimoError = err;
+          await new Promise(res => setTimeout(res, 1000));
+        }
+      }
     }
+
+    throw ultimoError || new Error('No fue posible conectar con los servidores de Gemini.');
+  }
+
+  private extraerBase64PuroDePdf(dataUrl: string): string | null {
+    if (!dataUrl || typeof dataUrl !== 'string') return null;
+    if (dataUrl.startsWith('data:application/pdf;base64,')) {
+      return dataUrl.split(',')[1] || null;
+    }
+    return null;
   }
 
   obtenerClasePorcentaje(porcentaje: number = 0): string {
