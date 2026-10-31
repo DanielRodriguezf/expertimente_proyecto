@@ -14,6 +14,16 @@ import {
 } from '@angular/fire/auth';
 import { Firestore, doc, getDoc, setDoc, updateDoc } from '@angular/fire/firestore';
 
+// Mientras depuras en el APK: muestra también el código y el mensaje técnico del error en pantalla.
+// Cámbialo a false cuando termines de depurar.
+const MOSTRAR_DETALLE_TECNICO = true;
+
+/**
+ * Estado de la persona que entró con Google:
+ * - 'activa'   → ya tiene ficha en "postulantes" y su cuenta está activa
+ * - 'inactiva' → tiene ficha, pero desactivó su cuenta antes
+ * - 'nuevo'    → tiene cuenta de Google, pero todavía no completa su registro
+ */
 export type EstadoPostulante = 'activa' | 'inactiva' | 'nuevo';
 
 export interface PerfilGoogle {
@@ -314,8 +324,21 @@ export class GoogleAuthService {
     }
   }
 
-  /** Mensaje claro, en español, para mostrar cuando falla el acceso con Google */
+  /** Mensaje para mostrar cuando falla el acceso con Google (con el detalle técnico si se está depurando) */
   mensajeDeError(error: any): string {
+    const mensaje = this.mensajeAmigable(error);
+
+    if (!MOSTRAR_DETALLE_TECNICO) {
+      return mensaje;
+    }
+
+    const codigo = String(error?.code ?? 'sin código');
+    const detalle = String(error?.message ?? '').slice(0, 160);
+    return `${mensaje} [${codigo}${detalle ? ': ' + detalle : ''}]`;
+  }
+
+  /** Mensaje claro, en español, para la persona usuaria */
+  private mensajeAmigable(error: any): string {
     const codigo = String(error?.code ?? '');
     const detalle = `${codigo} ${String(error?.message ?? '')}`.toLowerCase();
 
