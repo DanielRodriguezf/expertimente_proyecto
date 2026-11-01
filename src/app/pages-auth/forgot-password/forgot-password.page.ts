@@ -19,11 +19,11 @@ import {
   mailOutline, 
   arrowBackOutline, 
   keyOutline,
-  checkmarkCircleOutline,
-  warningOutline
+  checkmarkCircle,
+  warning,
+  closeCircle
 } from 'ionicons/icons';
 
-// Importaciones de Firebase Auth
 import { Auth, sendPasswordResetEmail } from '@angular/fire/auth';
 
 @Component({
@@ -59,26 +59,33 @@ export class ForgotPasswordPage {
       'mail-outline': mailOutline,
       'arrow-back-outline': arrowBackOutline,
       'key-outline': keyOutline,
-      'checkmark-circle-outline': checkmarkCircleOutline,
-      'warning-outline': warningOutline
+      'checkmark-circle': checkmarkCircle,
+      'warning': warning,
+      'close-circle': closeCircle
     });
   }
 
-  async mostrarNotificacion(mensaje: string, tipo: 'success' | 'danger', icono: string) {
+  async mostrarNotificacion(mensaje: string, color: 'success' | 'warning' | 'danger' = 'danger') {
+    const iconos = {
+      success: 'checkmark-circle',
+      warning: 'warning',
+      danger: 'close-circle'
+    };
+
     const toast = await this.toastCtrl.create({
       message: mensaje,
-      duration: 4000,
-      position: 'top',
-      color: tipo,
-      icon: icono,
-      buttons: [{ text: 'OK', role: 'cancel' }]
+      duration: 2500,
+      position: 'bottom',
+      color,
+      icon: iconos[color],
+      cssClass: 'toast-expertimente'
     });
     await toast.present();
   }
 
   async recuperarPassword() {
     if (!this.correo) {
-      await this.mostrarNotificacion('Por favor, ingresa tu correo electrónico.', 'danger', 'warning-outline');
+      await this.mostrarNotificacion('Por favor, ingresa tu correo electrónico.', 'warning');
       return;
     }
 
@@ -90,8 +97,7 @@ export class ForgotPasswordPage {
       this.cargando = false;
       await this.mostrarNotificacion(
         'Enlace enviado. Revisa tu bandeja de entrada o la carpeta de spam.', 
-        'success', 
-        'checkmark-circle-outline'
+        'success'
       );
       
       this.router.navigate(['/login']);
@@ -101,9 +107,9 @@ export class ForgotPasswordPage {
       this.cargando = false;
 
       if (error.code === 'auth/invalid-email') {
-        await this.mostrarNotificacion('El formato del correo no es válido.', 'danger', 'warning-outline');
+        await this.mostrarNotificacion('El formato del correo no es válido.', 'warning');
       } else {
-        await this.mostrarNotificacion('Ocurrió un error. Verifica que el correo esté registrado.', 'danger', 'warning-outline');
+        await this.mostrarNotificacion('Ocurrió un error. Verifica que el correo esté registrado.', 'danger');
       }
     }
   }

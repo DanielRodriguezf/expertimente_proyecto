@@ -51,7 +51,6 @@ export class UsuarioInfoPage implements OnInit {
   sugerenciasBlandas: string[] = [...this.TODAS_BLANDAS];
   sugerenciasTecnicas: string[] = [...this.TODAS_TECNICAS];
 
-  // Áreas extraídas exclusivamente desde la colección 'cargos' en Firestore
   listaAreasDisponibles: string[] = [];
   areasFiltradas: string[] = [];
   terminoBusquedaArea: string = '';
@@ -133,10 +132,6 @@ export class UsuarioInfoPage implements OnInit {
     });
   }
 
-  /**
-   * Extrae las áreas directamente desde la colección 'cargos' en Firestore
-   * Soporta campos 'areas', 'areaLaboral' o 'area' (tanto en formato array como string separado por comas)
-   */
   async cargarAreasDesdeCargos() {
     try {
       const cargosRef = collection(this.firestore, 'cargos');
@@ -184,7 +179,6 @@ export class UsuarioInfoPage implements OnInit {
       .trim();
   }
 
-  // --- BUSCADOR DE ÁREAS (NO MUESTRA TODAS INMEDIATAMENTE) ---
   filtrarAreas() {
     const termino = this.normalizarTexto(this.terminoBusquedaArea);
     if (!termino) {
@@ -203,7 +197,6 @@ export class UsuarioInfoPage implements OnInit {
     this.cdr.detectChanges();
   }
 
-  // --- MÉTODOS DEL MODAL PERSONALIZADO ---
   abrirModalEstudios() {
     this.modalEstudiosAbierto = true;
   }
@@ -217,7 +210,6 @@ export class UsuarioInfoPage implements OnInit {
   get sinExperiencia(): boolean { return this.cvForm.get('sinExperiencia')?.value; }
   get areasInteres(): string[] { return this.cvForm.get('areasInteres')?.value || []; }
 
-  // --- MÉTODOS PARA SELECCIÓN DE ÁREAS DE INTERÉS (PASO 6) ---
   esAreaSeleccionada(area: string): boolean {
     return this.areasInteres.some(a => this.normalizarTexto(a) === this.normalizarTexto(area));
   }
@@ -380,15 +372,20 @@ export class UsuarioInfoPage implements OnInit {
     }
   }
 
-  async mostrarMensaje(mensaje: string, color: 'success' | 'warning' | 'danger' | string) {
-    let icono = color === 'success' ? 'checkmark-circle' : (color === 'danger' ? 'close-circle' : 'warning');
-    const toast = await this.toastCtrl.create({ 
-      message: mensaje, 
-      duration: 2500, 
-      color: color, 
-      cssClass: 'toast-expertimente', 
-      position: 'middle', 
-      icon: icono 
+  async mostrarMensaje(mensaje: string, color: 'success' | 'warning' | 'danger' = 'success', duracion: number = 2500) {
+    const iconos = {
+      success: 'checkmark-circle',
+      warning: 'warning',
+      danger: 'close-circle'
+    };
+
+    const toast = await this.toastCtrl.create({
+      message: mensaje,
+      duration: duracion,
+      position: 'bottom',
+      color,
+      icon: iconos[color] || 'information-circle',
+      cssClass: 'toast-expertimente'
     });
     await toast.present();
   }

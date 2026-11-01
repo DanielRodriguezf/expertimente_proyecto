@@ -20,7 +20,10 @@ import {
   eyeOffOutline, 
   warningOutline,
   alertCircleOutline,
-  checkmarkCircleOutline
+  checkmarkCircleOutline,
+  checkmarkCircle,
+  warning,
+  closeCircle
 } from 'ionicons/icons';
 
 import { Auth, signInWithEmailAndPassword } from '@angular/fire/auth'; 
@@ -71,7 +74,10 @@ export class LoginPage {
       'eye-off-outline': eyeOffOutline,
       'warning-outline': warningOutline,
       'alert-circle-outline': alertCircleOutline,
-      'checkmark-circle-outline': checkmarkCircleOutline
+      'checkmark-circle-outline': checkmarkCircleOutline,
+      'checkmark-circle': checkmarkCircle,
+      'warning': warning,
+      'close-circle': closeCircle
     });
   }
 
@@ -91,27 +97,24 @@ export class LoginPage {
     this.showPassword = !this.showPassword;
   }
 
-  /**
-   * Muestra el Toast accesible usando la clase 'toast-expertimente' definida en global.scss
-   */
   async mostrarError(mensaje: string, color: 'danger' | 'warning' | 'success' = 'danger') {
-    const icono = color === 'success' 
-      ? 'checkmark-circle-outline' 
-      : color === 'warning' 
-        ? 'warning-outline' 
-        : 'alert-circle-outline';
+    const iconos = {
+      success: 'checkmark-circle',
+      warning: 'warning',
+      danger: 'close-circle'
+    };
 
     const toast = await this.toastCtrl.create({
       message: mensaje,
-      duration: 3000,
+      duration: 2500,
       position: 'bottom',
-      color: color,
-      icon: icono,
+      color,
+      icon: iconos[color],
       cssClass: 'toast-expertimente'
     });
     await toast.present();
   }
-
+  
   async iniciarSesion() {
     if (this.cargandoGoogle) {
       return;
@@ -136,7 +139,6 @@ export class LoginPage {
       const docRef = doc(this.firestore, `postulantes/${user.uid}`);
       const docSnap = await getDoc(docRef);
 
-      // Validación: Si no tiene ficha en Firestore, no puede entrar al Home
       if (!docSnap.exists()) {
         await this.googleAuth.cerrarSesion();
         this.cargando = false;
@@ -163,7 +165,7 @@ export class LoginPage {
       if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
         await this.mostrarError('Correo o contraseña incorrectos.');
       } else if (error.code === 'auth/invalid-email') {
-        await this.mostrarError('El formato del correo no es válido.');
+        await this.mostrarError('El formato del correo no es válido.', 'warning');
       } else {
         await this.mostrarError('Ocurrió un error al intentar entrar. Inténtalo de nuevo.');
       }
@@ -179,7 +181,6 @@ export class LoginPage {
     this.cdr.detectChanges();
 
     try {
-      // Pasamos soloLogin = true para que NO deje abierta una cuenta que no está registrada
       const { user, estado } = await this.googleAuth.iniciarConGoogle(true);
 
       if (estado === 'nuevo') {
@@ -194,7 +195,6 @@ export class LoginPage {
         return;
       }
 
-      // Solo llega aquí si estado === 'activa' (tiene documento en postulantes)
       this.ejecutarNavegacion();
 
     } catch (error: any) {
@@ -207,7 +207,6 @@ export class LoginPage {
     }
   }
 
-  /** Alerta cuando intenta iniciar sesión con una cuenta de Google que aún no se ha registrado */
   private async mostrarAlertaCuentaNoRegistrada() {
     const alert = await this.alertCtrl.create({
       header: 'Cuenta no registrada',
@@ -231,7 +230,6 @@ export class LoginPage {
     await alert.present();
   }
 
-  /** Alerta para reactivar una cuenta desactivada (la usan el ingreso con correo y el ingreso con Google) */
   private async mostrarAlertaCuentaInactiva(uid: string, metodo: 'correo' | 'google') {
     this.cargando = false;
     this.cargandoGoogle = false;

@@ -17,7 +17,8 @@ import {
   schoolOutline, checkmarkCircleOutline, arrowBackOutline,
   trashOutline, eyeOutline, checkmarkCircle, timeOutline, starOutline,
   cameraOutline, personCircleOutline, cropOutline, closeOutline,
-  syncOutline, swapHorizontalOutline, chevronForwardOutline, trophyOutline
+  syncOutline, swapHorizontalOutline, chevronForwardOutline, trophyOutline,
+  warning, closeCircle, informationCircle
 } from 'ionicons/icons';
 
 import { ImageCroppedEvent, ImageTransform } from 'ngx-image-cropper';
@@ -92,13 +93,13 @@ export class PerfilCvPage implements OnInit {
       'sync-outline': syncOutline,
       'swap-horizontal-outline': swapHorizontalOutline,
       'chevron-forward-outline': chevronForwardOutline,
-      'trophy-outline': trophyOutline
+      'trophy-outline': trophyOutline,
+      'warning': warning,
+      'close-circle': closeCircle,
+      'information-circle': informationCircle
     });
   }
 
-  // ==========================================
-  // GETTERS PARA INDICADORES DE COMPLETADO
-  // ==========================================
   get infoProfesionalLista(): boolean {
     return !!(this.datosManuales.nivelEducativo && this.datosManuales.areasExperiencia);
   }
@@ -118,44 +119,38 @@ export class PerfilCvPage implements OnInit {
     if (this.cvListo) completados++;
     return completados / 3;
   }
-  // ==========================================
 
   ngOnInit() {
     onAuthStateChanged(this.auth, (user) => {
       if (user) {
         const docRef = doc(this.firestore, `postulantes/${user.uid}`);
         
-        // onSnapshot escucha en tiempo real
         onSnapshot(docRef, (docSnap) => {
           if (docSnap.exists()) {
             const data = docSnap.data();
             
-            // 1. Verificamos la foto
             if (data['fotoPerfil']) {
               this.fotoPerfilSavedBase64 = data['fotoPerfil'];
             } else {
-              this.fotoPerfilSavedBase64 = ''; // Limpiamos si fue eliminada
+              this.fotoPerfilSavedBase64 = '';
             }
 
-            // 2. Verificamos el CV
             if (data['cvBase64']) {
               this.tieneCVSubido = true;
               this.nombreCVSaved = data['cvNombre'] || 'Mi_Curriculum.pdf';
               this.cvSavedBase64 = data['cvBase64'];
             } else {
-              this.tieneCVSubido = false; // Limpiamos si fue eliminado
+              this.tieneCVSubido = false;
               this.nombreCVSaved = '';
               this.cvSavedBase64 = '';
             }
 
-            // 3. Verificamos datos manuales
             if (data['cvManual']) {
               this.datosManuales = data['cvManual'];
             } else {
               this.datosManuales = { nivelEducativo: '', areasExperiencia: '', anosExperiencia: null, habilidades: '' };
             }
             
-            // Forzar actualización de vista para los validadores
             this.cdr.detectChanges();
           }
         });
@@ -286,6 +281,7 @@ export class PerfilCvPage implements OnInit {
     const alert = await this.alertCtrl.create({
       header: '¿Quitar Foto?',
       message: 'Tu foto de perfil se borrará permanentemente.',
+      cssClass: 'alerta-expertimente',
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         {
@@ -352,6 +348,7 @@ export class PerfilCvPage implements OnInit {
     const alert = await this.alertCtrl.create({
       header: '¿Eliminar Currículum PDF?',
       message: 'Tu archivo PDF se borrará, pero tus respuestas se mantendrán.',
+      cssClass: 'alerta-expertimente',
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         {
@@ -368,7 +365,7 @@ export class PerfilCvPage implements OnInit {
               this.archivoBase64 = '';
               this.archivoSeleccionadoNombre = '';
               this.cdr.detectChanges();
-              this.mostrarMensaje('Archivo PDF eliminada correctamente.', 'success');
+              this.mostrarMensaje('Archivo PDF eliminado correctamente.', 'success');
             }
           }
         }
@@ -435,19 +432,20 @@ export class PerfilCvPage implements OnInit {
     }
   }
 
-  async mostrarMensaje(mensaje: string, color: 'success' | 'warning' | 'danger' | string) {
-    let icono = 'information-circle';
-    if (color === 'success') icono = 'checkmark-circle';
-    if (color === 'warning') icono = 'warning';
-    if (color === 'danger') icono = 'close-circle';
+  async mostrarMensaje(mensaje: string, color: 'success' | 'warning' | 'danger' = 'success', duracion: number = 2500) {
+    const iconos = {
+      success: 'checkmark-circle',
+      warning: 'warning',
+      danger: 'close-circle'
+    };
 
     const toast = await this.toastCtrl.create({
       message: mensaje,
-      duration: 2000,
-      color: color,
-      cssClass: 'toast-expertimente',
-      position: 'middle',
-      icon: icono
+      duration: duracion,
+      position: 'bottom',
+      color,
+      icon: iconos[color] || 'information-circle',
+      cssClass: 'toast-expertimente'
     });
     await toast.present();
   }

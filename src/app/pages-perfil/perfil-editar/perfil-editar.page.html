@@ -163,17 +163,6 @@
           </ion-input>
         </div>
 
-        <div class="input-wrapper">
-          <ion-input
-            label="Dirección"
-            labelPlacement="floating"
-            fill="outline"
-            [(ngModel)]="usuario.direccion"
-            type="text"
-            class="modern-input">
-          </ion-input>
-        </div>
-
         <div class="action-section">
           <ion-button expand="block" class="btn-primary-custom" (click)="guardarCambios()" [disabled]="guardando">
             {{ guardando ? 'Guardando...' : 'Guardar Cambios' }}

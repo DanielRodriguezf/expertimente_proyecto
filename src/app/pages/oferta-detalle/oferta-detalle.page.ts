@@ -198,19 +198,20 @@ export class OfertaDetallePage implements OnInit, ViewWillEnter {
     this.router.navigate(['/cuestionario', this.ofertaId]);
   }
 
-  async mostrarMensaje(mensaje: string, color: 'success' | 'warning' | 'danger' | string) {
-    let icono = 'information-circle';
-    if (color === 'success') icono = 'checkmark-circle';
-    if (color === 'warning') icono = 'warning';
-    if (color === 'danger') icono = 'close-circle';
+  async mostrarMensaje(mensaje: string, color: 'success' | 'warning' | 'danger' = 'success', duracion: number = 2500) {
+    const iconos = {
+      success: 'checkmark-circle',
+      warning: 'warning',
+      danger: 'close-circle'
+    };
 
     const toast = await this.toastCtrl.create({
       message: mensaje,
-      duration: 2000,
-      color: color,
-      cssClass: 'toast-expertimente',
-      position: 'middle',
-      icon: icono
+      duration: duracion,
+      position: 'bottom',
+      color,
+      icon: iconos[color] || 'information-circle',
+      cssClass: 'toast-expertimente'
     });
     await toast.present();
   }

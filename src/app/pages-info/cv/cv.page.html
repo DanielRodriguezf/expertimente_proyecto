@@ -97,9 +97,19 @@
               La Inteligencia Artificial redactará tu Perfil Profesional automáticamente utilizando la experiencia laboral, nivel educativo y habilidades que ya registraste en tu cuenta.
             </p>
 
-            <ion-button expand="block" class="btn-primary-custom btn-ia" (click)="generarCVConIA()">
-              <ion-icon slot="start" name="sparkles-outline"></ion-icon> Generar CV con IA
+            <ion-button expand="block" class="btn-primary-custom btn-ia" [disabled]="generandoCV" (click)="generarCVConIA()">
+              @if (generandoCV) {
+                <ion-spinner name="crescent" slot="start"></ion-spinner> Generando tu CV...
+              } @else {
+                <ion-icon slot="start" name="sparkles-outline"></ion-icon> Generar CV con IA
+              }
             </ion-button>
+
+            @if (generandoCV) {
+              <p class="action-desc ia-desc mt-15">
+                Puedes seguir usando la app mientras tanto. Te avisaremos cuando tu currículum esté listo.
+              </p>
+            }
           </ion-card-content>
         </ion-card>
       }

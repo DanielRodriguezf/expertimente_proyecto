@@ -59,7 +59,6 @@ export class PerfilEditarPage implements OnInit {
     correo: '',
     telefono: '',
     comuna: '',
-    direccion: '',
     pais: '',
     ciudad: ''
   };
@@ -95,7 +94,6 @@ export class PerfilEditarPage implements OnInit {
               correo: data['correo'] || '', 
               telefono: data['telefono'] || '',
               comuna: data['comuna'] || '',
-              direccion: data['direccion'] || '',
               pais: data['pais'] || '',
               ciudad: data['ciudad'] || ''
             };
@@ -146,7 +144,6 @@ export class PerfilEditarPage implements OnInit {
         pais: this.usuario.pais,
         ciudad: this.usuario.ciudad,
         comuna: this.usuario.comuna,
-        direccion: this.usuario.direccion
       });
 
       console.log('¡Datos actualizados con éxito!');

@@ -137,7 +137,7 @@ export class FotoPerfilPage implements OnInit {
 
   confirmarRecorte() {
     if (!this.fotoTemporalRecortada || this.fotoTemporalRecortada.startsWith('blob:')) {
-      this.mostrarMensaje('Procesando imagen, subukang muli.', 'warning');
+      this.mostrarMensaje('Procesando imagen, intenta nuevamente.', 'warning');
       return;
     }
     this.fotoPendienteBase64 = this.fotoTemporalRecortada;
@@ -156,33 +156,33 @@ export class FotoPerfilPage implements OnInit {
   }
 
   async eliminarFotoGuardada() {
-  const alert = await this.alertCtrl.create({
-    header: '¿Quitar Foto?',
-    message: 'Tu foto de perfil se borrará permanentemente.',
-    cssClass: 'alerta-expertimente',
-    buttons: [
-      { text: 'Cancelar', role: 'cancel' },
-      {
-        text: 'Quitar',
-        role: 'destructive',
-        handler: async () => {
-          const user = this.auth.currentUser;
-          if (user) {
-            const docRef = doc(this.firestore, `postulantes/${user.uid}`);
-            await updateDoc(docRef, { fotoPerfil: deleteField() });
-            this.fotoPerfilSavedBase64 = '';
-            this.fotoPendienteBase64 = '';
-            this.cdr.detectChanges();
-            this.mostrarMensaje('Foto eliminada correctamente.', 'success');
+    const alert = await this.alertCtrl.create({
+      header: '¿Quitar Foto?',
+      message: 'Tu foto de perfil se borrará permanentemente.',
+      cssClass: 'alerta-expertimente',
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Quitar',
+          role: 'destructive',
+          handler: async () => {
+            const user = this.auth.currentUser;
+            if (user) {
+              const docRef = doc(this.firestore, `postulantes/${user.uid}`);
+              await updateDoc(docRef, { fotoPerfil: deleteField() });
+              this.fotoPerfilSavedBase64 = '';
+              this.fotoPendienteBase64 = '';
+              this.cdr.detectChanges();
+              this.mostrarMensaje('Foto eliminada correctamente.', 'success');
+            }
           }
         }
-      }
-    ]
-  });
-  await alert.present();
-}
+      ]
+    });
+    await alert.present();
+  }
 
-async guardarDatos() {
+  async guardarDatos() {
     if (!this.fotoPendienteBase64) return;
     
     const user = this.auth.currentUser;
@@ -212,19 +212,20 @@ async guardarDatos() {
     }
   }
 
-  async mostrarMensaje(mensaje: string, color: 'success' | 'warning' | 'danger' | string) {
-    let icono = 'information-circle';
-    if (color === 'success') icono = 'checkmark-circle';
-    if (color === 'warning') icono = 'warning';
-    if (color === 'danger') icono = 'close-circle';
+  async mostrarMensaje(mensaje: string, color: 'success' | 'warning' | 'danger' = 'success', duracion: number = 2500) {
+    const iconos = {
+      success: 'checkmark-circle',
+      warning: 'warning',
+      danger: 'close-circle'
+    };
 
     const toast = await this.toastCtrl.create({
       message: mensaje,
-      duration: 2000,
-      color: color,
-      cssClass: 'toast-expertimente',
-      position: 'middle',
-      icon: icono
+      duration: duracion,
+      position: 'bottom',
+      color,
+      icon: iconos[color] || 'information-circle',
+      cssClass: 'toast-expertimente'
     });
     await toast.present();
   }

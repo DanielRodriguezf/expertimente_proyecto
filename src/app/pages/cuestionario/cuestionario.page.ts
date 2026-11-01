@@ -11,7 +11,9 @@ import {
   IonTextarea
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { arrowBackOutline } from 'ionicons/icons';
+import { 
+  arrowBackOutline, checkmarkCircle, warning, closeCircle, informationCircle 
+} from 'ionicons/icons';
 
 import { Auth } from '@angular/fire/auth';
 import { 
@@ -54,7 +56,13 @@ export class CuestionarioPage implements OnInit {
   private cdr = inject(ChangeDetectorRef);
 
   constructor() {
-    addIcons({ 'arrow-back-outline': arrowBackOutline });
+    addIcons({
+      'arrow-back-outline': arrowBackOutline,
+      'checkmark-circle': checkmarkCircle,
+      'warning': warning,
+      'close-circle': closeCircle,
+      'information-circle': informationCircle
+    });
   }
 
   ngOnInit() {
@@ -138,7 +146,6 @@ export class CuestionarioPage implements OnInit {
       let puntajeObtenido = 0;
       let puntajeMaximo = 0;
 
-      // Calculamos el puntaje de manera interna para que el reclutador lo vea, sin mostrarlo al postulante
       this.preguntas.forEach((pregunta, index) => {
         const respuestaDada = this.respuestas[index];
         let ptsElegidos = 0;
@@ -163,7 +170,6 @@ export class CuestionarioPage implements OnInit {
         : 0;
 
       if (this.esTerna) {
-        // --- GUARDAR COMO TERNA (Colección 'resultados') ---
         const postSnap = await getDoc(doc(this.firestore, `postulantes/${user.uid}`));
         const postulanteData = postSnap.exists() ? postSnap.data() : null;
 
@@ -200,7 +206,6 @@ export class CuestionarioPage implements OnInit {
         await setDoc(resultadoRef, payloadResultado, { merge: true });
 
       } else {
-        // --- GUARDAR COMO OFERTA NORMAL (Colección 'postulaciones') ---
         const postulacionData = {
           ofertaId: this.ofertaId,
           postulanteId: user.uid,
@@ -218,7 +223,6 @@ export class CuestionarioPage implements OnInit {
       }
 
       await loading.dismiss();
-      // Mensaje general de éxito sin revelar puntaje al candidato
       this.mostrarMensaje('¡Postulación enviada con éxito!', 'success');
       
       setTimeout(() => {
@@ -232,19 +236,20 @@ export class CuestionarioPage implements OnInit {
     }
   }
 
-  async mostrarMensaje(mensaje: string, color: 'success' | 'warning' | 'danger' | string) {
-    let icono = 'information-circle';
-    if (color === 'success') icono = 'checkmark-circle';
-    if (color === 'warning') icono = 'warning';
-    if (color === 'danger') icono = 'close-circle';
+  async mostrarMensaje(mensaje: string, color: 'success' | 'warning' | 'danger' = 'success', duracion: number = 2500) {
+    const iconos = {
+      success: 'checkmark-circle',
+      warning: 'warning',
+      danger: 'close-circle'
+    };
 
     const toast = await this.toastCtrl.create({
       message: mensaje,
-      duration: 2500,
-      color: color,
-      cssClass: 'toast-expertimente',
-      position: 'middle',
-      icon: icono
+      duration: duracion,
+      position: 'bottom',
+      color,
+      icon: iconos[color] || 'information-circle',
+      cssClass: 'toast-expertimente'
     });
     await toast.present();
   }

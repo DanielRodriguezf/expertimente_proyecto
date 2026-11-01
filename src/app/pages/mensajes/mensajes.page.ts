@@ -14,7 +14,7 @@ import {
   chatbubblesOutline, businessOutline, personOutline, send, 
   arrowBackOutline, alertCircleOutline, timeOutline, 
   checkmarkDoneOutline, refreshOutline, chatbubbleEllipsesOutline,
-  chevronForwardOutline
+  chevronForwardOutline, checkmarkCircle, warning, closeCircle, informationCircle
 } from 'ionicons/icons';
 
 import { Auth, onAuthStateChanged, User } from '@angular/fire/auth';
@@ -102,7 +102,11 @@ export class MensajesPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillL
       'time-outline': timeOutline,
       'checkmark-done-outline': checkmarkDoneOutline,
       'refresh-outline': refreshOutline,
-      'chevron-forward-outline': chevronForwardOutline
+      'chevron-forward-outline': chevronForwardOutline,
+      'checkmark-circle': checkmarkCircle,
+      'warning': warning,
+      'close-circle': closeCircle,
+      'information-circle': informationCircle
     });
   }
 
@@ -440,12 +444,20 @@ export class MensajesPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillL
     }, 100);
   }
 
-  async mostrarToast(mensaje: string, color: 'success' | 'warning' | 'danger') {
+  async mostrarToast(mensaje: string, color: 'success' | 'warning' | 'danger' = 'success', duracion: number = 2500) {
+    const iconos = {
+      success: 'checkmark-circle',
+      warning: 'warning',
+      danger: 'close-circle'
+    };
+
     const toast = await this.toastCtrl.create({
       message: mensaje,
-      duration: 2500,
+      duration: duracion,
+      position: 'bottom',
       color,
-      position: 'bottom'
+      icon: iconos[color] || 'information-circle',
+      cssClass: 'toast-expertimente'
     });
     await toast.present();
   }
