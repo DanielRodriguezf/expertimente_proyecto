@@ -5,7 +5,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 
-import { ToastController, LoadingController, AlertController, Platform } from '@ionic/angular';
+import { LoadingController, AlertController, Platform } from '@ionic/angular';
 import { 
   IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, 
   IonBackButton, IonButton, IonIcon,
@@ -25,6 +25,7 @@ import { Auth, onAuthStateChanged } from '@angular/fire/auth';
 import { Firestore, doc, updateDoc, onSnapshot, deleteField } from '@angular/fire/firestore';
 
 import { GeneracionCvService } from '../../services/generacion-cv';
+import { ToastService } from '../../services/toast';
 
 @Component({
   selector: 'app-cv',
@@ -52,7 +53,7 @@ export class CvPage implements OnInit {
 
   private auth = inject(Auth);
   private firestore = inject(Firestore);
-  private toastCtrl = inject(ToastController);
+  private toast = inject(ToastService);
   private loadingCtrl = inject(LoadingController);
   private alertCtrl = inject(AlertController);
   private router = inject(Router);
@@ -124,11 +125,11 @@ export class CvPage implements OnInit {
     const file = event.target.files[0];
     if (file) {
       if (file.type !== 'application/pdf') {
-        this.mostrarMensaje('Selecciona un archivo PDF válido.', 'warning');
+        this.toast.advertencia('Selecciona un archivo PDF válido.');
         return;
       }
       if (file.size > 600 * 1024) { 
-        this.mostrarMensaje('El PDF debe pesar menos de 600KB.', 'warning');
+        this.toast.advertencia('El PDF debe pesar menos de 600KB.');
         return;
       }
       const loading = await this.loadingCtrl.create({
@@ -143,7 +144,7 @@ export class CvPage implements OnInit {
           this.archivoBase64 = reader.result as string; 
           this.archivoSeleccionadoNombre = file.name;
           this.cdr.detectChanges(); 
-          this.mostrarMensaje('¡Documento cargado con éxito!', 'success');
+          this.toast.exito('¡Documento cargado con éxito!');
         };
         reader.readAsDataURL(file);
       } finally {
@@ -175,7 +176,7 @@ export class CvPage implements OnInit {
               const docRef = doc(this.firestore, `postulantes/${user.uid}`);
               await updateDoc(docRef, { cvBase64: deleteField(), cvNombre: deleteField(), cvGeneradoIA: deleteField() });
               this.quitarArchivoPendiente();
-              this.mostrarMensaje('¡Archivo PDF eliminado!', 'success');
+              this.toast.exito('¡Archivo PDF eliminado!');
             }
           }
         }
@@ -186,7 +187,7 @@ export class CvPage implements OnInit {
 
   async verCVSaved() {
     if (!this.cvSavedBase64) {
-      this.mostrarMensaje('No hay un archivo PDF disponible.', 'warning');
+      this.toast.advertencia('No hay un archivo PDF disponible.');
       return;
     }
 
@@ -208,7 +209,7 @@ export class CvPage implements OnInit {
               directory: 'DOCUMENTS'
             });
 
-            this.mostrarMensaje(`Descargado en Documentos: ${nombreArchivo}`, 'success');
+            this.toast.exito(`Descargado en Documentos: ${nombreArchivo}`);
 
             if (Share) {
               await Share.share({
@@ -243,7 +244,7 @@ export class CvPage implements OnInit {
       enlace.click();
       document.body.removeChild(enlace);
 
-      this.mostrarMensaje('Descargando archivo PDF en tu dispositivo...', 'success');
+      this.toast.exito('Descargando archivo PDF en tu dispositivo...');
 
       setTimeout(() => {
         URL.revokeObjectURL(blobUrl);
@@ -251,13 +252,13 @@ export class CvPage implements OnInit {
 
     } catch (error) {
       console.error('Error al descargar el PDF:', error);
-      this.mostrarMensaje('No se pudo descargar el archivo PDF.', 'danger');
+      this.toast.error('No se pudo descargar el archivo PDF.');
     }
   }
 
   async guardarDatos() {
     if (!this.archivoBase64) {
-      this.mostrarMensaje('No hay ningún archivo nuevo para guardar', 'warning');
+      this.toast.advertencia('No hay ningún archivo nuevo para guardar');
       return;
     }
 
@@ -280,9 +281,9 @@ export class CvPage implements OnInit {
       
       await updateDoc(docRef, payload);
       this.quitarArchivoPendiente(); 
-      this.mostrarMensaje('¡Tu currículum PDF se ha guardado con éxito!', 'success');
+      this.toast.exito('¡Tu currículum PDF se ha guardado con éxito!');
     } catch (error) {
-      this.mostrarMensaje('Hubo un error al guardar.', 'danger');
+      this.toast.error('Hubo un error al guardar.');
     } finally {
       await loading.dismiss();
     }
@@ -294,23 +295,5 @@ export class CvPage implements OnInit {
 
   async generarCVConIA() {
     await this.generacionCv.iniciar(this.router.url);
-  }
-
-  async mostrarMensaje(mensaje: string, color: 'success' | 'warning' | 'danger' = 'success', duracion: number = 2500) {
-    const iconos = {
-      success: 'checkmark-circle',
-      warning: 'warning',
-      danger: 'close-circle'
-    };
-
-    const toast = await this.toastCtrl.create({
-      message: mensaje,
-      duration: duracion,
-      position: 'bottom',
-      color,
-      icon: iconos[color] || 'information-circle',
-      cssClass: 'toast-expertimente'
-    });
-    await toast.present();
   }
 }

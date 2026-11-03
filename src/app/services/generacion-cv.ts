@@ -1,12 +1,10 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { ToastController } from '@ionic/angular';
 import { Subject } from 'rxjs';
-import { addIcons } from 'ionicons';
-import { checkmarkCircle, warning, closeCircle } from 'ionicons/icons';
 import { Auth, onAuthStateChanged } from '@angular/fire/auth';
 import { Firestore, doc, getDoc, updateDoc, deleteField, serverTimestamp } from '@angular/fire/firestore';
 import { IaCvService } from './ia-cv';
+import { ToastService } from './toast';
 
 @Injectable({ providedIn: 'root' })
 export class GeneracionCvService {
@@ -14,7 +12,7 @@ export class GeneracionCvService {
   private auth = inject(Auth);
   private firestore = inject(Firestore);
   private router = inject(Router);
-  private toastCtrl = inject(ToastController);
+  private toast = inject(ToastService);
   private iaCv = inject(IaCvService);
 
   private readonly _generando = signal(false);
@@ -26,12 +24,6 @@ export class GeneracionCvService {
   private trabajoActual = 0;
 
   constructor() {
-    addIcons({
-      'checkmark-circle': checkmarkCircle,
-      'warning': warning,
-      'close-circle': closeCircle
-    });
-
     onAuthStateChanged(this.auth, (user) => {
       if (!user && this._generando()) {
         this.trabajoActual = 0;
@@ -42,7 +34,7 @@ export class GeneracionCvService {
 
   async iniciar(rutaCv: string): Promise<void> {
     if (this._generando()) {
-      await this.mostrarToast('Ya estamos generando tu currículum. Te avisaremos cuando esté listo.', 'warning');
+      this.toast.advertencia('Ya estamos generando tu currículum. Te avisaremos cuando esté listo.');
       return;
     }
 
@@ -59,10 +51,9 @@ export class GeneracionCvService {
       return;
     }
 
-    await this.mostrarToast(
+    this.toast.exito(
       'Estamos redactando tu currículum con IA. Puedes seguir usando la app, te avisaremos cuando esté listo.',
-      'success',
-      { duracion: 4500 }
+      { duration: 4500 }
     );
 
     void this.ejecutar(id, user.uid, preparado.datosBD, preparado.cvManual, preparado.tieneExperiencia, rutaCv);
@@ -73,7 +64,7 @@ export class GeneracionCvService {
       const docSnap = await getDoc(doc(this.firestore, `postulantes/${uid}`));
 
       if (!docSnap.exists()) {
-        await this.mostrarToast('No se encontraron tus datos en la base de datos.', 'danger');
+        this.toast.error('No se encontraron tus datos en la base de datos.');
         return null;
       }
 
@@ -90,14 +81,14 @@ export class GeneracionCvService {
         !cvManual['habilidadesTecnicas'] ||
         (!tieneExperiencia && sinExperiencia === false)
       ) {
-        await this.mostrarToast('Completa tu información profesional', 'warning');
+        this.toast.advertencia('Completa tu información profesional');
         return null;
       }
 
       return { datosBD, cvManual, tieneExperiencia };
     } catch (error) {
       console.error('Error al leer los datos del postulante:', error);
-      await this.mostrarToast('No se pudieron leer tus datos. Revisa tu conexión e intenta de nuevo.', 'danger');
+      this.toast.error('No se pudieron leer tus datos. Revisa tu conexión e intenta de nuevo.');
       return null;
     }
   }
@@ -135,14 +126,14 @@ export class GeneracionCvService {
 
       this.liberar(id);
       this.terminado$.next(true);
-      await this.avisarListo(metodo, rutaCv);
+      this.avisarListo(metodo, rutaCv);
 
     } catch (error) {
       console.error('Error al generar el currículum en segundo plano:', error);
       if (this.sigueVigente(id, uid)) {
         this.liberar(id);
         this.terminado$.next(false);
-        await this.mostrarToast('No se pudo generar tu currículum. Intenta nuevamente.', 'danger');
+        this.toast.error('No se pudo generar tu currículum. Intenta nuevamente.');
       }
     } finally {
       this.liberar(id);
@@ -160,48 +151,24 @@ export class GeneracionCvService {
     }
   }
 
-  private async avisarListo(metodo: 'gemini' | 'local', rutaCv: string) {
+  private avisarListo(metodo: 'gemini' | 'local', rutaCv: string): void {
     const urlActual = this.router.url.split('?')[0];
     const rutaBase = (rutaCv || '').split('?')[0];
     const estaEnCv = !!rutaBase && urlActual.startsWith(rutaBase);
 
-    const mensaje = metodo === 'gemini'
-      ? '¡Tu currículum con IA está listo!'
-      : 'Tu currículum está listo. Usamos la plantilla automática.';
-
-    await this.mostrarToast(
-      mensaje,
-      metodo === 'gemini' ? 'success' : 'warning',
-      {
-        duracion: 5500,
-        buttons: estaEnCv || !rutaBase
-          ? []
-          : [{ text: 'Ver', handler: () => { this.router.navigateByUrl(rutaBase); } }]
-      }
-    );
-  }
-
-  private async mostrarToast(
-    mensaje: string,
-    color: 'success' | 'warning' | 'danger',
-    opciones: { duracion?: number; buttons?: any[] } = {}
-  ) {
-    const iconos = {
-      success: 'checkmark-circle',
-      warning: 'warning',
-      danger: 'close-circle'
+    const opciones = {
+      duration: 5500,
+      buttons: estaEnCv || !rutaBase
+        ? []
+        : [{ text: 'Ver', handler: () => { this.router.navigateByUrl(rutaBase); } }]
     };
 
-    const toast = await this.toastCtrl.create({
-      message: mensaje,
-      duration: opciones.duracion ?? 2600,
-      position: 'bottom',
-      color,
-      icon: iconos[color],
-      cssClass: 'toast-expertimente',
-      buttons: opciones.buttons ?? []
-    });
-    await toast.present();
+    // Este aviso espera en la cola hasta que termine el de "Estamos redactando..."
+    if (metodo === 'gemini') {
+      this.toast.exito('¡Tu currículum con IA está listo!', opciones);
+    } else {
+      this.toast.advertencia('Tu currículum está listo. Usamos la plantilla automática.', opciones);
+    }
   }
 
   private async construirPdf(
