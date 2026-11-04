@@ -60,7 +60,25 @@
         </div>
       </ion-card>
 
-      <!-- 2. Foto de Perfil -->
+      <!-- 2. Áreas de Interés -->
+      <ion-card class="menu-card" button="true" [class.completed-card]="areasListas" (click)="irAAreas()">
+        <div class="card-flex-row">
+          <div class="icon-box" [class.icon-box-success]="areasListas">
+            <ion-icon name="compass-outline"></ion-icon>
+          </div>
+          <div class="text-content">
+            <h3 class="card-title">Áreas de Interés</h3>
+            <p class="card-status status-pending" *ngIf="!areasListas">Pendiente de elegir</p>
+            <p class="card-status status-success" *ngIf="areasListas">
+              <ion-icon name="checkmark-circle"></ion-icon>
+              {{ areasInteresGuardadas.length }} {{ areasInteresGuardadas.length === 1 ? 'área elegida' : 'áreas elegidas' }}
+            </p>
+          </div>
+          <ion-icon class="nav-icon" name="chevron-forward-outline"></ion-icon>
+        </div>
+      </ion-card>
+
+      <!-- 3. Foto de Perfil -->
       <ion-card class="menu-card" button="true" [class.completed-card]="fotoLista" routerLink="/foto-perfil">
         <div class="card-flex-row">
           <div class="icon-box" [class.icon-box-success]="fotoLista">
@@ -77,7 +95,7 @@
         </div>
       </ion-card>
 
-      <!-- 3. Currículum PDF -->
+      <!-- 4. Currículum PDF -->
       <ion-card class="menu-card" button="true" [class.completed-card]="cvListo" routerLink="/cv">
         <div class="card-flex-row">
           <div class="icon-box" [class.icon-box-success]="cvListo">

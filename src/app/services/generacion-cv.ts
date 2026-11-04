@@ -51,8 +51,9 @@ export class GeneracionCvService {
       return;
     }
 
+    // Texto neutro: no menciona la IA para que sea coherente si se usa la plantilla automática.
     this.toast.exito(
-      'Estamos redactando tu currículum con IA. Puedes seguir usando la app, te avisaremos cuando esté listo.',
+      'Estamos preparando tu currículum. Puedes seguir usando la app, te avisaremos cuando esté listo.',
       { duration: 4500 }
     );
 
@@ -109,6 +110,10 @@ export class GeneracionCvService {
         tieneExperiencia,
         areasInteres: Array.isArray(datosBD['areasInteres']) ? datosBD['areasInteres'] : []
       });
+
+      // Solo para depuración: el usuario no ve qué método se usó.
+      console.info('[CV] Método de generación utilizado:', metodo);
+
       if (!this.sigueVigente(id, uid)) return;
 
       const pdfBase64 = await this.construirPdf(datosBD, cvManual, texto, tieneExperiencia);
@@ -126,7 +131,7 @@ export class GeneracionCvService {
 
       this.liberar(id);
       this.terminado$.next(true);
-      this.avisarListo(metodo, rutaCv);
+      this.avisarListo(rutaCv);
 
     } catch (error) {
       console.error('Error al generar el currículum en segundo plano:', error);
@@ -151,7 +156,7 @@ export class GeneracionCvService {
     }
   }
 
-  private avisarListo(metodo: 'gemini' | 'local', rutaCv: string): void {
+  private avisarListo(rutaCv: string): void {
     const urlActual = this.router.url.split('?')[0];
     const rutaBase = (rutaCv || '').split('?')[0];
     const estaEnCv = !!rutaBase && urlActual.startsWith(rutaBase);
@@ -163,12 +168,9 @@ export class GeneracionCvService {
         : [{ text: 'Ver', handler: () => { this.router.navigateByUrl(rutaBase); } }]
     };
 
-    // Este aviso espera en la cola hasta que termine el de "Estamos redactando..."
-    if (metodo === 'gemini') {
-      this.toast.exito('¡Tu currículum con IA está listo!', opciones);
-    } else {
-      this.toast.advertencia('Tu currículum está listo. Usamos la plantilla automática.', opciones);
-    }
+    // Mismo aviso de éxito sin importar si se usó la IA o la plantilla automática.
+    // Este aviso espera en la cola hasta que termine el de "Estamos preparando...".
+    this.toast.exito('¡Tu currículum está listo!', opciones);
   }
 
   private async construirPdf(

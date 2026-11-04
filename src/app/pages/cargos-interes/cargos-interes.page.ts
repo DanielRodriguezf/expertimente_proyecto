@@ -109,7 +109,8 @@ export class CargosInteresPage implements OnInit, ViewWillEnter {
   }
 
   irASeleccionarAreas() {
-    this.router.navigate(['/usuario-info']);
+    // 'volver' hace que al guardar las áreas se regrese a esta misma página.
+    this.router.navigate(['/areas-interes'], { queryParams: { volver: this.router.url.split('?')[0] } });
   }
 
   private normalizarTexto(texto: string): string {
@@ -280,26 +281,19 @@ export class CargosInteresPage implements OnInit, ViewWillEnter {
         fechaActualizacionPerfil: new Date()
       }, { merge: true });
 
-      if (nuevosLocales === 0 && conservados === 0) {
-        this.mostrarMensaje('¡Listo! Tu currículum fue analizado con Inteligencia Artificial.', 'success');
-      } else if (nuevosLocales === 0 && nuevosConIa === 0) {
-        this.mostrarMensaje(
-          'La IA no está disponible ahora. Mantuvimos tus resultados anteriores; intenta actualizar más tarde.',
-          'warning',
-          4500
-        );
-      } else {
-        this.mostrarMensaje(
-          'La IA no está disponible ahora, así que usamos un análisis automático básico.',
-          'warning',
-          5000
-        );
-      }
+      // Solo para depuración: el usuario no ve qué método se usó.
+      console.info('[Cargos] Escaneo terminado →', { nuevosConIa, nuevosLocales, conservados });
+
+      // Mismo aviso de éxito sin importar si se usó la IA, el método local
+      // o se conservaron resultados anteriores.
+      this.mostrarMensaje('¡Listo! Tu currículum fue analizado y tus resultados están actualizados.', 'success');
     } catch (error) {
       console.error('Error al escanear cargos:', error);
       if (error instanceof DatosInsuficientesError) {
+        // Aquí el proceso no se pudo completar (no se guardó ningún resultado),
+        // por eso se mantiene como advertencia, pero sin mencionar la IA.
         this.mostrarMensaje(
-          'La IA no está disponible ahora y tu currículum está solo en PDF. Completa tus datos en "Mi Experiencia".',
+          'No pudimos analizar tu currículum en PDF. Completa tus datos en "Mi Experiencia" para continuar.',
           'warning',
           5000
         );

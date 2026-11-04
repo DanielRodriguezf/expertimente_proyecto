@@ -16,11 +16,11 @@ import {
   arrowBackOutline, checkmarkCircle, warning, closeCircle, 
   informationCircle, schoolOutline, briefcaseOutline, timeOutline, starOutline,
   addOutline, closeOutline, trashOutline, businessOutline, addCircleOutline,
-  briefcase, chevronDownOutline, sparklesOutline, searchOutline
+  briefcase, chevronDownOutline
 } from 'ionicons/icons';
 
 import { Auth, onAuthStateChanged } from '@angular/fire/auth';
-import { Firestore, doc, setDoc, getDoc, collection, getDocs } from '@angular/fire/firestore';
+import { Firestore, doc, setDoc, getDoc } from '@angular/fire/firestore';
 
 @Component({
   selector: 'app-usuario-info',
@@ -37,9 +37,12 @@ import { Firestore, doc, setDoc, getDoc, collection, getDocs } from '@angular/fi
 })
 export class UsuarioInfoPage implements OnInit {
   pasoActual: number = 1;
-  totalPasos: number = 6; 
+  totalPasos: number = 5; 
   cargando: boolean = true;
   modalEstudiosAbierto: boolean = false; 
+
+  // Indica si el postulante ya eligió áreas de interés (se eligen en la página /areas-interes)
+  tieneAreasGuardadas: boolean = false;
 
   cvForm: FormGroup;
   
@@ -50,10 +53,6 @@ export class UsuarioInfoPage implements OnInit {
 
   sugerenciasBlandas: string[] = [...this.TODAS_BLANDAS];
   sugerenciasTecnicas: string[] = [...this.TODAS_TECNICAS];
-
-  listaAreasDisponibles: string[] = [];
-  areasFiltradas: string[] = [];
-  terminoBusquedaArea: string = '';
 
   private auth = inject(Auth);
   private firestore = inject(Firestore);
@@ -70,8 +69,7 @@ export class UsuarioInfoPage implements OnInit {
       'school-outline': schoolOutline, 'briefcase-outline': briefcaseOutline,
       'time-outline': timeOutline, 'star-outline': starOutline, 'add-outline': addOutline,
       'close-outline': closeOutline, 'trash-outline': trashOutline, 'business-outline': businessOutline,
-      'add-circle-outline': addCircleOutline, 'briefcase': briefcase, 'chevron-down-outline': chevronDownOutline,
-      'sparkles-outline': sparklesOutline, 'search-outline': searchOutline
+      'add-circle-outline': addCircleOutline, 'briefcase': briefcase, 'chevron-down-outline': chevronDownOutline
     });
 
     this.cvForm = this.fb.group({
@@ -82,16 +80,17 @@ export class UsuarioInfoPage implements OnInit {
       sinExperiencia: [false], 
       disponibilidad: ['', Validators.required],
       habilidadesBlandas: ['', Validators.required],
-      habilidadesTecnicas: ['', Validators.required],
-      areasInteres: [[], Validators.required]
+      habilidadesTecnicas: ['', Validators.required]
     });
   }
 
-  ionViewWillEnter() { this.pasoActual = 1; }
+  ionViewWillEnter() { 
+    this.pasoActual = 1; 
+    // El postulante puede haber elegido áreas en la otra página: se actualiza el estado.
+    void this.refrescarEstadoAreas();
+  }
 
-  async ngOnInit() {
-    await this.cargarAreasDesdeCargos();
-
+  ngOnInit() {
     onAuthStateChanged(this.auth, async (user) => {
       if (user) {
         try {
@@ -100,11 +99,8 @@ export class UsuarioInfoPage implements OnInit {
           if (docSnap.exists()) {
             const data = docSnap.data();
             const cv = data['cvManual'] || {};
-            const areasGuardadas: string[] = Array.isArray(cv.areasInteres)
-              ? cv.areasInteres
-              : (Array.isArray(data['areasInteres']) ? data['areasInteres'] : []);
 
-            areasGuardadas.forEach(area => this.asegurarAreaEnLista(area));
+            this.tieneAreasGuardadas = this.extraerAreas(data).length > 0;
 
             this.cvForm.patchValue({
               nivelEducativo: cv.nivelEducativo || '',
@@ -114,8 +110,7 @@ export class UsuarioInfoPage implements OnInit {
               sinExperiencia: !!cv.sinExperiencia,
               disponibilidad: cv.disponibilidad || '',
               habilidadesBlandas: cv.habilidadesBlandas || '',
-              habilidadesTecnicas: cv.habilidadesTecnicas || '',
-              areasInteres: areasGuardadas
+              habilidadesTecnicas: cv.habilidadesTecnicas || ''
             });
             this.actualizarSugerenciasBlandas();
             this.actualizarSugerenciasTecnicas();
@@ -132,69 +127,27 @@ export class UsuarioInfoPage implements OnInit {
     });
   }
 
-  async cargarAreasDesdeCargos() {
+  private extraerAreas(data: any): string[] {
+    const cv = data?.['cvManual'] || {};
+    if (Array.isArray(cv['areasInteres'])) return cv['areasInteres'];
+    if (Array.isArray(data?.['areasInteres'])) return data['areasInteres'];
+    return [];
+  }
+
+  private async refrescarEstadoAreas(): Promise<void> {
+    const user = this.auth.currentUser;
+    if (!user) return;
     try {
-      const cargosRef = collection(this.firestore, 'cargos');
-      const snap = await getDocs(cargosRef);
-
-      snap.forEach((docSnap) => {
-        const data = docSnap.data();
-        const origenAreas = data['areas'] ?? data['areaLaboral'] ?? data['area'];
-
-        if (Array.isArray(origenAreas)) {
-          origenAreas.forEach((item: any) => {
-            if (typeof item === 'string') {
-              item.split(',').map(p => p.trim()).filter(Boolean).forEach(p => this.asegurarAreaEnLista(p));
-            }
-          });
-        } else if (typeof origenAreas === 'string' && origenAreas.trim()) {
-          origenAreas
-            .split(',')
-            .map(p => p.trim())
-            .filter(Boolean)
-            .forEach(parte => this.asegurarAreaEnLista(parte));
-        }
-      });
+      const docSnap = await getDoc(doc(this.firestore, `postulantes/${user.uid}`));
+      this.tieneAreasGuardadas = docSnap.exists() ? this.extraerAreas(docSnap.data()).length > 0 : false;
     } catch (error) {
-      console.error('Error al extraer áreas desde la colección cargos:', error);
+      console.error('Error al revisar las áreas de interés del postulante:', error);
     }
-  }
-
-  private asegurarAreaEnLista(nuevaArea: string) {
-    const limpia = nuevaArea.trim();
-    if (!limpia) return;
-    const existe = this.listaAreasDisponibles.some(
-      a => this.normalizarTexto(a) === this.normalizarTexto(limpia)
-    );
-    if (!existe) {
-      this.listaAreasDisponibles.push(limpia);
-    }
-  }
-
-  private normalizarTexto(texto: string): string {
-    return (texto || '')
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .trim();
-  }
-
-  filtrarAreas() {
-    const termino = this.normalizarTexto(this.terminoBusquedaArea);
-    if (!termino) {
-      this.areasFiltradas = [];
-      return;
-    }
-
-    this.areasFiltradas = this.listaAreasDisponibles.filter(area =>
-      this.normalizarTexto(area).includes(termino)
-    );
-  }
-
-  limpiarBusquedaArea() {
-    this.terminoBusquedaArea = '';
-    this.areasFiltradas = [];
     this.cdr.detectChanges();
+  }
+
+  get textoBotonFinal(): string {
+    return this.tieneAreasGuardadas ? 'Terminar y Guardar' : 'Guardar y elegir áreas';
   }
 
   abrirModalEstudios() {
@@ -208,26 +161,6 @@ export class UsuarioInfoPage implements OnInit {
 
   get areasExperiencia(): any[] { return this.cvForm.get('areasExperiencia')?.value || []; }
   get sinExperiencia(): boolean { return this.cvForm.get('sinExperiencia')?.value; }
-  get areasInteres(): string[] { return this.cvForm.get('areasInteres')?.value || []; }
-
-  esAreaSeleccionada(area: string): boolean {
-    return this.areasInteres.some(a => this.normalizarTexto(a) === this.normalizarTexto(area));
-  }
-
-  toggleAreaInteres(area: string) {
-    const actuales = [...this.areasInteres];
-    const index = actuales.findIndex(a => this.normalizarTexto(a) === this.normalizarTexto(area));
-
-    if (index >= 0) {
-      actuales.splice(index, 1);
-    } else {
-      actuales.push(area);
-    }
-
-    this.cvForm.get('areasInteres')?.setValue(actuales);
-    this.cvForm.get('areasInteres')?.markAsDirty();
-    this.cdr.detectChanges();
-  }
 
   limpiarExperienciaSiAplica() {
     if (this.sinExperiencia) {
@@ -312,9 +245,6 @@ export class UsuarioInfoPage implements OnInit {
     if (this.pasoActual === 5 && this.cvForm.get('habilidadesTecnicas')?.invalid) {
       this.mostrarMensaje('Ingresa tus habilidades técnicas.', 'warning'); return;
     }
-    if (this.pasoActual === 6 && this.areasInteres.length === 0) {
-      this.mostrarMensaje('Busca y selecciona al menos un área laboral de tu interés.', 'warning'); return;
-    }
     
     if (this.pasoActual < this.totalPasos) { 
       this.pasoActual++; 
@@ -341,8 +271,9 @@ export class UsuarioInfoPage implements OnInit {
 
     try {
       const formValues = this.cvForm.getRawValue();
-      const areasSeleccionadas = Array.isArray(formValues.areasInteres) ? formValues.areasInteres : [];
 
+      // Importante: aquí NO se envía areasInteres. Con merge: true se conservan
+      // las áreas que el postulante ya eligió en la página /areas-interes.
       const cvManualLimpio = {
         nivelEducativo: formValues.nivelEducativo || '',
         establecimiento: formValues.establecimiento || '',
@@ -351,20 +282,26 @@ export class UsuarioInfoPage implements OnInit {
         areasExperiencia: Array.isArray(formValues.areasExperiencia) ? formValues.areasExperiencia : [],
         disponibilidad: formValues.disponibilidad || '',
         habilidadesBlandas: formValues.habilidadesBlandas || '',
-        habilidadesTecnicas: formValues.habilidadesTecnicas || '',
-        areasInteres: areasSeleccionadas
+        habilidadesTecnicas: formValues.habilidadesTecnicas || ''
       };
 
       const docRef = doc(this.firestore, `postulantes/${user.uid}`);
       await setDoc(docRef, {
         cvManual: cvManualLimpio,
-        areasInteres: areasSeleccionadas,
         fechaActualizacionPerfil: new Date()
       }, { merge: true });
 
+      await this.refrescarEstadoAreas();
       await loading.dismiss();
-      this.mostrarMensaje('¡Información y áreas de interés guardadas con éxito!', 'success');
-      this.router.navigate(['/home']); 
+
+      if (this.tieneAreasGuardadas) {
+        this.mostrarMensaje('¡Información guardada con éxito!', 'success');
+        this.router.navigate(['/home']);
+      } else {
+        // Primera vez: se continúa directo a elegir las áreas de interés.
+        this.mostrarMensaje('¡Información guardada! Ahora elige tus áreas de interés.', 'success', 3500);
+        this.router.navigate(['/areas-interes']);
+      }
     } catch (error) {
       console.error('Error al guardar en Firestore:', error);
       await loading.dismiss();

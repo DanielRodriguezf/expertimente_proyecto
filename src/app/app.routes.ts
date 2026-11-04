@@ -104,5 +104,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/mensajes/mensajes.page').then( m => m.MensajesPage),
     title: 'Mensajes - ExpertiMente',
     canActivate: [authGuard] 
+  },
+  {
+    path: 'areas-interes',
+    loadComponent: () => import('./pages-info/areas-interes/areas-interes.page').then( m => m.AreasInteresPage),
+    title: 'Areas Interes - ExpertiMente',
+    canActivate: [authGuard] 
   }
 ];

@@ -18,7 +18,7 @@ import {
   trashOutline, eyeOutline, checkmarkCircle, timeOutline, starOutline,
   cameraOutline, personCircleOutline, cropOutline, closeOutline,
   syncOutline, swapHorizontalOutline, chevronForwardOutline, trophyOutline,
-  warning, closeCircle, informationCircle
+  warning, closeCircle, informationCircle, compassOutline
 } from 'ionicons/icons';
 
 import { ImageCroppedEvent, ImageTransform } from 'ngx-image-cropper';
@@ -58,12 +58,14 @@ export class PerfilCvPage implements OnInit {
   archivoBase64: string = ''; 
   @ViewChild('fileInput', { static: false }) fileInput!: ElementRef;
 
-  datosManuales = {
+  datosManuales: any = {
     nivelEducativo: '',
     areasExperiencia: '',
     anosExperiencia: null as number | null,
     habilidades: ''
   };
+
+  areasInteresGuardadas: string[] = [];
 
   private auth = inject(Auth);
   private firestore = inject(Firestore);
@@ -94,14 +96,26 @@ export class PerfilCvPage implements OnInit {
       'swap-horizontal-outline': swapHorizontalOutline,
       'chevron-forward-outline': chevronForwardOutline,
       'trophy-outline': trophyOutline,
+      'compass-outline': compassOutline,
       'warning': warning,
       'close-circle': closeCircle,
       'information-circle': informationCircle
     });
   }
 
+  // Mismos requisitos que usa la generación del CV: estudios, habilidades técnicas y
+  // experiencia (o marcar "sin experiencia").
   get infoProfesionalLista(): boolean {
-    return !!(this.datosManuales.nivelEducativo && this.datosManuales.areasExperiencia);
+    const cv = this.datosManuales;
+    if (!cv) return false;
+    const tieneExperiencia = Array.isArray(cv.areasExperiencia)
+      ? cv.areasExperiencia.length > 0
+      : !!cv.areasExperiencia;
+    return !!(cv.nivelEducativo && cv.habilidadesTecnicas && (tieneExperiencia || cv.sinExperiencia === true));
+  }
+
+  get areasListas(): boolean {
+    return this.areasInteresGuardadas.length > 0;
   }
 
   get fotoLista(): boolean {
@@ -115,9 +129,10 @@ export class PerfilCvPage implements OnInit {
   get progresoPerfil(): number {
     let completados = 0;
     if (this.infoProfesionalLista) completados++;
+    if (this.areasListas) completados++;
     if (this.fotoLista) completados++;
     if (this.cvListo) completados++;
-    return completados / 3;
+    return completados / 4;
   }
 
   ngOnInit() {
@@ -145,6 +160,12 @@ export class PerfilCvPage implements OnInit {
               this.cvSavedBase64 = '';
             }
 
+            const cvGuardado = data['cvManual'] || {};
+            const areasGuardadas = Array.isArray(cvGuardado['areasInteres'])
+              ? cvGuardado['areasInteres']
+              : (Array.isArray(data['areasInteres']) ? data['areasInteres'] : []);
+            this.areasInteresGuardadas = areasGuardadas.filter((a: any) => typeof a === 'string');
+
             if (data['cvManual']) {
               this.datosManuales = data['cvManual'];
             } else {
@@ -162,6 +183,11 @@ export class PerfilCvPage implements OnInit {
     this.pasoActual = 1;
     this.cancelarRecorte();
     this.quitarArchivoPendiente();
+  }
+
+  irAAreas() {
+    // 'volver' hace que al guardar las áreas se regrese a esta misma página.
+    this.router.navigate(['/areas-interes'], { queryParams: { volver: this.router.url.split('?')[0] } });
   }
 
   siguientePaso() {
