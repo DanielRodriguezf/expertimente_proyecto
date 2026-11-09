@@ -1,7 +1,7 @@
 <ion-header class="ion-no-border">
   <ion-toolbar class="header-toolbar">
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/home" color="primary"></ion-back-button>
+      <ion-back-button defaultHref="/home" class="menu-btn-custom"></ion-back-button>
     </ion-buttons>
     <ion-title class="header-title">Áreas de Interés</ion-title>
   </ion-toolbar>
@@ -15,32 +15,46 @@
       @if (cargando) {
         <div class="loading-box">
           <ion-spinner name="crescent" color="primary"></ion-spinner>
-          <span>Cargando áreas...</span>
+          <span>Cargando áreas disponibles...</span>
         </div>
       } @else {
         <div class="form-section fade-in">
-          <h2 class="question-text">Áreas de Interés</h2>
-          <p class="subtitle">Busca y selecciona una o varias áreas en las que te gustaría trabajar.</p>
 
-          <!-- Tarjeta explicativa sobre la utilidad con IA y Ternas -->
-          <div class="ai-info-banner">
-            <div class="ai-info-header">
-              <ion-icon name="sparkles-outline" class="ai-icon"></ion-icon>
-              <span>¿Para qué sirve elegir tus áreas?</span>
+          <h2 class="question-text">Selección de áreas de Interés</h2>
+          <p class="subtitle">
+            Elige las áreas en las que te gustaría postular para trabajar.
+          </p>
+
+          <!-- Tarjeta explicativa sobre la utilidad con IA y Ternas (cerrable con X) -->
+          @if (mostrarBannerInfo) {
+            <div class="ai-info-banner fade-in">
+              <div class="ai-info-header">
+                <div class="ai-info-title">
+                  <ion-icon name="sparkles-outline" class="ai-icon"></ion-icon>
+                  <span>¿Para qué sirve elegir tus áreas?</span>
+                </div>
+                <button
+                  type="button"
+                  class="btn-close-banner"
+                  (click)="cerrarBannerInfo()"
+                  aria-label="Cerrar información">
+                  <ion-icon name="close-outline"></ion-icon>
+                </button>
+              </div>
+              <p class="ai-info-text">
+                La IA analizará tu currículum y calculará tu porcentaje de idoneidad para los cargos de las áreas elegidas, permitiéndote aparecer en el ranking de los reclutadores sin postular individualmente.
+              </p>
             </div>
-            <p class="ai-info-text">
-              La IA analizará tu currículum y calculará tu porcentaje de idoneidad para los cargos de las áreas elegidas, permitiéndote aparecer en el ranking de los reclutadores sin postular individualmente.
-            </p>
-          </div>
+          }
 
           <!-- Buscador de áreas -->
           <div class="input-wrapper search-area-wrapper">
             <ion-input
-              label="Buscar área laboral"
+              label="Buscar área o cargo de interés"
               labelPlacement="floating"
               fill="outline"
               type="text"
-              placeholder="Escribe ej. Gastronomía, Repostería..."
+              placeholder="Escribe ej. Gastronomía, Ventas, Bodega..."
               class="modern-input"
               [(ngModel)]="terminoBusquedaArea"
               (ionInput)="filtrarAreas()">
@@ -53,53 +67,79 @@
             </ion-input>
           </div>
 
-          <!-- Resultados de búsqueda (solo se muestran cuando el usuario escribe) -->
-          @if (terminoBusquedaArea.trim().length > 0) {
-            <div class="search-results-section fade-in">
-              <p class="suggestions-label">Resultados encontrados (Toca para seleccionar):</p>
+          <!-- Listado de opciones disponibles (muestra 3 aleatorias por defecto o todas al expandir) -->
+          <div class="search-results-section fade-in">
+            <div class="results-header-row">
+              <p class="suggestions-label">
+                {{ terminoBusquedaArea.trim() ? 'Resultados disponibles:' : 'Opciones disponibles:' }}
+              </p>
 
-              @if (areasFiltradas.length > 0) {
-                <div class="areas-grid">
-                  @for (area of areasFiltradas; track area) {
-                    <div
-                      class="area-select-card"
-                      [class.selected]="esAreaSeleccionada(area)"
-                      (click)="toggleAreaInteres(area)">
-                      <div class="area-card-text">
-                        <span>{{ area }}</span>
-                      </div>
-                      <ion-icon
-                        [name]="esAreaSeleccionada(area) ? 'checkmark-circle' : 'add-circle-outline'"
-                        [color]="esAreaSeleccionada(area) ? 'primary' : 'medium'"
-                        class="area-card-icon">
-                      </ion-icon>
-                    </div>
-                  }
-                </div>
-              } @else {
-                <div class="empty-search-box">
-                  <ion-icon name="information-circle" color="medium"></ion-icon>
-                  <span>No se encontraron áreas que coincidan con "{{ terminoBusquedaArea }}".</span>
-                </div>
-              }
             </div>
-          } @else {
-            <p class="search-hint-text">
-              Escribe en el buscador para encontrar y seleccionar las áreas disponibles.
-            </p>
-          }
 
-          <!-- Áreas ya seleccionadas por el postulante -->
+            @if (areasVisibles.length > 0) {
+              <div class="areas-grid" [class.expanded]="mostrarTodas">
+                @for (area of areasVisibles; track area) {
+                  <div class="area-select-card fade-in" (click)="agregarAreaInteres(area)">
+                    <div class="area-card-text">
+                      <span>{{ area }}</span>
+                    </div>
+                    <div class="area-card-action">
+                      <span class="add-text">Agregar</span>
+                      <ion-icon name="add-circle-outline" color="primary" class="area-card-icon"></ion-icon>
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <!-- Botón inferior para desplegar todas las disponibles o contraer a 3 -->
+              @if (areasFiltradas.length > LIMITE_SUGERENCIAS) {
+                <ion-button
+                  fill="outline"
+                  expand="block"
+                  color="primary"
+                  class="btn-ver-todas"
+                  (click)="toggleMostrarTodas()">
+                  <span>
+                    {{ mostrarTodas
+                      ? 'Mostrar solo ' + LIMITE_SUGERENCIAS + ' opciones'
+                      : 'Ver todas las disponibles' }}
+                  </span>
+                  <ion-icon
+                    slot="end"
+                    [name]="mostrarTodas ? 'chevron-up-outline' : 'chevron-down-outline'">
+                  </ion-icon>
+                </ion-button>
+              }
+            } @else {
+              <div class="empty-search-box">
+                <ion-icon name="information-circle" color="medium"></ion-icon>
+                @if (terminoBusquedaArea.trim()) {
+                  <span>No quedan áreas disponibles que coincidan con "{{ terminoBusquedaArea }}".</span>
+                } @else {
+                  <span>¡Ya seleccionaste todas las áreas disponibles!</span>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Áreas seleccionadas abajo (al tocarlas vuelven arriba al buscador) -->
           <div class="selected-areas-section">
             <div class="areas-counter-row">
               <span class="suggestions-label">Tus áreas seleccionadas:</span>
-              <span class="selected-count-badge">{{ areasInteres.length }} seleccionada(s)</span>
+              <div class="counter-actions">
+                <span class="selected-count-badge">{{ areasInteres.length }} seleccionada(s)</span>
+                @if (areasInteres.length > 1) {
+                  <button type="button" class="btn-clear-all" (click)="limpiarTodasSeleccionadas()">
+                    <ion-icon name="trash-outline"></ion-icon> Quitar todas
+                  </button>
+                }
+              </div>
             </div>
 
             @if (areasInteres.length > 0) {
               <div class="chips-container selected-chips-box">
                 @for (areaSel of areasInteres; track areaSel) {
-                  <ion-chip class="selected-area-chip" color="primary" (click)="toggleAreaInteres(areaSel)">
+                  <ion-chip class="selected-area-chip fade-in" color="primary" (click)="quitarAreaInteres(areaSel)">
                     <ion-label>{{ areaSel }}</ion-label>
                     <ion-icon name="close-circle"></ion-icon>
                   </ion-chip>
@@ -107,15 +147,16 @@
               </div>
             } @else {
               <div class="no-selection-box">
-                <span>Aún no has seleccionado ninguna área laboral.</span>
+                <span>No has seleccionado ninguna área.</span>
               </div>
             }
           </div>
         </div>
 
+        <!-- Botones de acción -->
         <div class="action-section fade-in">
           <ion-button expand="block" class="btn-primary-custom" [disabled]="guardando" (click)="guardarAreas()">
-            Guardar áreas
+            {{ areasInteres.length > 0 ? 'Guardar áreas (' + areasInteres.length + ')' : 'Continuar sin seleccionar' }}
           </ion-button>
         </div>
       }

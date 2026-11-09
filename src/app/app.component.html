@@ -23,14 +23,10 @@
       <!-- Encabezado de perfil -->
       <div class="menu-header">
         <div class="menu-avatar">
-          <!-- Si el usuario tiene foto de perfil -->
           <img *ngIf="usuarioData?.fotoPerfil" [src]="usuarioData.fotoPerfil" alt="Foto de perfil" class="avatar-image" />
-
-          <!-- Si NO tiene foto, mostramos el ícono -->
           <ion-icon *ngIf="!usuarioData?.fotoPerfil" name="person-outline"></ion-icon>
         </div>
 
-        <!-- Nombre Dinámico protegido contra valores vacíos -->
         <h2 class="menu-user-name">
           {{ usuarioData ? ((usuarioData.nombre || '') + ' ' + (usuarioData.apellidoPaterno || '')).trim() : 'Cargando...' }}
         </h2>
@@ -52,7 +48,6 @@
             {{ p.title }}
           </ion-label>
 
-          <!-- Candado visual cuando faltan datos personales -->
           <ion-icon 
             *ngIf="p.requiereDatos && !tieneDatosCompletos()" 
             slot="end" 
@@ -60,19 +55,28 @@
             class="lock-icon">
           </ion-icon>
 
-          <!-- Flecha indicadora cuando la opción está desbloqueada -->
           <ion-icon 
             *ngIf="!p.requiereDatos || tieneDatosCompletos()" 
             slot="end" 
             name="chevron-forward-outline" 
             class="arrow-icon">
           </ion-icon>
+        </ion-item>
 
+        <!-- OPCIÓN PERMANENTE DE AYUDA EN EL MENÚ HAMBURGUESA -->
+        <ion-item
+          (click)="abrirAyudaDesdeMenu()"
+          class="menu-item"
+          button
+          detail="false">
+          <ion-icon slot="start" name="help-buoy-outline" class="menu-item-icon"></ion-icon>
+          <ion-label class="menu-item-label">¿Necesitas ayuda?</ion-label>
+          <ion-icon slot="end" name="chevron-forward-outline" class="arrow-icon"></ion-icon>
         </ion-item>
       </ion-list>
     </ion-content>
 
-    <!-- FOOTER FIJO DEL MENÚ (Cerrar Sesión + Copyright respetando barra de navegación móvil) -->
+    <!-- FOOTER FIJO DEL MENÚ -->
     <ion-footer class="ion-no-border menu-footer-container">
       <div class="menu-footer">
         <ion-item (click)="cerrarSesion()" lines="none" class="menu-item logout-item" button detail="false">

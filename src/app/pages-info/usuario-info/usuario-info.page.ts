@@ -41,9 +41,6 @@ export class UsuarioInfoPage implements OnInit {
   cargando: boolean = true;
   modalEstudiosAbierto: boolean = false; 
 
-  // Indica si el postulante ya eligió áreas de interés (se eligen en la página /areas-interes)
-  tieneAreasGuardadas: boolean = false;
-
   cvForm: FormGroup;
   
   experienciaActual = { cargo: '', lugar: '', tiempo: '', descripcion: '' };
@@ -86,8 +83,6 @@ export class UsuarioInfoPage implements OnInit {
 
   ionViewWillEnter() { 
     this.pasoActual = 1; 
-    // El postulante puede haber elegido áreas en la otra página: se actualiza el estado.
-    void this.refrescarEstadoAreas();
   }
 
   ngOnInit() {
@@ -99,8 +94,6 @@ export class UsuarioInfoPage implements OnInit {
           if (docSnap.exists()) {
             const data = docSnap.data();
             const cv = data['cvManual'] || {};
-
-            this.tieneAreasGuardadas = this.extraerAreas(data).length > 0;
 
             this.cvForm.patchValue({
               nivelEducativo: cv.nivelEducativo || '',
@@ -127,27 +120,8 @@ export class UsuarioInfoPage implements OnInit {
     });
   }
 
-  private extraerAreas(data: any): string[] {
-    const cv = data?.['cvManual'] || {};
-    if (Array.isArray(cv['areasInteres'])) return cv['areasInteres'];
-    if (Array.isArray(data?.['areasInteres'])) return data['areasInteres'];
-    return [];
-  }
-
-  private async refrescarEstadoAreas(): Promise<void> {
-    const user = this.auth.currentUser;
-    if (!user) return;
-    try {
-      const docSnap = await getDoc(doc(this.firestore, `postulantes/${user.uid}`));
-      this.tieneAreasGuardadas = docSnap.exists() ? this.extraerAreas(docSnap.data()).length > 0 : false;
-    } catch (error) {
-      console.error('Error al revisar las áreas de interés del postulante:', error);
-    }
-    this.cdr.detectChanges();
-  }
-
   get textoBotonFinal(): string {
-    return this.tieneAreasGuardadas ? 'Terminar y Guardar' : 'Guardar y elegir áreas';
+    return 'Terminar y Guardar';
   }
 
   abrirModalEstudios() {
@@ -272,8 +246,6 @@ export class UsuarioInfoPage implements OnInit {
     try {
       const formValues = this.cvForm.getRawValue();
 
-      // Importante: aquí NO se envía areasInteres. Con merge: true se conservan
-      // las áreas que el postulante ya eligió en la página /areas-interes.
       const cvManualLimpio = {
         nivelEducativo: formValues.nivelEducativo || '',
         establecimiento: formValues.establecimiento || '',
@@ -291,17 +263,9 @@ export class UsuarioInfoPage implements OnInit {
         fechaActualizacionPerfil: new Date()
       }, { merge: true });
 
-      await this.refrescarEstadoAreas();
       await loading.dismiss();
-
-      if (this.tieneAreasGuardadas) {
-        this.mostrarMensaje('¡Información guardada con éxito!', 'success');
-        this.router.navigate(['/home']);
-      } else {
-        // Primera vez: se continúa directo a elegir las áreas de interés.
-        this.mostrarMensaje('¡Información guardada! Ahora elige tus áreas de interés.', 'success', 3500);
-        this.router.navigate(['/areas-interes']);
-      }
+      this.mostrarMensaje('¡Información guardada con éxito!', 'success');
+      this.router.navigate(['/home']);
     } catch (error) {
       console.error('Error al guardar en Firestore:', error);
       await loading.dismiss();

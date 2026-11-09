@@ -109,7 +109,6 @@ export class CargosInteresPage implements OnInit, ViewWillEnter {
   }
 
   irASeleccionarAreas() {
-    // 'volver' hace que al guardar las áreas se regrese a esta misma página.
     this.router.navigate(['/areas-interes'], { queryParams: { volver: this.router.url.split('?')[0] } });
   }
 
@@ -163,9 +162,10 @@ export class CargosInteresPage implements OnInit, ViewWillEnter {
       if (docSnap.exists()) {
         const data = docSnap.data();
         this.perfilPostulante = data;
-        this.areasUsuario = Array.isArray(data['areasInteres'])
-          ? data['areasInteres']
-          : (Array.isArray(data['cvManual']?.['areasInteres']) ? data['cvManual']['areasInteres'] : []);
+
+        const areasRaiz = Array.isArray(data['areasInteres']) ? data['areasInteres'].filter(Boolean) : [];
+        const areasManual = Array.isArray(data['cvManual']?.['areasInteres']) ? data['cvManual']['areasInteres'].filter(Boolean) : [];
+        this.areasUsuario = areasRaiz.length ? areasRaiz : areasManual;
       }
 
       const mapaTemp: { [cargoId: string]: any } = {};
@@ -193,12 +193,17 @@ export class CargosInteresPage implements OnInit, ViewWillEnter {
   }
 
   async escanearTodosLosCargosDeMisAreas() {
+    await this.cargarPerfilYResultados();
+
     const cargosParaEscanear = this.cargosDeMisAreas;
     if (!this.tieneCvDisponible) {
-      this.mostrarMensaje('Primero completa tus datos en "Mi Experiencia".', 'warning');
+      this.mostrarMensaje('Primero sube tu CV o completa tus datos en "Mi Experiencia".', 'warning');
       return;
     }
-    if (!cargosParaEscanear.length) return;
+    if (!cargosParaEscanear.length) {
+      this.mostrarMensaje('No hay cargos disponibles en tus áreas seleccionadas.', 'warning');
+      return;
+    }
 
     this.escaneandoGlobal = true;
     this.cdr.detectChanges();
@@ -218,17 +223,10 @@ export class CargosInteresPage implements OnInit, ViewWillEnter {
 
       let nuevosConIa = 0;
       let nuevosLocales = 0;
-      let conservados = 0;
 
       for (const cargo of cargosParaEscanear) {
         const evaluacion = evaluaciones[cargo.id];
         if (!evaluacion) continue;
-
-        const previo = this.resultadosMap[cargo.id];
-        if (evaluacion.metodo === 'local' && previo?.metodoEvaluacion === 'gemini_ai_cv') {
-          conservados++;
-          continue;
-        }
 
         const docId = `${this.uid}_${cargo.id}`;
 
@@ -281,19 +279,14 @@ export class CargosInteresPage implements OnInit, ViewWillEnter {
         fechaActualizacionPerfil: new Date()
       }, { merge: true });
 
-      // Solo para depuración: el usuario no ve qué método se usó.
-      console.info('[Cargos] Escaneo terminado →', { nuevosConIa, nuevosLocales, conservados });
+      console.info('[Cargos] Escaneo terminado →', { nuevosConIa, nuevosLocales });
 
-      // Mismo aviso de éxito sin importar si se usó la IA, el método local
-      // o se conservaron resultados anteriores.
       this.mostrarMensaje('¡Listo! Tu currículum fue analizado y tus resultados están actualizados.', 'success');
     } catch (error) {
       console.error('Error al escanear cargos:', error);
       if (error instanceof DatosInsuficientesError) {
-        // Aquí el proceso no se pudo completar (no se guardó ningún resultado),
-        // por eso se mantiene como advertencia, pero sin mencionar la IA.
         this.mostrarMensaje(
-          'No pudimos analizar tu currículum en PDF. Completa tus datos en "Mi Experiencia" para continuar.',
+          'No pudimos analizar tu currículum. Completa tus datos en "Mi Experiencia" para continuar.',
           'warning',
           5000
         );

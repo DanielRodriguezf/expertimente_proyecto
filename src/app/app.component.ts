@@ -32,7 +32,8 @@ import {
   lockClosedOutline,
   briefcaseOutline,
   chevronForwardOutline,
-  ribbonOutline 
+  ribbonOutline,
+  helpBuoyOutline
 } from 'ionicons/icons';
 
 import { Auth, onAuthStateChanged } from '@angular/fire/auth';
@@ -86,7 +87,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   usuarioData: any = null;
   sesionActiva: boolean = false; 
-  esRutaHome: boolean = false; // Controla si estamos exactamente en /home
+  esRutaHome: boolean = false;
   progresoPerfil: number = 0;
   
   mostrandoSplash: boolean = true;
@@ -105,7 +106,8 @@ export class AppComponent implements OnInit, OnDestroy {
       'lock-closed-outline': lockClosedOutline,
       'briefcase-outline': briefcaseOutline,
       'chevron-forward-outline': chevronForwardOutline,
-      'ribbon-outline': ribbonOutline
+      'ribbon-outline': ribbonOutline,
+      'help-buoy-outline': helpBuoyOutline
     });
   }
 
@@ -137,7 +139,7 @@ export class AppComponent implements OnInit, OnDestroy {
               this.cdr.detectChanges(); 
             } else {
               if (this.googleAuth.registroGoogleEnCurso) {
-                return; // se está registrando con Google: todavía no tiene documento
+                return;
               }
               console.warn('Usuario fantasma detectado (sin BD). Expulsando...');
               await this.googleAuth.cerrarSesion(); 
@@ -173,10 +175,8 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   private monitorearRutaActiva() {
-    // Evaluamos la ruta inicial
     this.verificarSiEsHome(this.router.url);
 
-    // Escuchamos cada cambio de página
     this.routerSub = this.router.events
       .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
       .subscribe((event: NavigationEnd) => {
@@ -276,7 +276,8 @@ export class AppComponent implements OnInit, OnDestroy {
         duration: 3500,
         color: 'warning',
         position: 'bottom',
-        icon: 'lock-closed-outline'
+        icon: 'lock-closed-outline',
+        cssClass: 'toast-expertimente'
       });
       await toast.present();
       return; 
@@ -284,6 +285,16 @@ export class AppComponent implements OnInit, OnDestroy {
 
     await this.menuCtrl.close(); 
     this.router.navigateByUrl(pagina.url); 
+  }
+
+  async abrirAyudaDesdeMenu() {
+    await this.menuCtrl.close();
+    if (!this.esRutaHome) {
+      await this.router.navigate(['/home']);
+    }
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('abrir-asistente-ayuda'));
+    }, 150);
   }
 
   async irACompletarPerfil() {

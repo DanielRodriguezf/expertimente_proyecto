@@ -3,6 +3,7 @@ import { RouteReuseStrategy, provideRouter, withPreloading, PreloadAllModules } 
 import { IonicRouteStrategy, provideIonicAngular, createAnimation } from '@ionic/angular';
 import { routes } from './app/app.routes';
 import { AppComponent } from './app/app.component';
+import { transicionPagina } from './app/components/animations/page-transition';
 
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { getAuth, provideAuth } from '@angular/fire/auth';
@@ -46,6 +47,9 @@ bootstrapApplication(AppComponent, {
 
     provideIonicAngular({
       mode: 'md',
+
+      // Transición entre páginas (fundido + desplazamiento corto)
+      navAnimation: transicionPagina,
 
       // ENTRADA: sube desde abajo de la pantalla, pasa un poquito de largo
       // y se asienta flotando POR ENCIMA de la barra de navegación.

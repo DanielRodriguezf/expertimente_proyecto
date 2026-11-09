@@ -12,7 +12,8 @@ import {
 import { addIcons } from 'ionicons';
 import {
   checkmarkCircle, warning, closeCircle, informationCircle,
-  addCircleOutline, sparklesOutline, searchOutline
+  addCircleOutline, sparklesOutline, searchOutline,
+  chevronDownOutline, chevronUpOutline, trashOutline, closeOutline
 } from 'ionicons/icons';
 
 import { Auth, onAuthStateChanged } from '@angular/fire/auth';
@@ -31,8 +32,12 @@ import { Firestore, doc, setDoc, getDoc, collection, getDocs } from '@angular/fi
 })
 export class AreasInteresPage implements OnInit, OnDestroy, ViewWillEnter {
 
+  readonly LIMITE_SUGERENCIAS = 2;
+
   cargando: boolean = true;
   guardando: boolean = false;
+  mostrarTodas: boolean = false;
+  mostrarBannerInfo: boolean = true;
 
   listaAreasDisponibles: string[] = [];
   areasFiltradas: string[] = [];
@@ -59,7 +64,11 @@ export class AreasInteresPage implements OnInit, OnDestroy, ViewWillEnter {
       'information-circle': informationCircle,
       'add-circle-outline': addCircleOutline,
       'sparkles-outline': sparklesOutline,
-      'search-outline': searchOutline
+      'search-outline': searchOutline,
+      'chevron-down-outline': chevronDownOutline,
+      'chevron-up-outline': chevronUpOutline,
+      'trash-outline': trashOutline,
+      'close-outline': closeOutline
     });
   }
 
@@ -84,16 +93,18 @@ export class AreasInteresPage implements OnInit, OnDestroy, ViewWillEnter {
 
   ionViewWillEnter() {
     this.leerRutaRetorno();
-    this.limpiarBusquedaArea();
+    this.terminoBusquedaArea = '';
+    this.mostrarTodas = false;
     if (this.uid) {
       void this.cargarDatos(false);
     }
   }
 
-  /**
-   * Otras páginas pueden indicar a dónde volver al guardar con ?volver=/ruta
-   * (ej. cargos-interes o perfil-cv). Si no viene, se vuelve al home.
-   */
+  cerrarBannerInfo() {
+    this.mostrarBannerInfo = false;
+    this.cdr.detectChanges();
+  }
+
   private leerRutaRetorno() {
     const destino = this.route.snapshot.queryParamMap.get('volver') || '';
     this.rutaRetorno = destino.startsWith('/') && !destino.startsWith('//') ? destino : '/home';
@@ -112,11 +123,23 @@ export class AreasInteresPage implements OnInit, OnDestroy, ViewWillEnter {
 
     this.listaAreasDisponibles = [];
     [...areasDeCargos, ...areasGuardadas].forEach(area => this.asegurarAreaEnLista(area));
+
+    // Mezclamos aleatoriamente las opciones disponibles para mostrar 3 al azar
+    this.listaAreasDisponibles = this.mezclarAleatoriamente(this.listaAreasDisponibles);
     this.areasInteres = areasGuardadas;
 
     this.cargando = false;
     this.filtrarAreas();
     this.cdr.detectChanges();
+  }
+
+  private mezclarAleatoriamente(lista: string[]): string[] {
+    const copia = [...lista];
+    for (let i = copia.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copia[i], copia[j]] = [copia[j], copia[i]];
+    }
+    return copia;
   }
 
   private async obtenerAreasDeCargos(): Promise<string[]> {
@@ -186,39 +209,81 @@ export class AreasInteresPage implements OnInit, OnDestroy, ViewWillEnter {
       .trim();
   }
 
+  /**
+   * Filtra las opciones disponibles excluyendo las que el usuario ya seleccionó abajo.
+   */
   filtrarAreas() {
     const termino = this.normalizarTexto(this.terminoBusquedaArea);
-    if (!termino) {
-      this.areasFiltradas = [];
-      return;
-    }
 
-    this.areasFiltradas = this.listaAreasDisponibles.filter(area =>
-      this.normalizarTexto(area).includes(termino)
+    const disponiblesNoSeleccionadas = this.listaAreasDisponibles.filter(
+      area => !this.esAreaSeleccionada(area)
     );
+
+    if (!termino) {
+      this.areasFiltradas = disponiblesNoSeleccionadas;
+    } else {
+      this.areasFiltradas = disponiblesNoSeleccionadas.filter(area =>
+        this.normalizarTexto(area).includes(termino)
+      );
+    }
+    this.cdr.detectChanges();
+  }
+
+  /**
+   * Devuelve solo 3 opciones aleatorias por defecto, o todas si el usuario activó "mostrarTodas".
+   */
+  get areasVisibles(): string[] {
+    if (this.mostrarTodas) {
+      return this.areasFiltradas;
+    }
+    return this.areasFiltradas.slice(0, this.LIMITE_SUGERENCIAS);
+  }
+
+  get cantidadOcultas(): number {
+    return Math.max(0, this.areasFiltradas.length - this.LIMITE_SUGERENCIAS);
+  }
+
+  toggleMostrarTodas() {
+    this.mostrarTodas = !this.mostrarTodas;
+    this.cdr.detectChanges();
   }
 
   limpiarBusquedaArea() {
     this.terminoBusquedaArea = '';
-    this.areasFiltradas = [];
-    this.cdr.detectChanges();
+    this.filtrarAreas();
   }
 
   esAreaSeleccionada(area: string): boolean {
     return this.areasInteres.some(a => this.normalizarTexto(a) === this.normalizarTexto(area));
   }
 
-  toggleAreaInteres(area: string) {
-    const index = this.areasInteres.findIndex(
-      a => this.normalizarTexto(a) === this.normalizarTexto(area)
-    );
-
-    if (index >= 0) {
-      this.areasInteres = this.areasInteres.filter((_, i) => i !== index);
-    } else {
+  /**
+   * Agrega un área a la lista de seleccionadas (abajo) y la retira del buscador (arriba).
+   */
+  agregarAreaInteres(area: string) {
+    if (!this.esAreaSeleccionada(area)) {
       this.areasInteres = [...this.areasInteres, area];
+      this.filtrarAreas();
     }
-    this.cdr.detectChanges();
+  }
+
+  /**
+   * Quita un área de la lista de seleccionadas (abajo) y la devuelve al buscador (arriba).
+   */
+  quitarAreaInteres(area: string) {
+    this.areasInteres = this.areasInteres.filter(
+      a => this.normalizarTexto(a) !== this.normalizarTexto(area)
+    );
+    this.filtrarAreas();
+  }
+
+  limpiarTodasSeleccionadas() {
+    this.areasInteres = [];
+    this.filtrarAreas();
+  }
+
+  async omitirPaso() {
+    await this.navCtrl.navigateBack(this.rutaRetorno);
   }
 
   async guardarAreas() {
@@ -228,17 +293,11 @@ export class AreasInteresPage implements OnInit, OnDestroy, ViewWillEnter {
       return;
     }
 
-    if (this.areasInteres.length === 0) {
-      this.mostrarMensaje('Busca y selecciona al menos un área laboral de tu interés.', 'warning');
-      return;
-    }
-
     this.guardando = true;
-    const loading = await this.loadingCtrl.create({ message: 'Guardando áreas de interés...', spinner: 'crescent' });
+    const loading = await this.loadingCtrl.create({ message: 'Guardando preferencias...', spinner: 'crescent' });
     await loading.present();
 
     try {
-      // merge: true hace un merge profundo, así que cvManual conserva el resto de sus campos.
       await setDoc(doc(this.firestore, `postulantes/${user.uid}`), {
         areasInteres: this.areasInteres,
         cvManual: { areasInteres: this.areasInteres },
@@ -246,7 +305,12 @@ export class AreasInteresPage implements OnInit, OnDestroy, ViewWillEnter {
       }, { merge: true });
 
       await loading.dismiss();
-      this.mostrarMensaje('¡Áreas de interés guardadas con éxito!', 'success');
+
+      const mensaje = this.areasInteres.length > 0
+        ? '¡Áreas de interés guardadas con éxito!'
+        : 'Preferencias guardadas sin áreas seleccionadas.';
+
+      this.mostrarMensaje(mensaje, 'success');
       await this.navCtrl.navigateBack(this.rutaRetorno);
     } catch (error) {
       console.error('Error al guardar las áreas de interés en Firestore:', error);

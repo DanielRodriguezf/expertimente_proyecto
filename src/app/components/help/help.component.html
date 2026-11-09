@@ -1,0 +1,137 @@
+<!-- BOTÓN FLOTANTE DE AYUDA: solo el signo de pregunta -->
+<button type="button" class="ayuda-fab" aria-label="Abrir asistente de ayuda" (click)="abrir()">
+  <span class="ayuda-fab-mark" aria-hidden="true">?</span>
+</button>
+
+<!-- HOJA DE AYUDA (bottom sheet) -->
+<ion-modal
+  [isOpen]="abierto()"
+  (didDismiss)="alCerrarModal()"
+  [initialBreakpoint]="0.9"
+  [breakpoints]="[0, 0.9, 1]"
+  [handle]="true"
+  [expandToScroll]="false"
+  class="ayuda-modal">
+  <ng-template>
+
+    <!-- CABECERA -->
+    <ion-header class="ion-no-border ayuda-header">
+      <div class="ayuda-header-bar">
+        <!-- Botón volver atrás (visible en modo chat) -->
+        <ion-button
+          *ngIf="enModoChat()"
+          class="btn-volver"
+          fill="clear"
+          aria-label="Volver a las preguntas"
+          (click)="volverAlInicio()">
+          <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+        </ion-button>
+
+        <div class="header-info">
+          <div class="header-badge" aria-hidden="true">
+            <ion-icon name="help-buoy-outline"></ion-icon>
+          </div>
+          <div class="header-text">
+            <h2 class="ayuda-title">Asistente ExpertiMente</h2>
+            <p class="ayuda-subtitle">
+              <span class="status-dot" aria-hidden="true"></span>
+              {{ (pensando() || animandoTexto()) ? 'Escribiendo...' : 'Siempre disponible' }}
+            </p>
+          </div>
+        </div>
+
+        <ion-button class="btn-cerrar" fill="clear" aria-label="Cerrar ayuda" (click)="cerrar()">
+          <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+        </ion-button>
+      </div>
+    </ion-header>
+
+    <!-- CONTENIDO -->
+    <ion-content class="ayuda-content">
+      <div class="chat" [class.modo-chat]="enModoChat()" role="log" aria-live="polite">
+
+        <!-- Mensajes -->
+        <div class="msg-row" *ngFor="let m of mensajes(); let ultimo = last" [class.msg-row-usuario]="m.autor === 'usuario'">
+          <div class="msg-bubble"
+               [class.bubble-asistente]="m.autor === 'asistente'"
+               [class.bubble-usuario]="m.autor === 'usuario'"
+               (click)="ultimo && animandoTexto() ? completarEscrituraInmediata() : null">
+
+            <p *ngFor="let parrafo of m.parrafos; let idxP = index">
+              <span>{{ parrafo }}</span>
+              <span
+                class="typing-cursor"
+                *ngIf="ultimo && m.autor === 'asistente' && animandoTexto() && idxP === m.parrafos.length - 1 && (!m.pasos || m.pasos.length === 0)"
+                aria-hidden="true"></span>
+            </p>
+
+            <ol class="msg-pasos" *ngIf="m.pasos && m.pasos.length > 0">
+              <li *ngFor="let paso of m.pasos; let i = index" class="paso-item">
+                <span class="paso-num" aria-hidden="true">{{ i + 1 }}</span>
+                <span class="paso-texto">
+                  {{ paso }}
+                  <span
+                    class="typing-cursor"
+                    *ngIf="ultimo && m.autor === 'asistente' && animandoTexto() && i === m.pasos.length - 1"
+                    aria-hidden="true"></span>
+                </span>
+              </li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- Burbuja de "Pensando / Escribiendo..." con 3 puntos -->
+        <div class="msg-row" *ngIf="pensando()">
+          <div class="msg-bubble bubble-asistente typing" aria-label="El asistente está preparando tu respuesta">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+        </div>
+
+        <!-- Opciones / Acciones -->
+        <div class="opciones" *ngIf="!pensando() && !animandoTexto()">
+
+          <!-- MODO CHAT: Acciones después de que termina de escribir -->
+          <ng-container *ngIf="temaActual() as tema; else listaPreguntas">
+            <div class="acciones">
+              <p class="acciones-hint">¿Quieres ir directamente a esta sección?</p>
+
+              <button type="button" class="btn-accion" *ngFor="let accion of tema.acciones" (click)="irA(accion)">
+                <span>{{ accion.etiqueta }}</span>
+                <span class="btn-accion-chip" aria-hidden="true">
+                  <ion-icon name="arrow-forward-outline"></ion-icon>
+                </span>
+              </button>
+
+              <button type="button" class="btn-otras" (click)="volverAlInicio()">
+                <ion-icon name="arrow-back-outline" aria-hidden="true"></ion-icon>
+                <span>Hacer otra pregunta</span>
+              </button>
+            </div>
+          </ng-container>
+
+          <!-- MODO INICIAL: Menú de temas 100% centrado -->
+          <ng-template #listaPreguntas>
+            <p class="opciones-label">Toca un tema para empezar</p>
+
+            <div class="temas-grid">
+              <button type="button" class="tema-card"
+                      *ngFor="let tema of temas; let i = index"
+                      [style.--i]="i"
+                      (click)="elegirTema(tema)">
+                <span class="tema-icono" aria-hidden="true">
+                  <ion-icon [name]="tema.icono"></ion-icon>
+                </span>
+                <span class="tema-texto">{{ tema.pregunta }}</span>
+              </button>
+            </div>
+          </ng-template>
+
+        </div>
+
+      </div>
+    </ion-content>
+
+  </ng-template>
+</ion-modal>

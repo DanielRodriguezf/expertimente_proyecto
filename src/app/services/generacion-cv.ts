@@ -51,7 +51,6 @@ export class GeneracionCvService {
       return;
     }
 
-    // Texto neutro: no menciona la IA para que sea coherente si se usa la plantilla automática.
     this.toast.exito(
       'Estamos preparando tu currículum. Puedes seguir usando la app, te avisaremos cuando esté listo.',
       { duration: 4500 }
@@ -73,16 +72,15 @@ export class GeneracionCvService {
       const cvManual = datosBD['cvManual'];
 
       const tieneExperiencia = !!(cvManual && Array.isArray(cvManual['areasExperiencia']) && cvManual['areasExperiencia'].length > 0);
-      const sinExperiencia = datosBD['sinExperiencia'] === true || (cvManual && cvManual['sinExperiencia'] === true);
+      const tieneHabilidades = !!(cvManual && (cvManual['habilidadesTecnicas'] || cvManual['habilidadesBlandas']));
 
       if (
         !datosBD['nombre'] ||
         !cvManual ||
         !cvManual['nivelEducativo'] ||
-        !cvManual['habilidadesTecnicas'] ||
-        (!tieneExperiencia && sinExperiencia === false)
+        !tieneHabilidades
       ) {
-        this.toast.advertencia('Completa tu información profesional');
+        this.toast.advertencia('Completa tu información profesional en "Mi Experiencia".');
         return null;
       }
 
@@ -105,13 +103,12 @@ export class GeneracionCvService {
     try {
       const { texto, metodo } = await this.iaCv.generarTextoCv({
         nombre: datosBD['nombre'],
-        apellidoPaterno: datosBD['apellidoPaterno'],
+        apellidoPaterno: datosBD['apellidoPaterno'] || '',
         cvManual,
         tieneExperiencia,
         areasInteres: Array.isArray(datosBD['areasInteres']) ? datosBD['areasInteres'] : []
       });
 
-      // Solo para depuración: el usuario no ve qué método se usó.
       console.info('[CV] Método de generación utilizado:', metodo);
 
       if (!this.sigueVigente(id, uid)) return;
@@ -119,7 +116,7 @@ export class GeneracionCvService {
       const pdfBase64 = await this.construirPdf(datosBD, cvManual, texto, tieneExperiencia);
       if (!this.sigueVigente(id, uid)) return;
 
-      const nombreArchivoGenerado = `CV_IA_${datosBD['nombre']}_${datosBD['apellidoPaterno']}.pdf`;
+      const nombreArchivoGenerado = `CV_IA_${datosBD['nombre']}_${datosBD['apellidoPaterno'] || 'Postulante'}.pdf`;
 
       await updateDoc(doc(this.firestore, `postulantes/${uid}`), {
         cvBase64: pdfBase64,
@@ -168,9 +165,30 @@ export class GeneracionCvService {
         : [{ text: 'Ver', handler: () => { this.router.navigateByUrl(rutaBase); } }]
     };
 
-    // Mismo aviso de éxito sin importar si se usó la IA o la plantilla automática.
-    // Este aviso espera en la cola hasta que termine el de "Estamos preparando...".
     this.toast.exito('¡Tu currículum está listo!', opciones);
+  }
+
+  /**
+   * Identifica únicamente líneas que son títulos exactos de sección,
+   * evitando que oraciones con la palabra "experiencia" o "competencias" se conviertan en títulos.
+   */
+  private obtenerTituloSeccion(linea: string): 'RESUMEN PROFESIONAL' | 'EXPERIENCIA LABORAL' | 'COMPETENCIAS' | null {
+    const limpia = linea
+      .replace(/^[#*\-\d\.\)\s]+/, '')
+      .replace(/[#*:]+$/g, '')
+      .trim()
+      .toUpperCase();
+
+    if (limpia === 'RESUMEN PROFESIONAL' || limpia === 'PERFIL PROFESIONAL') {
+      return 'RESUMEN PROFESIONAL';
+    }
+    if (limpia === 'EXPERIENCIA LABORAL' || limpia === 'EXPERIENCIA' || limpia === 'HISTORIAL LABORAL') {
+      return 'EXPERIENCIA LABORAL';
+    }
+    if (limpia === 'COMPETENCIAS' || limpia === 'HABILIDADES' || limpia === 'HABILIDADES Y COMPETENCIAS') {
+      return 'COMPETENCIAS';
+    }
+    return null;
   }
 
   private async construirPdf(
@@ -181,125 +199,199 @@ export class GeneracionCvService {
   ): Promise<string> {
     const { jsPDF } = await import('jspdf');
 
-    let tituloProfesional = cvManual['carrera'] || (tieneExperiencia ? 'Profesional Especializado' : 'Perfil Proactivo en Desarrollo');
+    const tituloProfesional =
+      cvManual['carrera'] ||
+      (tieneExperiencia ? 'Profesional con Experiencia' : 'Perfil Proactivo en Desarrollo');
 
     const docPdf = new jsPDF();
     const pageWidth = docPdf.internal.pageSize.getWidth();
     const pageHeight = docPdf.internal.pageSize.getHeight();
-    const margenIzquierdo = 25;
-    const margenDerecho = 25;
+    const margenIzquierdo = 22;
+    const margenDerecho = 22;
     const anchoUtil = pageWidth - margenIzquierdo - margenDerecho;
-    
-    const colorPrimario = [79, 157, 20]; 
-    const colorOscuro = [44, 62, 80];
-    const colorGris = [90, 90, 90];
-    const colorClaro = [249, 247, 235]; 
+    const limiteInferior = pageHeight - 24;
 
-    docPdf.setFillColor(colorPrimario[0], colorPrimario[1], colorPrimario[2]);
-    docPdf.rect(0, 0, pageWidth, 45, 'F');
+    const colorPrimario: [number, number, number] = [79, 157, 20];
+    const colorOscuro: [number, number, number] = [44, 62, 80];
+    const colorGris: [number, number, number] = [80, 80, 80];
+    const colorClaro: [number, number, number] = [249, 247, 235];
 
-    docPdf.setFontSize(24);
+    // --- ENCABEZADO SUPERIOR ---
+    docPdf.setFillColor(...colorPrimario);
+    docPdf.rect(0, 0, pageWidth, 46, 'F');
+
+    const nombreCompleto = [
+      datosBD['nombre'] || '',
+      datosBD['apellidoPaterno'] || '',
+      datosBD['apellidoMaterno'] || ''
+    ].filter(Boolean).join(' ').trim() || 'POSTULANTE';
+
     docPdf.setFont('helvetica', 'bold');
+    docPdf.setFontSize(20);
     docPdf.setTextColor(255, 255, 255);
-    const nombreCompleto = `${datosBD['nombre']} ${datosBD['apellidoPaterno']} ${datosBD['apellidoMaterno'] || ''}`;
-    docPdf.text(nombreCompleto.toUpperCase(), pageWidth / 2, 22, { align: 'center' });
-    
-    docPdf.setFontSize(12);
-    docPdf.setFont('helvetica', 'normal');
-    docPdf.setTextColor(230, 245, 220);
-    docPdf.text(tituloProfesional.toUpperCase(), pageWidth / 2, 32, { align: 'center' });
+    const lineasNombre = docPdf.splitTextToSize(nombreCompleto.toUpperCase(), anchoUtil);
+    docPdf.text(lineasNombre[0], pageWidth / 2, 18, { align: 'center' });
 
-    let yPos = 60;
-    const lineasIA = textoGenerado.split('\n');
+    docPdf.setFont('helvetica', 'normal');
+    docPdf.setFontSize(11);
+    docPdf.setTextColor(235, 248, 225);
+    const lineasSubtitulo = docPdf.splitTextToSize(String(tituloProfesional).toUpperCase(), anchoUtil);
+    docPdf.text(lineasSubtitulo[0], pageWidth / 2, 27, { align: 'center' });
+
+    // Datos de contacto en el encabezado si están disponibles
+    const ubicacion = [datosBD['comuna'], datosBD['ciudad']].filter(Boolean).join(', ');
+    const datosContacto = [
+      datosBD['correo'],
+      datosBD['telefono'],
+      ubicacion
+    ].map(v => String(v ?? '').trim()).filter(Boolean).join('  •  ');
+
+    if (datosContacto) {
+      docPdf.setFontSize(9.5);
+      docPdf.setTextColor(255, 255, 255);
+      const lineaContacto = docPdf.splitTextToSize(datosContacto, anchoUtil);
+      docPdf.text(lineaContacto[0], pageWidth / 2, 37, { align: 'center' });
+    }
+
+    let yPos = 58;
+    let seccionActual: 'RESUMEN PROFESIONAL' | 'EXPERIENCIA LABORAL' | 'COMPETENCIAS' | null = null;
+
+    const asegurarEspacio = (altoRequerido: number) => {
+      if (yPos + altoRequerido > limiteInferior) {
+        docPdf.addPage();
+        yPos = 25;
+      }
+    };
+
+    const dibujarTituloSeccion = (titulo: string) => {
+      asegurarEspacio(16);
+      yPos += 3;
+      docPdf.setFont('helvetica', 'bold');
+      docPdf.setFontSize(12.5);
+      docPdf.setTextColor(...colorPrimario);
+      docPdf.text(titulo, margenIzquierdo, yPos);
+      yPos += 2;
+
+      docPdf.setDrawColor(...colorPrimario);
+      docPdf.setLineWidth(0.5);
+      docPdf.line(margenIzquierdo, yPos, pageWidth - margenDerecho, yPos);
+      yPos += 6.5;
+    };
+
+    const lineasIA = (textoGenerado || '').split('\n');
 
     for (let i = 0; i < lineasIA.length; i++) {
-      let linea = lineasIA[i].trim();
-      if (!linea) continue;
+      const lineaCruda = lineasIA[i].trim();
+      if (!lineaCruda) continue;
 
-      if (yPos > pageHeight - 35) { 
-        docPdf.addPage(); 
-        yPos = 30; 
+      const tituloDetectado = this.obtenerTituloSeccion(lineaCruda);
+      if (tituloDetectado) {
+        seccionActual = tituloDetectado;
+        dibujarTituloSeccion(tituloDetectado);
+        continue;
       }
 
-      if (linea.includes('RESUMEN PROFESIONAL') || linea.includes('EXPERIENCIA') || linea.includes('COMPETENCIAS')) {
-        yPos += 4;
-        docPdf.setFontSize(13);
+      const esVineta = /^[\-*•]/.test(lineaCruda);
+      const textoLimpio = lineaCruda
+        .replace(/^[\-*•\s]+/, '')
+        .replace(/\*\*/g, '')
+        .replace(/__/g, '')
+        .trim();
+
+      if (!textoLimpio) continue;
+
+      // Encabezado de puesto dentro de EXPERIENCIA LABORAL (ej. "Cargo | Empresa | Tiempo")
+      const esSubtituloExperiencia =
+        !esVineta &&
+        seccionActual === 'EXPERIENCIA LABORAL' &&
+        (textoLimpio.includes('|') || textoLimpio.length < 95);
+
+      if (esSubtituloExperiencia) {
+        const lineasSub = docPdf.splitTextToSize(textoLimpio, anchoUtil);
+        const altoBloque = lineasSub.length * 5 + 2;
+        asegurarEspacio(altoBloque + 4);
+
+        yPos += 1.5;
         docPdf.setFont('helvetica', 'bold');
-        docPdf.setTextColor(colorPrimario[0], colorPrimario[1], colorPrimario[2]);
-        
-        const tituloLimpio = linea.replace(/\*|:/g, '').trim();
-        docPdf.text(tituloLimpio, margenIzquierdo, yPos);
-        yPos += 2;
+        docPdf.setFontSize(10.5);
+        docPdf.setTextColor(...colorOscuro);
+        docPdf.text(lineasSub, margenIzquierdo, yPos);
+        yPos += altoBloque;
+        continue;
+      }
 
-        docPdf.setDrawColor(colorPrimario[0], colorPrimario[1], colorPrimario[2]);
-        docPdf.setLineWidth(0.5);
-        docPdf.line(margenIzquierdo, yPos, pageWidth - margenDerecho, yPos);
-        yPos += 6;
+      if (esVineta) {
+        const sangriaX = margenIzquierdo + 5;
+        const maxAncho = anchoUtil - 5;
+        docPdf.setFont('helvetica', 'normal');
+        docPdf.setFontSize(10);
+        const lineasVineta = docPdf.splitTextToSize(textoLimpio, maxAncho);
+        const altoBloque = lineasVineta.length * 4.8 + 1.8;
 
+        asegurarEspacio(altoBloque);
+
+        docPdf.setFillColor(...colorPrimario);
+        docPdf.circle(margenIzquierdo + 1.8, yPos - 1.3, 0.9, 'F');
+
+        docPdf.setTextColor(...colorGris);
+        docPdf.text(lineasVineta, sangriaX, yPos);
+        yPos += altoBloque;
       } else {
-        const esVineta = linea.startsWith('-') || linea.startsWith('*');
-        
-        if (linea.includes('|') || (!esVineta && linea.length < 90)) {
-          docPdf.setFontSize(11);
-          docPdf.setFont('helvetica', 'bold');
-          docPdf.setTextColor(colorOscuro[0], colorOscuro[1], colorOscuro[2]);
-        } else {
-          docPdf.setFontSize(10);
-          docPdf.setFont('helvetica', 'normal');
-          docPdf.setTextColor(colorGris[0], colorGris[1], colorGris[2]);
-        }
+        // Párrafo normal (por ejemplo, el cuerpo de RESUMEN PROFESIONAL)
+        docPdf.setFont('helvetica', 'normal');
+        docPdf.setFontSize(10);
+        docPdf.setTextColor(...colorGris);
+        const lineasParrafo = docPdf.splitTextToSize(textoLimpio, anchoUtil);
+        const altoBloque = lineasParrafo.length * 5 + 3;
 
-        let sangriaX = margenIzquierdo;
-        let maxAncho = anchoUtil;
-
-        if (esVineta) {
-          linea = linea.substring(1).trim();
-          sangriaX = margenIzquierdo + 5;
-          maxAncho = anchoUtil - 5;
-          
-          docPdf.setFillColor(colorPrimario[0], colorPrimario[1], colorPrimario[2]);
-          docPdf.circle(margenIzquierdo + 2, yPos - 1.5, 1, 'F');
-        }
-
-        const lineasTexto = docPdf.splitTextToSize(linea, maxAncho);
-        docPdf.text(lineasTexto, sangriaX, yPos);
-        yPos += (lineasTexto.length * 5) + 2;
+        asegurarEspacio(altoBloque);
+        docPdf.text(lineasParrafo, margenIzquierdo, yPos);
+        yPos += altoBloque;
       }
     }
 
-    yPos += 6;
-
-    if (yPos > pageHeight - 40) { docPdf.addPage(); yPos = 30; }
-    
-    docPdf.setFontSize(13);
-    docPdf.setFont('helvetica', 'bold');
-    docPdf.setTextColor(colorPrimario[0], colorPrimario[1], colorPrimario[2]);
-    docPdf.text('FORMACIÓN ACADÉMICA', margenIzquierdo, yPos);
+    // --- FORMACIÓN ACADÉMICA ---
     yPos += 2;
-    
-    docPdf.setLineWidth(0.5);
-    docPdf.line(margenIzquierdo, yPos, pageWidth - margenDerecho, yPos);
-    yPos += 7;
+    dibujarTituloSeccion('FORMACIÓN ACADÉMICA');
 
-    docPdf.setFontSize(11);
-    docPdf.setTextColor(colorOscuro[0], colorOscuro[1], colorOscuro[2]);
-    docPdf.text(cvManual['nivelEducativo'] || 'Educación Superior', margenIzquierdo, yPos);
-    yPos += 5;
-    docPdf.setFontSize(10);
+    const tituloEducacion = [cvManual['nivelEducativo'], cvManual['carrera']]
+      .map(v => String(v ?? '').trim())
+      .filter(Boolean)
+      .join(' — ') || 'Educación declarada en perfil';
+
+    const institucion = String(cvManual['establecimiento'] || 'Institución académica').trim();
+
+    docPdf.setFont('helvetica', 'bold');
+    docPdf.setFontSize(10.5);
+    docPdf.setTextColor(...colorOscuro);
+    const lineasEdu = docPdf.splitTextToSize(tituloEducacion, anchoUtil);
+    asegurarEspacio(lineasEdu.length * 5 + 8);
+    docPdf.text(lineasEdu, margenIzquierdo, yPos);
+    yPos += lineasEdu.length * 5 + 1;
+
     docPdf.setFont('helvetica', 'normal');
-    docPdf.setTextColor(colorGris[0], colorGris[1], colorGris[2]);
-    docPdf.text(cvManual['establecimiento'] || 'Institución no especificada', margenIzquierdo, yPos);
+    docPdf.setFontSize(10);
+    docPdf.setTextColor(...colorGris);
+    const lineasInst = docPdf.splitTextToSize(institucion, anchoUtil);
+    docPdf.text(lineasInst, margenIzquierdo, yPos);
 
+    // --- PIE DE PÁGINA EN TODAS LAS HOJAS ---
     const totalPages = docPdf.internal.pages.length - 1;
     for (let i = 1; i <= totalPages; i++) {
       docPdf.setPage(i);
-      
-      docPdf.setFillColor(colorClaro[0], colorClaro[1], colorClaro[2]);
-      docPdf.rect(0, pageHeight - 15, pageWidth, 15, 'F');
 
-      docPdf.setFontSize(8);
+      docPdf.setFillColor(...colorClaro);
+      docPdf.rect(0, pageHeight - 14, pageWidth, 14, 'F');
+
+      docPdf.setFont('helvetica', 'normal');
+      docPdf.setFontSize(8.5);
       docPdf.setTextColor(120, 120, 120);
-      docPdf.text(`Generado por ExpertiMente - Plataforma de Inclusión Laboral`, pageWidth / 2, pageHeight - 6, { align: 'center' });
+      docPdf.text(
+        'Generado por ExpertiMente - Plataforma de Inclusión Laboral',
+        pageWidth / 2,
+        pageHeight - 5.5,
+        { align: 'center' }
+      );
     }
 
     return docPdf.output('datauristring');

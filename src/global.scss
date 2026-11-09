@@ -285,3 +285,10 @@ ion-alert.alerta-expertimente {
     }
   }
 }
+
+/* =======================================================
+   TRANSICIONES ENTRE PÁGINAS (EXPERTIMENTE)
+======================================================= */
+ion-router-outlet {
+  background: var(--ion-color-light);
+}

@@ -14,16 +14,8 @@ import {
 } from '@angular/fire/auth';
 import { Firestore, doc, getDoc, setDoc, updateDoc } from '@angular/fire/firestore';
 
-// Mientras depuras en el APK: muestra también el código y el mensaje técnico del error en pantalla.
-// Cámbialo a false cuando termines de depurar.
-const MOSTRAR_DETALLE_TECNICO = true;
+const MOSTRAR_DETALLE_TECNICO = false;
 
-/**
- * Estado de la persona que entró con Google:
- * - 'activa'   → ya tiene ficha en "postulantes" y su cuenta está activa
- * - 'inactiva' → tiene ficha, pero desactivó su cuenta antes
- * - 'nuevo'    → tiene cuenta de Google, pero todavía no completa su registro
- */
 export type EstadoPostulante = 'activa' | 'inactiva' | 'nuevo';
 
 export interface PerfilGoogle {

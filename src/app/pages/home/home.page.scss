@@ -85,7 +85,7 @@ ion-content {
   max-width: 600px;
   width: 100%;
   margin: 0 auto;
-  padding: clamp(18px, 4vw, 25px) clamp(14px, 4vw, 20px) calc(30px + var(--ion-safe-area-bottom, env(safe-area-inset-bottom, 0px)));
+  padding: clamp(18px, 4vw, 25px) clamp(14px, 4vw, 20px) calc(100px + var(--ion-safe-area-bottom, env(safe-area-inset-bottom, 0px)));
   box-sizing: border-box;
 }
 
@@ -187,7 +187,6 @@ ion-content {
     }
   }
 
-  /* TARJETA DESTACADA EN VERDE: BUSCAR EMPLEO */
   .primary-action-card {
     background: linear-gradient(135deg, var(--ion-color-secondary-shade) 0%, var(--ion-color-primary-shade) 100%);
     border: none;
