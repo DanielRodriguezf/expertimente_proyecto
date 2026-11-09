@@ -7,7 +7,7 @@ import {
   IonButton, IonButtons, IonIcon,
   IonModal, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonCardSubtitle,
   IonAvatar, IonMenu, IonMenuButton, IonSplitPane, IonMenuToggle, AlertController,
-  IonSelect, IonSelectOption, IonInput 
+  IonSelect, IonSelectOption, IonInput, IonTextarea 
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { 
@@ -21,7 +21,7 @@ import {
   filterOutline, swapVerticalOutline, addCircleOutline, layersOutline, removeCircleOutline 
 } from 'ionicons/icons';
 
-import { AdminService, ReclutadorConEmpresa, Postulante, Oferta, CargoSolicitud, Pregunta } from '../services/admin.service';
+import { AdminService, ReclutadorConEmpresa, Postulante, Oferta, CargoSolicitud, AreaCatalogo } from '../services/admin.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -36,7 +36,7 @@ import { AdminService, ReclutadorConEmpresa, Postulante, Oferta, CargoSolicitud,
     IonButton, IonButtons, IonIcon, 
     IonModal, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonCardSubtitle,
     IonAvatar, IonMenu, IonMenuButton, IonSplitPane, IonMenuToggle,
-    IonSelect, IonSelectOption, IonInput 
+    IonSelect, IonSelectOption, IonInput, IonTextarea 
   ]
 })
 export class DashboardPage implements OnInit {
@@ -76,9 +76,22 @@ export class DashboardPage implements OnInit {
   ofertaSeleccionada: Oferta | null = null;
   cargoSeleccionado: CargoSolicitud | null = null;
 
-  // Variables para el formulario de preguntas de Cargo (mínimo 3, máximo 10)
-  mostrandoFormularioPreguntas = false;
-  preguntasCargo: Pregunta[] = [];
+  // Variables para editar/estandarizar el Cargo antes de aprobarlo (1 sola área obligatoria)
+  mostrandoFormularioCargo = false;
+  formularioCargo = {
+    nombre: '',
+    areaLaboral: '',
+    descripcion: '',
+    habilidadesTecnicas: '',
+    habilidadesBlandas: '',
+    anosExperienciaMinima: 0,
+    nivelEducativoMinimo: 'Sin requisito'
+  };
+
+  // Variables para el catálogo de Áreas desde la colección 'areas' de Firestore
+  areasCatalogo: AreaCatalogo[] = [];
+  areasFiltradas: AreaCatalogo[] = [];
+  mostrarDropdownAreas = false;
 
   constructor() {
     addIcons({ 
@@ -92,7 +105,10 @@ export class DashboardPage implements OnInit {
     });
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    // Limpiar cualquier catálogo antiguo guardado en localStorage
+    localStorage.removeItem('expertimente_areas_catalogo');
+  }
 
   ionViewWillEnter() {
     this.cargarDatos(this.vistaActual);
@@ -115,7 +131,12 @@ export class DashboardPage implements OnInit {
       } else if (vista === 'ofertas') {
         this.ofertas = await this.adminService.getTodasOfertas();
       } else if (vista === 'cargos') {
-        this.cargos = await this.adminService.getTodosCargos();
+        const [cargosData, areasData] = await Promise.all([
+          this.adminService.getTodosCargos(),
+          this.adminService.getAreas()
+        ]);
+        this.cargos = cargosData;
+        this.areasCatalogo = areasData;
       }
     } catch (error) {
       console.error(`Error al cargar ${vista}:`, error);
@@ -323,182 +344,211 @@ export class DashboardPage implements OnInit {
   }
 
   // ==========================================
-  // LÓGICA DE CARGOS Y PREGUNTAS CON PUNTAJE
+  // LÓGICA DE CARGOS Y 1 ÁREA EN FIRESTORE
   // ==========================================
-  crearPreguntaVacia(num: number): Pregunta {
-    return {
-      id: `preg_${Date.now()}_${num}_${Math.floor(Math.random() * 1000)}`,
-      texto: '',
-      tipo: 'alternativas',
-      requerida: true,
-      opciones: [
-        { texto: '', puntaje: 0 },
-        { texto: '', puntaje: 0 }
-      ]
-    };
+  async cargarAreasDesdeFirestore() {
+    try {
+      this.areasCatalogo = await this.adminService.getAreas();
+      this.filtrarAreasDisponibles();
+      this.cdr.detectChanges();
+    } catch (error) {
+      console.error('Error al cargar áreas desde Firestore:', error);
+    }
   }
 
-  inicializarPreguntasDesdeCargo(cargo: CargoSolicitud): Pregunta[] {
-    if (cargo.preguntas && cargo.preguntas.length > 0) {
-      const convertidas: Pregunta[] = cargo.preguntas.map((p: any, idx: number) => {
-        // Compatibilidad por si había preguntas guardadas como string en pruebas previas
-        if (typeof p === 'string') {
-          return {
-            id: `preg_${Date.now()}_${idx + 1}`,
-            texto: p,
-            tipo: 'alternativas',
-            requerida: true,
-            opciones: [
-              { texto: '', puntaje: 0 },
-              { texto: '', puntaje: 0 }
-            ]
-          };
-        }
-        // Si ya es un objeto Pregunta con opciones
-        return {
-          id: p.id || `preg_${Date.now()}_${idx + 1}`,
-          texto: p.texto || '',
-          tipo: p.tipo || 'alternativas',
-          requerida: true,
-          opciones: (p.opciones && p.opciones.length >= 2)
-            ? p.opciones.map((o: any) => ({ texto: o.texto || '', puntaje: Number(o.puntaje) || 0 }))
-            : [{ texto: '', puntaje: 0 }, { texto: '', puntaje: 0 }]
-        };
-      });
+  alEnfocarArea() {
+    this.filtrarAreasDisponibles();
+    this.mostrarDropdownAreas = true;
+  }
 
-      while (convertidas.length < 3) {
-        convertidas.push(this.crearPreguntaVacia(convertidas.length + 1));
-      }
-      return convertidas.slice(0, 10);
+  alEscribirArea() {
+    this.filtrarAreasDisponibles();
+    this.mostrarDropdownAreas = true;
+  }
+
+  filtrarAreasDisponibles() {
+    const texto = (this.formularioCargo.areaLaboral || '').trim().toLowerCase();
+    if (!texto) {
+      this.areasFiltradas = [...this.areasCatalogo];
+    } else {
+      this.areasFiltradas = this.areasCatalogo.filter(area =>
+        area.nombre.toLowerCase().includes(texto)
+      );
+    }
+  }
+
+  esAreaNueva(): boolean {
+    const texto = (this.formularioCargo.areaLaboral || '').trim().toLowerCase();
+    if (!texto) return false;
+    return !this.areasCatalogo.some(area => area.nombre.toLowerCase() === texto);
+  }
+
+  seleccionarAreaExistente(area: AreaCatalogo) {
+    this.formularioCargo.areaLaboral = area.nombre;
+    this.mostrarDropdownAreas = false;
+    this.cdr.detectChanges();
+  }
+
+  async crearYSeleccionarArea(nombre: string) {
+    const limpia = (nombre || '').trim();
+    if (!limpia) return;
+
+    const existente = this.areasCatalogo.find(a => a.nombre.toLowerCase() === limpia.toLowerCase());
+    if (existente) {
+      this.formularioCargo.areaLaboral = existente.nombre;
+      this.mostrarDropdownAreas = false;
+      this.cdr.detectChanges();
+      return;
     }
 
-    return [
-      this.crearPreguntaVacia(1),
-      this.crearPreguntaVacia(2),
-      this.crearPreguntaVacia(3)
-    ];
+    try {
+      const nuevaArea = await this.adminService.crearArea(limpia);
+      this.areasCatalogo.push(nuevaArea);
+      this.areasCatalogo.sort((a, b) => a.nombre.localeCompare(b.nombre));
+      this.formularioCargo.areaLaboral = nuevaArea.nombre;
+      this.filtrarAreasDisponibles();
+      this.mostrarDropdownAreas = false;
+      this.cdr.detectChanges();
+    } catch (error) {
+      console.error('Error al crear nueva área en Firestore:', error);
+    }
+  }
+
+  async eliminarAreaDeCatalogo(area: AreaCatalogo, event: Event) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    const alert = await this.alertController.create({
+      header: 'Eliminar Área',
+      message: `¿Deseas eliminar "${area.nombre}" de la lista de áreas guardadas en la base de datos?`,
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Eliminar',
+          role: 'destructive',
+          handler: async () => {
+            try {
+              await this.adminService.eliminarArea(area.id);
+              this.areasCatalogo = this.areasCatalogo.filter(a => a.id !== area.id);
+              if ((this.formularioCargo.areaLaboral || '').trim().toLowerCase() === area.nombre.toLowerCase()) {
+                this.formularioCargo.areaLaboral = '';
+              }
+              this.filtrarAreasDisponibles();
+              this.cdr.detectChanges();
+            } catch (error) {
+              console.error('Error al eliminar área de Firestore:', error);
+            }
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  cerrarDropdownAreasConRetraso() {
+    setTimeout(() => {
+      this.mostrarDropdownAreas = false;
+      this.cdr.detectChanges();
+    }, 200);
+  }
+
+  cargarDatosEnFormularioCargo(cargo: CargoSolicitud) {
+    // Si algún cargo antiguo tenía áreas separadas por coma, tomamos solo la primera
+    const areaInicial = cargo.areaLaboral ? cargo.areaLaboral.split(',')[0].trim() : '';
+
+    this.formularioCargo = {
+      nombre: cargo.nombre || '',
+      areaLaboral: areaInicial,
+      descripcion: cargo.descripcion || '',
+      habilidadesTecnicas: cargo.habilidadesTecnicas || '',
+      habilidadesBlandas: cargo.habilidadesBlandas || '',
+      anosExperienciaMinima: cargo.anosExperienciaMinima ?? 0,
+      nivelEducativoMinimo: cargo.nivelEducativoMinimo || 'Sin requisito'
+    };
   }
 
   abrirModalCargo(cargo: CargoSolicitud) {
     this.cargoSeleccionado = cargo;
-    this.mostrandoFormularioPreguntas = false;
-    this.preguntasCargo = this.inicializarPreguntasDesdeCargo(cargo);
+    this.mostrandoFormularioCargo = false;
+    this.mostrarDropdownAreas = false;
+    this.cargarDatosEnFormularioCargo(cargo);
+    this.cargarAreasDesdeFirestore();
     this.isModalCargoOpen = true;
   }
 
   cerrarModalCargo() {
     this.isModalCargoOpen = false;
     this.cargoSeleccionado = null;
-    this.mostrandoFormularioPreguntas = false;
-    this.preguntasCargo = [];
+    this.mostrandoFormularioCargo = false;
+    this.mostrarDropdownAreas = false;
   }
 
-  mostrarCamposPreguntas() {
+  mostrarEditorCargo() {
     if (this.cargoSeleccionado) {
-      this.preguntasCargo = this.inicializarPreguntasDesdeCargo(this.cargoSeleccionado);
+      this.cargarDatosEnFormularioCargo(this.cargoSeleccionado);
+      this.cargarAreasDesdeFirestore();
     }
-    this.mostrandoFormularioPreguntas = true;
-  }
-
-  // Agregar pregunta (máximo 10)
-  agregarPreguntaCargo() {
-    if (this.preguntasCargo.length < 10) {
-      this.preguntasCargo.push(this.crearPreguntaVacia(this.preguntasCargo.length + 1));
-    }
-  }
-
-  // Eliminar pregunta (mínimo 3)
-  eliminarPreguntaCargo(index: number) {
-    if (this.preguntasCargo.length > 3) {
-      this.preguntasCargo.splice(index, 1);
-    }
-  }
-
-  // Agregar alternativa a una pregunta (mínimo 2, máximo 5 en total)
-  agregarOpcionPregunta(preguntaIndex: number) {
-    const pregunta = this.preguntasCargo[preguntaIndex];
-    if (pregunta && pregunta.opciones.length < 5) {
-      pregunta.opciones.push({ texto: '', puntaje: 0 });
-    }
-  }
-
-  // Eliminar alternativa de una pregunta (mínimo 2)
-  eliminarOpcionPregunta(preguntaIndex: number, opcionIndex: number) {
-    const pregunta = this.preguntasCargo[preguntaIndex];
-    if (pregunta && pregunta.opciones.length > 2) {
-      pregunta.opciones.splice(opcionIndex, 1);
-    }
+    this.mostrandoFormularioCargo = true;
   }
 
   async confirmarAprobacionCargo() {
     if (!this.cargoSeleccionado) return;
 
-    if (this.preguntasCargo.length < 3 || this.preguntasCargo.length > 10) {
+    const nombreLimpio = (this.formularioCargo.nombre || '').trim();
+    let areaLimpia = (this.formularioCargo.areaLaboral || '').trim();
+    const descripcionLimpia = (this.formularioCargo.descripcion || '').trim();
+    const habTecnicasLimpias = (this.formularioCargo.habilidadesTecnicas || '').trim();
+    const habBlandasLimpias = (this.formularioCargo.habilidadesBlandas || '').trim();
+    const expMinima = Number(this.formularioCargo.anosExperienciaMinima);
+
+    if (!nombreLimpio || !areaLimpia || !descripcionLimpia || !habTecnicasLimpias) {
       const alert = await this.alertController.create({
-        header: 'Cantidad de preguntas inválida',
-        message: 'Debes definir entre 3 y 10 preguntas obligatorias para el cargo.',
+        header: 'Campos requeridos incompletos',
+        message: 'Por favor completa el Nombre del Cargo, 1 Área Laboral obligatoria, la Descripción y las Habilidades Técnicas para que la IA pueda evaluar la idoneidad.',
         buttons: ['Entendido']
       });
       await alert.present();
       return;
     }
 
-    // Validar que todas las preguntas tengan texto y que sus alternativas (2 a 5) tengan texto y puntaje válido
-    for (let i = 0; i < this.preguntasCargo.length; i++) {
-      const p = this.preguntasCargo[i];
-      if (!p.texto || p.texto.trim().length === 0) {
-        const alert = await this.alertController.create({
-          header: 'Pregunta incompleta',
-          message: `Por favor escribe el enunciado de la Pregunta ${i + 1}.`,
-          buttons: ['Entendido']
-        });
-        await alert.present();
-        return;
-      }
-
-      if (!p.opciones || p.opciones.length < 2 || p.opciones.length > 5) {
-        const alert = await this.alertController.create({
-          header: 'Alternativas inválidas',
-          message: `La Pregunta ${i + 1} debe tener entre 2 y 5 alternativas.`,
-          buttons: ['Entendido']
-        });
-        await alert.present();
-        return;
-      }
-
-      for (let j = 0; j < p.opciones.length; j++) {
-        const op = p.opciones[j];
-        const puntajeNum = Number(op.puntaje);
-        if (!op.texto || op.texto.trim().length === 0 || op.puntaje === null || op.puntaje === undefined || isNaN(puntajeNum)) {
-          const alert = await this.alertController.create({
-            header: 'Alternativa incompleta',
-            message: `Completa el texto y un puntaje válido para la Alternativa ${j + 1} de la Pregunta ${i + 1}.`,
-            buttons: ['Entendido']
-          });
-          await alert.present();
-          return;
-        }
-      }
+    if (isNaN(expMinima) || expMinima < 0) {
+      const alert = await this.alertController.create({
+        header: 'Experiencia inválida',
+        message: 'Los años de experiencia mínima deben ser un número mayor o igual a 0.',
+        buttons: ['Entendido']
+      });
+      await alert.present();
+      return;
     }
 
-    // Limpiar y normalizar datos antes de enviar a Firebase
-    const preguntasFinales: Pregunta[] = this.preguntasCargo.map((p, idx) => ({
-      id: p.id || `preg_${Date.now()}_${idx + 1}`,
-      texto: p.texto.trim(),
-      tipo: 'alternativas',
-      requerida: true,
-      opciones: p.opciones.map(op => ({
-        texto: op.texto.trim(),
-        puntaje: Number(op.puntaje)
-      }))
-    }));
-
     try {
-      await this.adminService.aprobarCargoConPreguntas(this.cargoSeleccionado.id, preguntasFinales);
+      // Verificar si el área escrita ya existe en la colección 'areas' de Firestore; si no existe, la creamos
+      const areaExistente = this.areasCatalogo.find(
+        a => a.nombre.toLowerCase() === areaLimpia.toLowerCase()
+      );
+
+      if (areaExistente) {
+        areaLimpia = areaExistente.nombre;
+      } else {
+        const nuevaArea = await this.adminService.crearArea(areaLimpia);
+        this.areasCatalogo.push(nuevaArea);
+        this.areasCatalogo.sort((a, b) => a.nombre.localeCompare(b.nombre));
+        areaLimpia = nuevaArea.nombre;
+      }
+
+      await this.adminService.aprobarYActualizarCargo(this.cargoSeleccionado.id, {
+        nombre: nombreLimpio,
+        areaLaboral: areaLimpia,
+        descripcion: descripcionLimpia,
+        habilidadesTecnicas: habTecnicasLimpias,
+        habilidadesBlandas: habBlandasLimpias,
+        anosExperienciaMinima: expMinima,
+        nivelEducativoMinimo: this.formularioCargo.nivelEducativoMinimo || 'Sin requisito'
+      });
       this.cerrarModalCargo();
       this.cargarDatos('cargos');
     } catch (error) {
-      console.error('Error al aprobar el cargo con preguntas:', error);
+      console.error('Error al actualizar y aprobar el cargo:', error);
     }
   }
 

@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Firestore, collection, getDocs, doc, getDoc, updateDoc, deleteDoc } from '@angular/fire/firestore';
+import { Firestore, collection, getDocs, doc, getDoc, updateDoc, deleteDoc, addDoc } from '@angular/fire/firestore';
 
 // --- NUEVA INTERFAZ INDEPENDIENTE PARA EMPRESAS ---
 export interface Empresa {
@@ -127,18 +127,30 @@ export interface Oferta {
   preguntas?: Pregunta[];
 }
 
-// --- INTERFAZ PARA SOLICITUDES DE CARGOS ---
+// --- INTERFAZ PARA SOLICITUDES DE CARGOS (Estandarizados para IA) ---
 export interface CargoSolicitud {
   id: string;
   nombre: string;
   descripcion: string;
+  areaLaboral?: string;
+  habilidadesTecnicas?: string;
+  habilidadesBlandas?: string;
+  anosExperienciaMinima?: number;
+  nivelEducativoMinimo?: string;
   empresaId: string;
   nombreEmpresa: string;
   reclutadorId: string;
   numeroSolicitud: string;
   fechaSolicitud?: any;
+  fechaActualizacion?: any;
   estado: 'pendiente' | 'aprobado' | 'rechazado' | string;
-  preguntas?: Pregunta[];
+}
+
+// --- NUEVA INTERFAZ PARA LA COLECCIÓN DE ÁREAS EN FIRESTORE ---
+export interface AreaCatalogo {
+  id: string;
+  nombre: string;
+  fechaCreacion?: string;
 }
 
 @Injectable({
@@ -275,12 +287,24 @@ export class AdminService {
     });
   }
 
-  // 10. Aprobar Cargo guardando las preguntas con sus alternativas y puntajes (3 a 10 preguntas)
-  async aprobarCargoConPreguntas(cargoId: string, preguntas: Pregunta[]) {
+  // 10. Aprobar y actualizar información del Cargo para el análisis de IA (1 sola área obligatoria)
+  async aprobarYActualizarCargo(
+    cargoId: string,
+    datosCargo: {
+      nombre: string;
+      areaLaboral: string;
+      descripcion: string;
+      habilidadesTecnicas: string;
+      habilidadesBlandas: string;
+      anosExperienciaMinima: number;
+      nivelEducativoMinimo: string;
+    }
+  ) {
     const cargoRef = doc(this.firestore, `cargos/${cargoId}`);
     await updateDoc(cargoRef, {
+      ...datosCargo,
       estado: 'aprobado',
-      preguntas: preguntas
+      fechaActualizacion: new Date().toISOString()
     });
   }
 
@@ -296,5 +320,50 @@ export class AdminService {
   async eliminarCargo(id: string) {
     const cargoRef = doc(this.firestore, `cargos/${id}`);
     await deleteDoc(cargoRef);
+  }
+
+  // ==========================================
+  // GESTIÓN DE LA COLECCIÓN 'areas' EN FIRESTORE
+  // ==========================================
+
+  // 13. Obtener todas las áreas guardadas en la colección 'areas'
+  async getAreas(): Promise<AreaCatalogo[]> {
+    const areasRef = collection(this.firestore, 'areas');
+    const snapshot = await getDocs(areasRef);
+
+    const lista = snapshot.docs.map(docSnap => {
+      const data = docSnap.data();
+      return {
+        id: docSnap.id,
+        nombre: data['nombre'] || '',
+        fechaCreacion: data['fechaCreacion']
+      } as AreaCatalogo;
+    }).filter(a => a.nombre.trim().length > 0);
+
+    return lista.sort((a, b) => a.nombre.localeCompare(b.nombre));
+  }
+
+  // 14. Crear una nueva área en la colección 'areas'
+  async crearArea(nombre: string): Promise<AreaCatalogo> {
+    const nombreLimpio = nombre.trim();
+    const areasRef = collection(this.firestore, 'areas');
+    const fechaCreacion = new Date().toISOString();
+
+    const docRef = await addDoc(areasRef, {
+      nombre: nombreLimpio,
+      fechaCreacion
+    });
+
+    return {
+      id: docRef.id,
+      nombre: nombreLimpio,
+      fechaCreacion
+    };
+  }
+
+  // 15. Eliminar un área de la colección 'areas'
+  async eliminarArea(id: string): Promise<void> {
+    const areaRef = doc(this.firestore, `areas/${id}`);
+    await deleteDoc(areaRef);
   }
 }

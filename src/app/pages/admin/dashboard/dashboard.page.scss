@@ -23,6 +23,13 @@
       justify-content: center;
       color: var(--ion-color-primary);
 
+      .sidebar-logo {
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
+        margin-bottom: 10px;
+      }
+
       ion-icon {
         font-size: 3rem;
         margin-bottom: 10px;
@@ -288,71 +295,109 @@
     margin-bottom: 15px;
   }
 
-  .pregunta-editor-card {
-    background: var(--ion-color-primary-contrast);
-    border: 1px solid var(--ion-color-light-shade);
-    border-radius: 10px;
-    padding: 14px;
-    margin-bottom: 16px;
-    box-shadow: 0 2px 6px rgba(var(--ion-color-light-contrast-rgb), 0.03);
+  .cargo-form-field {
+    margin-bottom: 14px;
 
-    .pregunta-editor-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-
-      .pregunta-numero {
-        font-weight: 800;
-        font-size: 0.95rem;
-        color: var(--ion-color-primary);
-      }
-    }
-  }
-
-  .pregunta-input-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 12px;
-
-    ion-input {
-      flex: 1;
+    ion-input,
+    ion-textarea,
+    ion-select {
       --background: var(--ion-color-primary-contrast);
     }
   }
 
-  .opciones-editor-section {
-    background: var(--ion-color-light);
-    border-radius: 8px;
-    padding: 12px;
-    border: 1px dashed var(--ion-color-light-shade);
+  /* --- ESTILOS DEL AUTOCOMPLETADO DE ÁREA DESDE FIRESTORE --- */
+  .area-autocomplete-wrapper {
+    position: relative;
 
-    .opciones-subtitle {
-      display: block;
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--ion-color-light-contrast);
-      margin-bottom: 10px;
+    .area-suggestions-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      background: var(--ion-color-primary-contrast);
+      border: 1px solid var(--ion-color-light-shade);
+      border-radius: 8px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+      max-height: 220px;
+      overflow-y: auto;
+      margin-top: 4px;
+
+      .suggestions-header {
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--ion-color-medium);
+        padding: 8px 12px 4px 12px;
+        background: var(--ion-color-light);
+        border-bottom: 1px solid var(--ion-color-light-shade);
+      }
+
+      .suggestion-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 8px 12px;
+        font-size: 0.95rem;
+        color: var(--ion-color-light-contrast);
+        cursor: pointer;
+        border-bottom: 1px solid rgba(var(--ion-color-light-contrast-rgb), 0.04);
+        transition: background-color 0.15s ease;
+
+        .suggestion-main {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex: 1;
+
+          ion-icon {
+            font-size: 1.1rem;
+            color: var(--ion-color-primary);
+            flex-shrink: 0;
+          }
+        }
+
+        .delete-area-btn {
+          margin: 0;
+          --padding-start: 6px;
+          --padding-end: 6px;
+          height: 28px;
+        }
+
+        &:hover {
+          background-color: rgba(var(--ion-color-primary-rgb), 0.08);
+        }
+
+        &:last-child {
+          border-bottom: none;
+        }
+      }
+
+      .new-area-item {
+        background-color: rgba(var(--ion-color-success-rgb), 0.08);
+        color: var(--ion-color-primary);
+        padding: 10px 12px;
+
+        .suggestion-main ion-icon {
+          color: var(--ion-color-success);
+        }
+
+        strong {
+          font-weight: 800;
+        }
+      }
     }
+  }
 
-    .opcion-input-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
+  .cargo-form-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
 
-      .input-opcion-texto {
-        flex: 3;
-        --background: var(--ion-color-primary-contrast);
-      }
-
-      .input-opcion-puntaje {
-        flex: 1;
-        min-width: 85px;
-        max-width: 115px;
-        --background: var(--ion-color-primary-contrast);
-      }
+    @media (min-width: 576px) {
+      grid-template-columns: 1fr 1fr;
     }
   }
 

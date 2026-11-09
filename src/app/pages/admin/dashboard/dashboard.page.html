@@ -7,7 +7,7 @@
     <ion-header class="ion-no-border">
       <ion-toolbar class="sidebar-header">
         <div class="logo-container">
-          <ion-icon name="briefcase-outline"></ion-icon>
+          <img src="assets/icon/icon.png" alt="Logo ExpertiMente" class="sidebar-logo" />
           <h2>ExpertiMente</h2>
           <p>Admin Panel</p>
         </div>
@@ -252,8 +252,8 @@
                     <ion-card-subtitle>{{ cargo.nombreEmpresa }}</ion-card-subtitle>
                   </ion-card-header>
                   <ion-card-content>
+                    <div class="info-row"><ion-icon name="briefcase-outline"></ion-icon> <span>{{ cargo.areaLaboral || 'Área pendiente de definir' }}</span></div>
                     <div class="info-row"><ion-icon name="document-text-outline"></ion-icon> <span>{{ cargo.numeroSolicitud }}</span></div>
-                    <div class="info-row"><ion-icon name="help-circle-outline"></ion-icon> <span>{{ cargo.preguntas?.length ? (cargo.preguntas?.length + ' preguntas asignadas') : 'Sin preguntas asignadas' }}</span></div>
                   </ion-card-content>
                 </ion-card>
               }
@@ -547,7 +547,7 @@
 </ion-modal>
 
 <!-- ========================================== -->
-<!-- MODAL: SOLICITUD DE CARGO -->
+<!-- MODAL: SOLICITUD DE CARGO (PERFIL PARA IA) -->
 <!-- ========================================== -->
 <ion-modal [isOpen]="isModalCargoOpen" (didDismiss)="cerrarModalCargo()" class="fullscreen-modal">
   <ng-template>
@@ -563,7 +563,7 @@
     <ion-content class="ion-padding modal-bg">
       @if (cargoSeleccionado) {
         <div class="modal-grid">
-          <!-- Columna Izquierda: Información de la Solicitud -->
+          <!-- Columna Izquierda: Información Original de la Solicitud -->
           <div>
             <ion-card class="detail-panel">
               <ion-card-header>
@@ -583,12 +583,18 @@
                 </div>
                 <div class="info-row">
                   <ion-icon name="business-outline"></ion-icon>
-                  <span><strong>Empresa:</strong> {{ cargoSeleccionado.nombreEmpresa }}</span>
+                  <span><strong>Empresa Solicitante:</strong> {{ cargoSeleccionado.nombreEmpresa }}</span>
                 </div>
                 <div class="info-row">
                   <ion-icon name="time-outline"></ion-icon>
                   <span><strong>Fecha de Solicitud:</strong> {{ formatearFecha(cargoSeleccionado.fechaSolicitud) }}</span>
                 </div>
+                @if (cargoSeleccionado.fechaActualizacion) {
+                  <div class="info-row">
+                    <ion-icon name="sync-outline"></ion-icon>
+                    <span><strong>Última Estandarización:</strong> {{ formatearFecha(cargoSeleccionado.fechaActualizacion) }}</span>
+                  </div>
+                }
 
                 <div style="border-top: 1px solid #e2e8f0; margin: 15px 0;"></div>
 
@@ -600,135 +606,190 @@
             </ion-card>
           </div>
 
-          <!-- Columna Derecha: Preguntas Generales del Cargo con Alternativas y Puntaje -->
+          <!-- Columna Derecha: Perfil Estandarizado del Cargo para Comparación con IA -->
           <div>
-            @if (mostrandoFormularioPreguntas) {
+            @if (mostrandoFormularioCargo) {
               <div class="preguntas-container">
-                <h4>Preguntas Obligatorias del Cargo (Mín. 3 - Máx. 10)</h4>
+                <h4>Estandarizar Perfil del Cargo (Para Evaluación de IA)</h4>
                 <p class="preguntas-helper">
-                  Define las preguntas filtro para este cargo. Cada pregunta debe tener entre 2 y 5 alternativas con su puntaje respectivo.
+                  Ajusta y completa la información del cargo. Estos datos serán utilizados por la IA al escanear el CV de los postulantes y calcular su porcentaje de idoneidad.
                 </p>
 
-                @for (pregunta of preguntasCargo; track $index; let i = $index) {
-                  <div class="pregunta-editor-card">
-                    <div class="pregunta-editor-header">
-                      <span class="pregunta-numero">Pregunta {{ i + 1 }} (Obligatoria)</span>
-                      @if (preguntasCargo.length > 3) {
-                        <ion-button fill="clear" size="small" color="danger" (click)="eliminarPreguntaCargo(i)" title="Eliminar pregunta">
-                          <ion-icon name="trash-outline" slot="start"></ion-icon>
-                          Quitar
-                        </ion-button>
-                      }
-                    </div>
+                <div class="cargo-form-field">
+                  <ion-input
+                    label="Nombre Estandarizado del Cargo *"
+                    labelPlacement="stacked"
+                    fill="outline"
+                    placeholder="Ej: Maestro Pesquero / Operador de Pesca"
+                    [(ngModel)]="formularioCargo.nombre">
+                  </ion-input>
+                </div>
 
-                    <div class="pregunta-input-row">
-                      <ion-input
-                        label="Enunciado de la pregunta"
-                        labelPlacement="stacked"
-                        fill="outline"
-                        placeholder="Escribe la pregunta general para este cargo..."
-                        [(ngModel)]="pregunta.texto">
-                      </ion-input>
-                    </div>
+                <!-- Campo de 1 sola Área Obligatoria conectada a la colección 'areas' de Firestore -->
+                <div class="cargo-form-field area-autocomplete-wrapper">
+                  <ion-input
+                    label="Área o Rubro Laboral (1 obligatoria) *"
+                    labelPlacement="stacked"
+                    fill="outline"
+                    placeholder="Selecciona un área existente o escribe una nueva..."
+                    [(ngModel)]="formularioCargo.areaLaboral"
+                    (ionFocus)="alEnfocarArea()"
+                    (ionInput)="alEscribirArea()"
+                    (ionBlur)="cerrarDropdownAreasConRetraso()">
+                  </ion-input>
 
-                    <div class="opciones-editor-section">
-                      <span class="opciones-subtitle">Alternativas y Puntajes (Mín. 2 - Máx. 5):</span>
-
-                      @for (opcion of pregunta.opciones; track $index; let j = $index) {
-                        <div class="opcion-input-row">
-                          <ion-input
-                            class="input-opcion-texto"
-                            [label]="'Alternativa ' + (j + 1)"
-                            labelPlacement="stacked"
-                            fill="outline"
-                            placeholder="Texto de la respuesta..."
-                            [(ngModel)]="opcion.texto">
-                          </ion-input>
-
-                          <ion-input
-                            class="input-opcion-puntaje"
-                            type="number"
-                            label="Puntaje"
-                            labelPlacement="stacked"
-                            fill="outline"
-                            placeholder="0"
-                            [(ngModel)]="opcion.puntaje">
-                          </ion-input>
-
-                          @if (pregunta.opciones.length > 2) {
-                            <ion-button fill="clear" color="danger" (click)="eliminarOpcionPregunta(i, j)" title="Quitar alternativa">
-                              <ion-icon name="remove-circle-outline" slot="icon-only"></ion-icon>
-                            </ion-button>
-                          }
+                  @if (mostrarDropdownAreas && (areasFiltradas.length > 0 || esAreaNueva())) {
+                    <div class="area-suggestions-dropdown">
+                      @if (esAreaNueva()) {
+                        <div class="suggestion-item new-area-item" (mousedown)="crearYSeleccionarArea(formularioCargo.areaLaboral); $event.preventDefault()">
+                          <div class="suggestion-main">
+                            <ion-icon name="add-circle-outline"></ion-icon>
+                            <span>Crear y seleccionar área: <strong>"{{ formularioCargo.areaLaboral.trim() }}"</strong></span>
+                          </div>
                         </div>
                       }
 
-                      @if (pregunta.opciones.length < 5) {
-                        <ion-button size="small" fill="clear" color="primary" (click)="agregarOpcionPregunta(i)">
-                          <ion-icon name="add-circle-outline" slot="start"></ion-icon>
-                          Agregar alternativa ({{ pregunta.opciones.length }}/5)
-                        </ion-button>
+                      @if (areasFiltradas.length > 0) {
+                        <div class="suggestions-header">Áreas registradas en Firestore</div>
+                        @for (area of areasFiltradas; track area.id) {
+                          <div class="suggestion-item" (mousedown)="seleccionarAreaExistente(area); $event.preventDefault()">
+                            <div class="suggestion-main">
+                              <ion-icon name="briefcase-outline"></ion-icon>
+                              <span>{{ area.nombre }}</span>
+                            </div>
+                            <ion-button
+                              fill="clear"
+                              size="small"
+                              color="danger"
+                              class="delete-area-btn"
+                              title="Eliminar área de Firestore"
+                              (mousedown)="eliminarAreaDeCatalogo(area, $event)">
+                              <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+                            </ion-button>
+                          </div>
+                        }
                       }
                     </div>
-                  </div>
-                }
+                  }
+                </div>
 
-                @if (preguntasCargo.length < 10) {
-                  <ion-button expand="block" fill="outline" color="primary" class="ion-margin-top" (click)="agregarPreguntaCargo()">
-                    <ion-icon name="add-circle-outline" slot="start"></ion-icon>
-                    Agregar otra pregunta ({{ preguntasCargo.length }}/10)
-                  </ion-button>
-                }
+                <div class="cargo-form-field">
+                  <ion-textarea
+                    label="Descripción General y Funciones del Cargo *"
+                    labelPlacement="stacked"
+                    fill="outline"
+                    [autoGrow]="true"
+                    rows="3"
+                    placeholder="Describe las responsabilidades y el perfil general que busca este cargo..."
+                    [(ngModel)]="formularioCargo.descripcion">
+                  </ion-textarea>
+                </div>
+
+                <div class="cargo-form-field">
+                  <ion-textarea
+                    label="Habilidades Técnicas / Palabras Clave para IA *"
+                    labelPlacement="stacked"
+                    fill="outline"
+                    [autoGrow]="true"
+                    rows="2"
+                    placeholder="Ej: Maniobra de redes, navegación, mantenimiento de equipos, normativa marítima..."
+                    [(ngModel)]="formularioCargo.habilidadesTecnicas">
+                  </ion-textarea>
+                </div>
+
+                <div class="cargo-form-field">
+                  <ion-textarea
+                    label="Habilidades Blandas Recomendadas"
+                    labelPlacement="stacked"
+                    fill="outline"
+                    [autoGrow]="true"
+                    rows="2"
+                    placeholder="Ej: Trabajo en equipo, adaptabilidad, resistencia física, liderazgo..."
+                    [(ngModel)]="formularioCargo.habilidadesBlandas">
+                  </ion-textarea>
+                </div>
+
+                <div class="cargo-form-grid-2">
+                  <div class="cargo-form-field">
+                    <ion-input
+                      type="number"
+                      min="0"
+                      label="Experiencia Mínima (Años)"
+                      labelPlacement="stacked"
+                      fill="outline"
+                      placeholder="0"
+                      [(ngModel)]="formularioCargo.anosExperienciaMinima">
+                    </ion-input>
+                  </div>
+
+                  <div class="cargo-form-field">
+                    <ion-select
+                      label="Nivel Educativo Mínimo"
+                      labelPlacement="stacked"
+                      fill="outline"
+                      interface="popover"
+                      [(ngModel)]="formularioCargo.nivelEducativoMinimo">
+                      <ion-select-option value="Sin requisito">Sin requisito</ion-select-option>
+                      <ion-select-option value="Enseñanza Media">Enseñanza Media</ion-select-option>
+                      <ion-select-option value="Técnico Nivel Medio">Técnico Nivel Medio</ion-select-option>
+                      <ion-select-option value="Técnico Nivel Superior">Técnico Nivel Superior</ion-select-option>
+                      <ion-select-option value="Universitario">Universitario</ion-select-option>
+                    </ion-select>
+                  </div>
+                </div>
 
                 <div class="preguntas-form-actions">
                   <ion-button expand="block" color="success" (click)="confirmarAprobacionCargo()">
                     <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
-                    OK (APROBAR Y ENVIAR AL RECLUTADOR)
+                    OK (GUARDAR CAMBIOS Y APROBAR CARGO)
                   </ion-button>
-                  <ion-button expand="block" fill="clear" color="medium" (click)="mostrandoFormularioPreguntas = false">
+                  <ion-button expand="block" fill="clear" color="medium" (click)="mostrandoFormularioCargo = false">
                     Cancelar
                   </ion-button>
                 </div>
               </div>
             } @else {
-              @if (cargoSeleccionado.preguntas && cargoSeleccionado.preguntas.length > 0) {
-                <div class="preguntas-container">
-                  <h4>Preguntas Obligatorias Asignadas ({{ cargoSeleccionado.preguntas.length }})</h4>
-                  @for (pregunta of cargoSeleccionado.preguntas; track $index; let i = $index) {
-                    <div class="pregunta-box">
-                      @if ($any(pregunta).texto) {
-                        <p><strong>P{{ i + 1 }}: {{ pregunta.texto }}</strong> (Obligatoria)</p>
-                        @if (pregunta.opciones && pregunta.opciones.length > 0) {
-                          <ul class="opciones-lista">
-                            @for (opcion of pregunta.opciones; track $index) {
-                              <li><strong>{{ opcion.texto }}</strong> — {{ opcion.puntaje }} pts</li>
-                            }
-                          </ul>
-                        }
-                      } @else {
-                        <p><strong>P{{ i + 1 }}:</strong> {{ $any(pregunta) }}</p>
-                      }
-                    </div>
-                  }
+              <div class="preguntas-container">
+                <h4>Ficha de Idoneidad para IA</h4>
+                <p class="preguntas-helper">
+                  Parámetros que leerá la IA para comparar contra el CV de los postulantes:
+                </p>
+
+                <div class="info-row">
+                  <ion-icon name="briefcase-outline"></ion-icon>
+                  <span><strong>Área Laboral:</strong> {{ cargoSeleccionado.areaLaboral || 'No especificada aún' }}</span>
                 </div>
-              } @else {
-                <div class="preguntas-container">
-                  <h4>Preguntas Generales del Cargo</h4>
-                  <p style="color: var(--ion-color-medium); margin: 0;">
-                    Aún no se han definido las preguntas para este cargo. Presiona <strong>Aprobar Cargo</strong> para redactar entre 3 y 10 preguntas con sus alternativas y puntajes.
-                  </p>
+
+                <div class="info-row">
+                  <ion-icon name="time-outline"></ion-icon>
+                  <span><strong>Experiencia Mínima:</strong> {{ (cargoSeleccionado.anosExperienciaMinima !== undefined && cargoSeleccionado.anosExperienciaMinima !== null) ? (cargoSeleccionado.anosExperienciaMinima + ' años') : 'No especificada' }}</span>
                 </div>
-              }
+
+                <div class="info-row">
+                  <ion-icon name="school-outline"></ion-icon>
+                  <span><strong>Nivel Educativo Mínimo:</strong> {{ cargoSeleccionado.nivelEducativoMinimo || 'No especificado' }}</span>
+                </div>
+
+                <div class="info-row">
+                  <ion-icon name="hardware-chip-outline"></ion-icon>
+                  <span><strong>Habilidades Técnicas (Keywords IA):</strong> {{ cargoSeleccionado.habilidadesTecnicas || 'Sin palabras clave definidas' }}</span>
+                </div>
+
+                <div class="info-row">
+                  <ion-icon name="heart-outline"></ion-icon>
+                  <span><strong>Habilidades Blandas:</strong> {{ cargoSeleccionado.habilidadesBlandas || 'No especificadas' }}</span>
+                </div>
+              </div>
             }
           </div>
         </div>
 
-        <!-- Botones principales de Aprobar / Rechazar -->
-        @if (!mostrandoFormularioPreguntas) {
+        <!-- Botones principales de Editar y Aprobar / Rechazar -->
+        @if (!mostrandoFormularioCargo) {
           <div class="modal-actions">
-            <ion-button expand="block" color="success" class="ion-margin-bottom" (click)="mostrarCamposPreguntas()">
-              <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
-              {{ (cargoSeleccionado.preguntas && cargoSeleccionado.preguntas.length > 0) ? 'EDITAR PREGUNTAS Y APROBAR' : 'APROBAR CARGO' }}
+            <ion-button expand="block" color="success" class="ion-margin-bottom" (click)="mostrarEditorCargo()">
+              <ion-icon name="create-outline" slot="start"></ion-icon>
+              {{ cargoSeleccionado.estado === 'aprobado' ? 'EDITAR DATOS DEL CARGO' : 'MODIFICAR DATOS Y APROBAR CARGO' }}
             </ion-button>
 
             @if (cargoSeleccionado.estado !== 'rechazado') {
