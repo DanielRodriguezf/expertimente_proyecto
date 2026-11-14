@@ -1,0 +1,217 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/perfil-cv" class="menu-btn-custom" aria-label="Volver"></ion-back-button>
+    </ion-buttons>
+    <ion-title class="app-title">Mi Foto de Perfil</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [scrollY]="false" class="photo-content">
+  <div class="form-container fade-in">
+
+    <div class="photo-scroll-area">
+
+      <!-- TARJETA INFORMATIVA -->
+      <ion-card class="form-card info-card">
+        <ion-card-content class="info-card-content">
+          <div class="info-icon-box" aria-hidden="true">
+            <ion-icon name="sparkles-outline"></ion-icon>
+          </div>
+          <div class="info-text">
+            <h3 class="info-title">Personaliza tu presentación</h3>
+            <p class="info-desc">
+              Sube una fotografía clara y reciente para que los reclutadores puedan conocerte mejor en tus postulaciones.
+            </p>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- TARJETA PRINCIPAL DE FOTO -->
+      <ion-card class="form-card text-center-card">
+        <ion-card-content>
+
+          <!-- INSIGNIA DE ESTADO -->
+          @if (fotoPendienteBase64) {
+            <span class="status-badge pending-badge">Vista previa · Sin guardar</span>
+          } @else if (fotoPerfilSavedBase64) {
+            <span class="status-badge saved-badge">Foto activa en tu perfil</span>
+          } @else {
+            <span class="status-badge empty-badge">Sin foto de perfil</span>
+          }
+
+          <!-- AVATAR / VISTA PREVIA -->
+          <div class="avatar-container">
+            @if (fotoPendienteBase64 || fotoPerfilSavedBase64) {
+              <img
+                [src]="fotoPendienteBase64 || fotoPerfilSavedBase64"
+                class="avatar-preview fade-in"
+                alt="Vista previa de foto de perfil" />
+            } @else {
+              <div class="empty-avatar-placeholder" (click)="abrirSelectorFoto()" aria-hidden="true">
+                <ion-icon name="person-outline"></ion-icon>
+              </div>
+            }
+          </div>
+
+          <input
+            type="file"
+            #fotoInput
+            (change)="alSeleccionarFoto($event)"
+            accept="image/*"
+            class="hidden-input">
+
+          <!-- ACCIONES SEGÚN ESTADO -->
+          @if (!fotoPerfilSavedBase64 && !fotoPendienteBase64) {
+            <!-- NO TIENE FOTO: PERMITIR ELEGIR -->
+            <ion-button expand="block" fill="outline" class="btn-outline-primary" (click)="abrirSelectorFoto()">
+              <ion-icon slot="start" name="image-outline" aria-hidden="true"></ion-icon>
+              Elegir Fotografía
+            </ion-button>
+          }
+
+          @if (fotoPendienteBase64) {
+            <!-- TIENE FOTO RECIÉN RECORTADA PENDIENTE DE GUARDAR -->
+            <div class="pending-actions">
+              <ion-button expand="block" fill="outline" class="btn-outline-primary" (click)="abrirSelectorFoto()">
+                <ion-icon slot="start" name="image-outline" aria-hidden="true"></ion-icon>
+                Elegir otra imagen
+              </ion-button>
+              <ion-button expand="block" fill="clear" class="btn-clear-danger" (click)="descartarFotoPendiente()">
+                <ion-icon slot="start" name="close-circle" aria-hidden="true"></ion-icon>
+                Descartar vista previa
+              </ion-button>
+            </div>
+          }
+
+          @if (fotoPerfilSavedBase64 && !fotoPendienteBase64) {
+            <!-- YA TIENE FOTO GUARDADA: OPCIÓN DE QUITAR PARA SUBIR OTRA -->
+            <ion-button expand="block" fill="outline" class="btn-outline-danger" (click)="eliminarFotoGuardada()">
+              <ion-icon slot="start" name="trash-outline" aria-hidden="true"></ion-icon>
+              Quitar Foto Guardada
+            </ion-button>
+          }
+
+        </ion-card-content>
+      </ion-card>
+
+    </div>
+
+    <!-- BOTÓN GUARDAR (ACTIVO CUANDO HAY UNA FOTO PENDIENTE) -->
+    @if (fotoPendienteBase64) {
+      <div class="bottom-action-section fade-in">
+        <ion-button expand="block" class="btn-primary-custom" [disabled]="guardandoFoto" (click)="guardarDatos()">
+          <ion-icon slot="start" name="checkmark-circle" aria-hidden="true"></ion-icon>
+          Guardar Foto de Perfil
+        </ion-button>
+      </div>
+    }
+
+  </div>
+
+  <!-- MODAL DE AJUSTE DE FOTO -->
+  <ion-modal
+    class="modal-recorte"
+    [isOpen]="mostrandoRecortador"
+    (didPresent)="alModalPresentado($event)"
+    (didDismiss)="alCerrarModalRecorte()">
+    <ng-template>
+      <ion-content [scrollY]="false" class="cropper-content">
+        <div class="cropper-wrapper">
+
+          <!-- Título e instrucciones -->
+          <div class="cropper-header">
+            <h2 class="cropper-title">Ajusta tu foto de perfil</h2>
+          </div>
+
+          <!-- Área de ajuste: la imagen se mueve debajo del círculo -->
+          <div
+            class="crop-stage"
+            (pointerdown)="alPunteroAbajo($event)"
+            (pointermove)="alPunteroMover($event)"
+            (pointerup)="alPunteroArriba($event)"
+            (pointercancel)="alPunteroArriba($event)"
+            (wheel)="alRuedaMouse($event)">
+
+            @if (cropListo) {
+              <img
+                class="crop-image"
+                [src]="cropImagenUrl"
+                [style.width.px]="cropAncho"
+                [style.height.px]="cropAlto"
+                [style.transform]="transformImagen"
+                draggable="false"
+                alt="Foto que estás ajustando" />
+
+              <div
+                class="crop-mask"
+                [style.width.px]="diametro"
+                [style.height.px]="diametro"
+                aria-hidden="true"></div>
+            }
+          </div>
+
+          <!-- Controles: zoom y herramientas -->
+          <div class="crop-controls">
+            <div class="zoom-row">
+              <button
+                type="button"
+                class="zoom-btn"
+                (click)="alejar()"
+                [disabled]="!cropListo || cropZoom <= zoomMin"
+                aria-label="Alejar">
+                <ion-icon name="remove-outline" aria-hidden="true"></ion-icon>
+              </button>
+
+              <input
+                type="range"
+                class="zoom-slider"
+                [min]="zoomMin"
+                [max]="zoomMax"
+                step="0.01"
+                [value]="cropZoom"
+                [disabled]="!cropListo"
+                (input)="alCambiarSlider($event)"
+                aria-label="Nivel de acercamiento" />
+
+              <button
+                type="button"
+                class="zoom-btn"
+                (click)="acercar()"
+                [disabled]="!cropListo || cropZoom >= zoomMax"
+                aria-label="Acercar">
+                <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+              </button>
+            </div>
+
+            <div class="tools-row">
+              <button type="button" class="tool-btn" (click)="girarImagen()" [disabled]="!cropListo" aria-label="Girar imagen">
+                <ion-icon name="sync-outline" aria-hidden="true"></ion-icon>
+                <span>Girar</span>
+              </button>
+              <button type="button" class="tool-btn" (click)="voltearHorizontal()" [disabled]="!cropListo" aria-label="Voltear imagen horizontalmente">
+                <ion-icon name="swap-horizontal-outline" aria-hidden="true"></ion-icon>
+                <span>Voltear</span>
+              </button>
+              <button type="button" class="tool-btn" (click)="centrarImagen()" [disabled]="!cropListo" aria-label="Centrar imagen">
+                <ion-icon name="locate-outline" aria-hidden="true"></ion-icon>
+                <span>Centrar</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Barra de acción inferior -->
+          <div class="cropper-actions-bottom">
+            <ion-button expand="block" fill="outline" class="btn-cropper-cancel" (click)="cancelarRecorte()">
+              CANCELAR
+            </ion-button>
+            <ion-button expand="block" class="btn-cropper-confirm" [disabled]="!cropListo" (click)="confirmarRecorte()">
+              CONFIRMAR
+            </ion-button>
+          </div>
+
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+</ion-content>

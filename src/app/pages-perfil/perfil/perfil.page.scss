@@ -1,0 +1,427 @@
+/* --- NAVBAR (HEADER) --- */
+ion-header {
+  ion-toolbar {
+    --background: linear-gradient(135deg, var(--ion-color-secondary-shade) 0%, var(--ion-color-primary-shade) 100%);
+    --border-width: 0;
+    --min-height: 56px;
+    box-shadow: 0 4px 16px rgba(79, 157, 20, 0.18);
+  }
+}
+
+.menu-btn-custom {
+  color: #ffffff;
+  --color: #ffffff;
+}
+
+.app-title {
+  color: #ffffff;
+  font-weight: 800;
+  font-size: clamp(1.08rem, 3.8vw, 1.22rem);
+  letter-spacing: 0.3px;
+}
+
+/* --- BLOQUEO DE SCROLL VERTICAL GENERAL (HEREDA BACKGROUND.PNG) --- */
+.profile-content {
+  --overflow: hidden;
+  --padding-top: 0px;
+  --padding-bottom: 0px;
+  overflow: hidden;
+
+  &::part(scroll) {
+    overflow: hidden !important;
+  }
+}
+
+.perfil-container {
+  max-width: 600px;
+  width: 100%;
+  height: 100%;
+  margin: 0 auto;
+  /* Inicia desde arriba con su respectivo margen y protege la barra de navegación inferior */
+  padding: clamp(10px, 1.8vh, 16px) clamp(14px, 4vw, 20px) calc(max(16px, var(--app-safe-bottom, 0px)) + 6px);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+/* --- CONTENEDOR QUE INICIA DESDE ARRIBA --- */
+.perfil-center-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: clamp(8px, 1.4vh, 12px);
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  overflow-y: auto;
+  padding-bottom: 2px;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(var(--ion-color-primary-rgb), 0.25);
+    border-radius: 4px;
+  }
+}
+
+.simple-box {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 24px 18px;
+  border: 1.5px solid rgba(var(--ion-color-primary-rgb), 0.16);
+  box-shadow: 0 6px 18px rgba(79, 157, 20, 0.08);
+  text-align: center;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+
+  ion-spinner {
+    transform: scale(1.25);
+  }
+
+  .loading-text {
+    margin: 0;
+    color: var(--ion-color-primary-shade);
+    font-weight: 800;
+    font-size: 0.95rem;
+  }
+}
+
+/* --- TARJETAS CON ESTILO HOME --- */
+.form-card {
+  border-radius: 18px;
+  background: #ffffff;
+  margin: 0;
+  flex-shrink: 0;
+  border: 1.5px solid rgba(var(--ion-color-primary-rgb), 0.16);
+  box-shadow:
+    0 6px 16px rgba(79, 157, 20, 0.08),
+    0 2px 6px rgba(78, 139, 71, 0.05);
+}
+
+/* --- TARJETA CABECERA: FOTO GRANDE ARRIBA Y NOMBRE GRANDE DEBAJO --- */
+.profile-hero-card {
+  .hero-content {
+    padding: clamp(14px, 2vh, 20px) clamp(14px, 4vw, 20px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: clamp(8px, 1.2vh, 10px);
+  }
+
+  .avatar-container {
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+
+    &:active {
+      transform: scale(0.97);
+    }
+
+    .profile-avatar {
+      width: clamp(92px, 13.5vh, 112px);
+      height: clamp(92px, 13.5vh, 112px);
+      object-fit: cover;
+      border-radius: 50%;
+      box-shadow: 0 6px 16px rgba(var(--ion-color-primary-rgb), 0.24);
+      border: 3px solid var(--ion-color-primary);
+      display: block;
+    }
+
+    .empty-avatar-placeholder {
+      width: clamp(92px, 13.5vh, 112px);
+      height: clamp(92px, 13.5vh, 112px);
+      border-radius: 50%;
+      background: linear-gradient(135deg, #eef8e6 0%, #d8f0c5 100%);
+      border: 2.5px dashed rgba(var(--ion-color-primary-rgb), 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      ion-icon {
+        font-size: clamp(2.8rem, 7.8vw, 3.4rem);
+        color: var(--ion-color-primary-shade);
+      }
+    }
+  }
+
+  .hero-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+
+    .role-badge {
+      display: inline-block;
+      background: #eef8e6;
+      color: var(--ion-color-primary-shade);
+      border: 1px solid rgba(var(--ion-color-primary-rgb), 0.24);
+      font-size: clamp(0.76rem, 2.8vw, 0.84rem);
+      font-weight: 800;
+      padding: 3px 12px;
+      border-radius: 999px;
+      margin-bottom: 5px;
+    }
+
+    .profile-name {
+      color: var(--ion-color-primary-shade);
+      font-size: clamp(1.22rem, 4.6vw, 1.42rem);
+      font-weight: 800;
+      margin: 0 0 3px 0;
+      line-height: 1.22;
+      word-break: break-word;
+    }
+
+    .profile-subtitle {
+      color: var(--ion-color-secondary-shade);
+      font-size: clamp(0.84rem, 3.1vw, 0.92rem);
+      margin: 0;
+      font-weight: 600;
+    }
+  }
+}
+
+/* --- FILAS DE DATOS PERSONALES (FORMATO COMPACTO) --- */
+.data-card {
+  .data-content {
+    padding: clamp(10px, 1.5vh, 14px) clamp(12px, 3.8vw, 16px);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(7px, 1.1vh, 10px);
+  }
+}
+
+.data-row {
+  display: flex;
+  align-items: center;
+  text-align: left;
+  padding-bottom: clamp(7px, 1.1vh, 10px);
+  border-bottom: 1px solid rgba(var(--ion-color-primary-rgb), 0.14);
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .icon-box {
+    width: clamp(34px, 8.8vw, 38px);
+    height: clamp(34px, 8.8vw, 38px);
+    border-radius: 10px;
+    background: linear-gradient(135deg, #ebf9df 0%, #cdebb3 100%);
+    border: 1px solid rgba(var(--ion-color-primary-rgb), 0.22);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    flex-shrink: 0;
+
+    ion-icon {
+      font-size: 1.12rem;
+      color: var(--ion-color-primary-shade);
+    }
+  }
+
+  .data-text {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+
+    .label {
+      font-size: clamp(0.72rem, 2.6vw, 0.78rem);
+      color: var(--ion-color-secondary-shade);
+      margin-bottom: 1px;
+      font-weight: 700;
+    }
+
+    .value {
+      font-size: clamp(0.84rem, 3.1vw, 0.92rem);
+      color: var(--ion-color-primary-shade);
+      font-weight: 800;
+      margin: 0;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      line-height: 1.25;
+    }
+  }
+}
+
+/* --- BOTONES DE ACCIÓN (MODIFICAR ARRIBA Y ELIMINAR ABAJO) --- */
+.bottom-actions-stack {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1.1vh, 10px);
+  flex-shrink: 0;
+}
+
+.btn-primary-custom {
+  --background: linear-gradient(135deg, var(--ion-color-secondary-shade) 0%, var(--ion-color-primary-shade) 100%);
+  --background-activated: var(--ion-color-primary-shade);
+  --border-radius: 13px;
+  --box-shadow: 0 5px 14px rgba(var(--ion-color-primary-rgb), 0.24);
+  --color: #ffffff;
+  font-weight: 800;
+  font-size: clamp(0.86rem, 3.2vw, 0.94rem);
+  letter-spacing: 0.2px;
+  min-height: 44px;
+  margin: 0;
+}
+
+.danger-zone {
+  background: #ffffff;
+  border: 1.5px dashed rgba(var(--ion-color-danger-rgb), 0.4);
+  border-radius: 15px;
+  padding: clamp(7px, 1.1vh, 10px) 12px;
+  text-align: center;
+
+  .danger-text {
+    color: var(--ion-color-danger-shade);
+    font-size: clamp(0.75rem, 2.7vw, 0.82rem);
+    font-weight: 700;
+    margin: 0 0 5px 0;
+    line-height: 1.25;
+  }
+}
+
+.btn-outline-danger {
+  --border-color: rgba(var(--ion-color-danger-rgb), 0.5);
+  --border-width: 1.5px;
+  --color: var(--ion-color-danger);
+  --border-radius: 11px;
+  font-weight: 800;
+  font-size: clamp(0.8rem, 2.9vw, 0.88rem);
+  min-height: 38px;
+  margin: 0;
+}
+
+/* --- ESTADO SIN DATOS (ERROR) --- */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 18px;
+
+  .error-icon-box {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: #eef8e6;
+    color: var(--ion-color-primary-shade);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+
+    .error-icon {
+      font-size: 1.8rem;
+    }
+  }
+
+  .error-text {
+    color: var(--ion-color-secondary-shade);
+    font-size: clamp(0.88rem, 3.2vw, 0.96rem);
+    font-weight: 700;
+    margin: 0 0 16px 0;
+    line-height: 1.38;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- ADAPTABILIDAD PARA PANTALLAS MEDIANAS/BAJAS --- */
+@media (max-height: 740px) {
+  .perfil-container {
+    padding-top: 8px;
+    padding-bottom: calc(max(12px, var(--app-safe-bottom, 0px)) + 4px);
+  }
+
+  .perfil-center-wrapper {
+    gap: 7px;
+  }
+
+  .profile-hero-card .hero-content {
+    padding: 10px 12px;
+    gap: 6px;
+
+    .avatar-container .profile-avatar,
+    .avatar-container .empty-avatar-placeholder {
+      width: 80px;
+      height: 80px;
+    }
+  }
+
+  .data-card .data-content {
+    padding: 8px 12px;
+    gap: 6px;
+  }
+
+  .data-row {
+    padding-bottom: 6px;
+
+    .icon-box {
+      width: 32px;
+      height: 32px;
+    }
+  }
+
+  .btn-primary-custom {
+    min-height: 40px;
+  }
+
+  .danger-zone {
+    padding: 6px 10px;
+
+    .btn-outline-danger {
+      min-height: 35px;
+    }
+  }
+}
+
+/* --- ADAPTABILIDAD EXTREMA PARA CELULARES MUY PEQUEÑOS --- */
+@media (max-height: 640px) {
+  .profile-hero-card .hero-content {
+    padding: 8px 10px;
+
+    .avatar-container .profile-avatar,
+    .avatar-container .empty-avatar-placeholder {
+      width: 66px;
+      height: 66px;
+
+      ion-icon {
+        font-size: 2.1rem;
+      }
+    }
+
+    .hero-text .profile-name {
+      font-size: 1.1rem;
+    }
+  }
+
+  .data-card .data-content {
+    padding: 7px 10px;
+    gap: 5px;
+  }
+
+  .data-row {
+    padding-bottom: 5px;
+  }
+}

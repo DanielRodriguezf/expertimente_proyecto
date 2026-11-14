@@ -1,0 +1,623 @@
+/* --- HEADER Y PROGRESS BAR --- */
+ion-header {
+  background-color: var(--ion-color-light);
+
+  ion-toolbar:first-of-type {
+    --background: var(--ion-color-light);
+    --border-width: 0;
+    box-shadow: none;
+  }
+}
+
+.header-toolbar {
+  --background: var(--ion-color-light);
+  --border-width: 0;
+  box-shadow: none;
+}
+
+.custom-back-btn {
+  color: var(--ion-color-primary-shade);
+  --color: var(--ion-color-primary-shade);
+}
+
+.header-title {
+  color: var(--ion-color-primary-shade);
+  font-weight: 800;
+  font-size: clamp(1.1rem, 4vw, 1.25rem);
+}
+
+.custom-progress-bar {
+  --background: rgba(var(--ion-color-primary-rgb), 0.15);
+  --progress-background: var(--ion-color-primary);
+  height: 6px;
+  border-radius: 4px;
+}
+
+/* --- BLOQUEO DE SCROLL EXTERIOR Y DE RECORTE POR TECLADO --- */
+.main-content {
+  --overflow: hidden;
+  --padding-top: 0px;
+  --padding-bottom: 0px;
+  /* Evita que Ionic reduzca la altura de la tarjeta al enfocar un input */
+  --keyboard-offset: 0px !important;
+  overflow: hidden;
+
+  &::part(scroll) {
+    overflow: hidden !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+  }
+}
+
+.register-container {
+  max-width: 600px;
+  width: 100%;
+  height: 100%;
+  margin: 0 auto;
+  padding: clamp(8px, 1.5vh, 14px) clamp(14px, 4vw, 20px) calc(max(16px, var(--app-safe-bottom, 0px)) + 6px);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.simple-box {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 32px 20px;
+  border: 1.5px solid rgba(var(--ion-color-primary-rgb), 0.16);
+  box-shadow: 0 6px 18px rgba(79, 157, 20, 0.08);
+  text-align: center;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+
+  ion-spinner {
+    transform: scale(1.3);
+  }
+
+  .loading-text {
+    margin: 0;
+    color: var(--ion-color-primary-shade);
+    font-weight: 800;
+    font-size: 1rem;
+  }
+}
+
+/* --- INDICADOR DE PASO --- */
+.step-indicator {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+
+  .step-badge {
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--ion-color-primary-shade);
+    border: 1px solid rgba(var(--ion-color-primary-rgb), 0.22);
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 0.84rem;
+    font-weight: 700;
+  }
+}
+
+/* --- TARJETA BLANCA PRINCIPAL ---
+   La tarjeta se ajusta al contenido (no se estira hasta el fondo de la pantalla).
+   Si el contenido no cabe, la tarjeta se encoge y solo scrollea el área de pasos. */
+.form-card {
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(var(--ion-color-primary-rgb), 0.08);
+  padding: clamp(16px, 2.5vh, 22px) clamp(14px, 4.2vw, 20px);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  flex: 0 1 auto;
+  min-height: 0;
+}
+
+.form-card-content {
+  display: flex;
+  flex-direction: column;
+  flex: 0 1 auto;
+  min-height: 0;
+}
+
+.step-scroll-area {
+  display: flex;
+  flex-direction: column;
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Espacio superior/lateral para que las etiquetas flotantes y bordes focus nunca se corten */
+  padding: 8px 4px 8px 2px;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(var(--ion-color-primary-rgb), 0.25);
+    border-radius: 4px;
+  }
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+
+  /* El último elemento de cada paso no deja margen extra antes del botón */
+  > :last-child {
+    margin-bottom: 0;
+  }
+}
+
+.experience-inputs-block {
+  margin-top: 10px;
+  flex-shrink: 0;
+}
+
+/* --- TEXTOS --- */
+.question-text {
+  color: var(--ion-color-primary-shade);
+  font-size: clamp(1.2rem, 4.6vw, 1.38rem);
+  font-weight: 800;
+  text-align: center;
+  margin: 0 0 4px 0;
+  line-height: 1.22;
+}
+
+.subtitle {
+  color: var(--ion-color-medium-shade);
+  text-align: center;
+  font-size: clamp(0.86rem, 3.2vw, 0.94rem);
+  margin: 0 0 14px 0;
+  line-height: 1.35;
+}
+
+/* --- INPUTS Y TEXTAREAS --- */
+.input-wrapper {
+  margin-bottom: 12px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+ion-input.modern-input,
+ion-textarea.modern-textarea {
+  --background: #ffffff;
+  --border-color: rgba(var(--ion-color-primary-rgb), 0.35);
+  --border-radius: 12px;
+  --color: var(--ion-color-primary-shade);
+  --placeholder-color: var(--ion-color-medium);
+  --placeholder-opacity: 0.8;
+  font-size: 0.96rem;
+  font-weight: 600;
+}
+
+ion-input.modern-input {
+  min-height: 48px;
+}
+
+ion-input.ion-focused,
+ion-textarea.ion-focused {
+  --border-color: var(--ion-color-primary);
+  --border-width: 2px;
+}
+
+.pointer-input {
+  cursor: pointer;
+}
+
+/* --- FECHAS DEL ESTUDIO --- */
+.dates-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+
+  &.single-column {
+    grid-template-columns: 1fr;
+  }
+}
+
+.date-field {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.date-label {
+  display: block;
+  text-align: center;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--ion-color-primary-shade);
+  margin: 0 0 6px 0;
+}
+
+/* Texto (valor y placeholder) centrado dentro del campo */
+.dates-grid ion-input.input-centrado ::ng-deep input {
+  text-align: center;
+}
+
+.toggle-wrapper {
+  margin: 0 0 12px 0;
+  flex-shrink: 0;
+}
+
+/* --- RADIOS / CHECKBOX --- */
+.radio-group-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 0;
+}
+
+.checkbox-wrapper,
+.toggle-wrapper,
+.radio-item {
+  --background: rgba(var(--ion-color-primary-rgb), 0.02);
+  --border-radius: 12px;
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.18);
+  --padding-start: 14px;
+  --inner-padding-end: 14px;
+  flex-shrink: 0;
+
+  &.selected-radio {
+    --background: #eef8e6;
+    border-color: var(--ion-color-primary);
+  }
+}
+
+.custom-radio,
+.custom-checkbox {
+  --color: var(--ion-color-medium-shade);
+  --color-checked: var(--ion-color-primary);
+  color: var(--ion-color-primary-shade);
+  font-weight: 600;
+  font-size: clamp(0.92rem, 3.4vw, 0.98rem);
+  padding: 10px 0;
+  width: 100%;
+  white-space: normal;
+}
+
+/* --- SWITCH (CURSANDO ACTUALMENTE) --- */
+.custom-toggle {
+  --track-background: #d3d9cf;
+  --track-background-checked: var(--ion-color-primary);
+  --handle-background: #ffffff;
+  --handle-background-checked: #ffffff;
+  color: var(--ion-color-primary-shade);
+  font-weight: 600;
+  font-size: clamp(0.92rem, 3.4vw, 0.98rem);
+  padding: 8px 0;
+  width: 100%;
+  white-space: normal;
+}
+
+/* --- BOTÓN AGREGAR ESTUDIO / EXPERIENCIA --- */
+.center-button-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 14px 0;
+  flex-shrink: 0;
+}
+
+.btn-cancel-edit {
+  --border-radius: 10px;
+  --border-color: var(--ion-color-medium);
+  --color: var(--ion-color-secondary-shade);
+  min-height: 44px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.btn-add-experience-light {
+  --border-radius: 10px;
+  --box-shadow: 0 2px 8px rgba(166, 209, 116, 0.3);
+  min-height: 44px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  letter-spacing: 0.2px;
+  margin: 0;
+  color: var(--ion-color-primary-shade);
+
+  &::part(native) {
+    background: #eaf4e0;
+    border: 1px solid #a6d174;
+    padding-inline: 16px;
+  }
+
+  ion-icon {
+    font-size: 1.15rem;
+    margin-left: 6px;
+    color: var(--ion-color-primary);
+  }
+}
+
+/* --- TARJETAS DE ESTUDIOS Y EXPERIENCIA AGREGADA --- */
+.experiencias-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.experiencia-card {
+  background: rgba(var(--ion-color-light-rgb), 0.55);
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.22);
+  border-radius: 12px;
+  padding: 12px;
+  flex-shrink: 0;
+
+  &.editing-card {
+    background: #eef8e6;
+    border-color: var(--ion-color-primary);
+  }
+
+  .exp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 4px;
+
+    h3 {
+      margin: 0;
+      color: var(--ion-color-primary-shade);
+      font-size: 0.98rem;
+      font-weight: 700;
+      line-height: 1.3;
+      word-break: break-word;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .card-actions {
+      display: flex;
+      align-items: center;
+      margin: -6px -6px 0 0;
+      flex-shrink: 0;
+    }
+
+    .btn-edit {
+      --padding-start: 6px;
+      --padding-end: 6px;
+      --color: var(--ion-color-primary-shade);
+      min-height: 36px;
+      min-width: 36px;
+      margin: 0;
+    }
+
+    .btn-delete {
+      margin: 0;
+      --padding-start: 6px;
+      --padding-end: 6px;
+      min-height: 36px;
+      min-width: 36px;
+      flex-shrink: 0;
+    }
+  }
+
+  .exp-detalle {
+    margin: 3px 0;
+    color: var(--ion-color-medium-shade);
+    font-size: 0.88rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1.35;
+
+    ion-icon {
+      flex-shrink: 0;
+    }
+
+    span {
+      word-break: break-word;
+    }
+  }
+
+  .exp-desc {
+    margin: 6px 0 0 0;
+    font-size: 0.86rem;
+    color: var(--ion-color-secondary-shade);
+    font-style: italic;
+    line-height: 1.35;
+    word-break: break-word;
+  }
+}
+
+/* --- CHIPS --- */
+.chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.suggestions-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ion-color-primary-shade);
+  margin: 0 0 8px 0;
+}
+
+.suggestion-chip {
+  --background: transparent;
+  border: 1px solid var(--ion-color-primary);
+  --color: var(--ion-color-primary-shade);
+  font-weight: 600;
+  min-height: 36px;
+  margin: 0;
+
+  ion-icon {
+    color: var(--ion-color-primary);
+  }
+}
+
+/* --- BOTÓN DE ACCIÓN PRINCIPAL --- */
+.action-section {
+  margin-top: 12px;
+  flex-shrink: 0;
+}
+
+.btn-primary-custom {
+  --background: linear-gradient(135deg, var(--ion-color-secondary-shade) 0%, var(--ion-color-primary-shade) 100%);
+  --border-radius: 14px;
+  --box-shadow: 0 6px 15px rgba(var(--ion-color-primary-rgb), 0.25);
+  --color: #ffffff;
+  font-weight: 700;
+  font-size: 1.02rem;
+  letter-spacing: 0.3px;
+  min-height: 48px;
+  margin: 0;
+}
+
+/* --- MODAL BOTTOM SHEET (NIVELES DE ESTUDIO) --- */
+.modal-content {
+  --background: var(--ion-color-light);
+  --padding-top: 18px;
+  --padding-bottom: 20px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+}
+
+.modal-header {
+  margin-bottom: 14px;
+
+  h3 {
+    color: var(--ion-color-primary-shade);
+    font-weight: 800;
+    font-size: 1.18rem;
+    text-align: center;
+    margin: 0 0 4px 0;
+  }
+
+  .modal-subtitle {
+    margin: 0;
+    text-align: center;
+    font-size: 0.86rem;
+    color: var(--ion-color-medium-shade);
+  }
+}
+
+.custom-options-list {
+  background: transparent;
+  padding: 0;
+
+  ion-item {
+    --background: #ffffff;
+    --border-radius: 14px;
+    --padding-start: 12px;
+    --inner-padding-end: 12px;
+    --padding-top: 8px;
+    --padding-bottom: 8px;
+    margin-bottom: 10px;
+    border: 1.5px solid rgba(var(--ion-color-primary-rgb), 0.16);
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: border-color 0.15s ease;
+
+    .option-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-inline-end: 12px;
+      background: rgba(var(--ion-color-primary-rgb), 0.1);
+
+      ion-icon {
+        font-size: 1.3rem;
+        color: var(--ion-color-primary-shade);
+      }
+    }
+
+    .option-title {
+      color: var(--ion-color-primary-shade);
+      font-weight: 800;
+      font-size: 0.96rem;
+      margin: 0 0 2px 0;
+    }
+
+    .option-desc {
+      color: var(--ion-color-medium-shade);
+      font-weight: 500;
+      font-size: 0.8rem;
+      line-height: 1.3;
+      margin: 0;
+    }
+
+    .option-radio {
+      width: 22px;
+      height: 22px;
+      box-sizing: border-box;
+      border-radius: 50%;
+      border: 2px solid rgba(var(--ion-color-primary-rgb), 0.3);
+    }
+
+    ion-icon[slot='end'] {
+      font-size: 1.45rem;
+    }
+
+    &.selected {
+      --background: #eef8e6;
+      border-color: var(--ion-color-primary);
+
+      .option-icon {
+        background: var(--ion-color-primary);
+
+        ion-icon {
+          color: #ffffff;
+        }
+      }
+    }
+  }
+}
+
+/* --- ANIMACIONES --- */
+.fade-in {
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-height: 700px) {
+  .register-container {
+    padding-top: 6px;
+  }
+
+  .step-indicator {
+    margin-bottom: 6px;
+  }
+
+  .form-card {
+    padding: 12px 14px;
+  }
+
+  .subtitle {
+    margin-bottom: 10px;
+  }
+
+  .input-wrapper {
+    margin-bottom: 8px;
+  }
+}

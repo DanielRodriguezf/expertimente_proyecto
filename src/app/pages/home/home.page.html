@@ -1,0 +1,107 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button class="menu-btn-custom" aria-label="Abrir menú principal"></ion-menu-button>
+    </ion-buttons>
+
+    <ion-title class="app-title">ExpertiMente</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button
+        class="header-msg-btn"
+        [class.has-new-messages]="mensajesNuevosCount > 0"
+        [attr.aria-label]="mensajesNuevosCount > 0 ? 'Ir a mis mensajes, tienes ' + mensajesNuevosCount + ' mensajes nuevos' : 'Ir a mis mensajes'"
+        routerLink="/mensajes">
+        <div class="msg-icon-wrapper">
+          <ion-icon
+            [name]="mensajesNuevosCount > 0 ? 'chatbubble-ellipses-outline' : 'chatbubbles-outline'">
+          </ion-icon>
+          <span class="header-unread-dot" *ngIf="mensajesNuevosCount > 0">
+            {{ mensajesNuevosCount > 9 ? '9+' : mensajesNuevosCount }}
+          </span>
+        </div>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [scrollY]="false">
+  <div class="home-container" [class.con-banner-ayuda]="mostrarBannerAyuda">
+
+    <!-- TARJETA HERO DE BIENVENIDA -->
+    <section class="welcome-hero-card" aria-label="Bienvenida">
+      <h1 class="welcome-title">
+        ¡Hola, <span>{{ nombreUsuario || 'Usuario' }}</span>!
+      </h1>
+      <p class="welcome-subtitle">
+        Bienvenido a <strong>ExpertiMente</strong>, tu espacio donde tu trayectoria te conecta con nuevas oportunidades laborales.
+      </p>
+    </section>
+
+    <!-- SECCIÓN DE ACCIONES PRINCIPALES -->
+    <section class="actions-section" aria-label="Acciones principales">
+
+      <!-- CUADRO ESTILIZADO PARA EL TÍTULO DE SECCIÓN -->
+      <div class="section-header-box">
+        <h2 class="section-title">¿Qué deseas realizar el día de hoy?</h2>
+      </div>
+
+      <!-- OPCIÓN 1: MI PERFIL -->
+      <ion-card class="action-card step-card" routerLink="/perfil-cv" button="true">
+        <ion-item class="action-item" lines="none" detail="false">
+          <div slot="start" class="icon-box doc-box" aria-hidden="true">
+            <ion-icon name="document-text-outline"></ion-icon>
+          </div>
+          <ion-label class="ion-text-wrap">
+            <h3 class="action-title">Mi Perfil y Currículum</h3>
+            <p class="action-desc">Gestiona tu experiencia, habilidades y tu currículum en PDF.</p>
+          </ion-label>
+          <div slot="end" class="action-arrow" aria-hidden="true">
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </div>
+        </ion-item>
+      </ion-card>
+
+      <!-- OPCIÓN 2: POSTULAR PUESTOS / CARGOS DE INTERÉS -->
+      <ion-card class="action-card step-card" routerLink="/cargos-interes" button="true">
+        <ion-item class="action-item" lines="none" detail="false">
+          <div slot="start" class="icon-box cargo-box" aria-hidden="true">
+            <ion-icon name="ribbon-outline"></ion-icon>
+          </div>
+          <ion-label class="ion-text-wrap">
+            <h3 class="action-title">Postular Puestos</h3>
+            <p class="action-desc">Elige las áreas que buscas, escanea tu currículum y revisa tu porcentaje.</p>
+          </ion-label>
+          <div slot="end" class="action-arrow" aria-hidden="true">
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </div>
+        </ion-item>
+      </ion-card>
+
+      <!-- OPCIÓN 3: BUSCAR EMPLEO -->
+      <ion-card class="action-card primary-action-card" routerLink="/search" button="true">
+        <ion-item class="action-item primary-item" lines="none" detail="false">
+          <div slot="start" class="icon-box search-box" aria-hidden="true">
+            <ion-icon name="search-outline"></ion-icon>
+          </div>
+          <ion-label class="ion-text-wrap">
+            <h3 class="action-title text-white">Buscar Empleo</h3>
+            <p class="action-desc text-white">Explora directamente las ofertas de trabajo disponibles.</p>
+          </ion-label>
+          <div slot="end" class="action-arrow light-arrow" aria-hidden="true">
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </div>
+        </ion-item>
+      </ion-card>
+
+    </section>
+
+  </div>
+</ion-content>
+
+<!-- ASISTENTE DE AYUDA (con banner inferior de 1ra vez y cierre permanente) -->
+<app-help
+  [nombre]="nombreUsuario"
+  [mostrarBanner]="mostrarBannerAyuda"
+  (cerrarBannerDefinitivo)="ocultarAyudaParaSiempre()">
+</app-help>

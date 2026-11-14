@@ -1,0 +1,591 @@
+/* --- NAVBAR (HEADER) --- */
+ion-header {
+  ion-toolbar {
+    --background: linear-gradient(135deg, var(--ion-color-secondary-shade) 0%, var(--ion-color-primary-shade) 100%);
+    --border-width: 0;
+    --min-height: 58px;
+    box-shadow: 0 4px 16px rgba(79, 157, 20, 0.18);
+  }
+}
+
+.menu-btn-custom {
+  color: #ffffff;
+  --color: #ffffff;
+}
+
+.app-title {
+  color: #ffffff;
+  font-weight: 800;
+  font-size: clamp(1.12rem, 4vw, 1.28rem);
+  letter-spacing: 0.3px;
+}
+
+/* --- BLOQUEO DE SCROLL VERTICAL GENERAL (HEREDA BACKGROUND.PNG) --- */
+.photo-content {
+  --overflow: hidden;
+  --padding-top: 0px;
+  --padding-bottom: 0px;
+  overflow: hidden;
+
+  &::part(scroll) {
+    overflow: hidden !important;
+  }
+}
+
+.form-container {
+  max-width: 600px;
+  width: 100%;
+  height: 100%;
+  margin: 0 auto;
+  padding: clamp(10px, 1.8vh, 16px) clamp(14px, 4vw, 20px) calc(max(14px, var(--app-safe-bottom, 0px)) + 4px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  box-sizing: border-box;
+}
+
+/* --- ÁREA INTERNA DE TARJETAS --- */
+.photo-scroll-area {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: 4px;
+  gap: clamp(10px, 1.6vh, 14px);
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(var(--ion-color-primary-rgb), 0.25);
+    border-radius: 4px;
+  }
+}
+
+/* --- TARJETAS CON ESTILO HOME --- */
+.form-card {
+  border-radius: 20px;
+  background: #ffffff;
+  margin: 0;
+  box-shadow:
+    0 6px 18px rgba(79, 157, 20, 0.08),
+    0 2px 6px rgba(78, 139, 71, 0.05);
+  flex-shrink: 0;
+  border: 1.5px solid rgba(var(--ion-color-primary-rgb), 0.16);
+
+  ion-card-content {
+    padding: clamp(14px, 2.2vh, 20px) clamp(14px, 4vw, 18px);
+  }
+}
+
+/* --- TARJETA INFORMATIVA --- */
+.info-card {
+  border-left: 6px solid var(--ion-color-secondary);
+
+  .info-card-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .info-icon-box {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #ebf9df 0%, #cdebb3 100%);
+    color: var(--ion-color-primary-shade);
+    border: 1px solid rgba(var(--ion-color-primary-rgb), 0.24);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    ion-icon {
+      font-size: 1.4rem;
+    }
+  }
+
+  .info-text {
+    flex: 1;
+    min-width: 0;
+
+    .info-title {
+      font-size: clamp(0.96rem, 3.5vw, 1.05rem);
+      font-weight: 800;
+      color: var(--ion-color-primary-shade);
+      margin: 0 0 2px 0;
+    }
+
+    .info-desc {
+      font-size: clamp(0.82rem, 3vw, 0.9rem);
+      color: var(--ion-color-secondary-shade);
+      margin: 0;
+      line-height: 1.35;
+      font-weight: 500;
+    }
+  }
+}
+
+.text-center-card {
+  text-align: center;
+}
+
+/* --- INSIGNIAS DE ESTADO --- */
+.status-badge {
+  display: inline-block;
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 5px 14px;
+  border-radius: 999px;
+  margin-bottom: clamp(12px, 2vh, 16px);
+
+  &.saved-badge {
+    background: rgba(var(--ion-color-primary-rgb), 0.14);
+    color: var(--ion-color-primary-shade);
+    border: 1px solid rgba(var(--ion-color-primary-rgb), 0.24);
+  }
+
+  &.pending-badge {
+    background: rgba(var(--ion-color-secondary-rgb), 0.14);
+    color: var(--ion-color-secondary-shade);
+    border: 1px solid rgba(var(--ion-color-secondary-rgb), 0.26);
+  }
+
+  &.empty-badge {
+    background: var(--ion-color-light-tint);
+    color: var(--ion-color-medium-shade);
+    border: 1px solid rgba(var(--ion-color-medium-rgb), 0.22);
+  }
+}
+
+/* --- CONTENEDOR DE AVATAR (MÁS GRANDE PARA MEJOR VISUALIZACIÓN) --- */
+.avatar-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: clamp(14px, 2.6vh, 22px);
+
+  .avatar-preview {
+    width: clamp(155px, 44vw, 195px);
+    height: clamp(155px, 44vw, 195px);
+    object-fit: cover;
+    border-radius: 50%;
+    box-shadow: 0 8px 22px rgba(var(--ion-color-primary-rgb), 0.26);
+    border: 4px solid var(--ion-color-primary);
+  }
+
+  .empty-avatar-placeholder {
+    width: clamp(155px, 44vw, 195px);
+    height: clamp(155px, 44vw, 195px);
+    border-radius: 50%;
+    background: linear-gradient(135deg, #eef8e6 0%, #d8f0c5 100%);
+    border: 2.5px dashed rgba(var(--ion-color-primary-rgb), 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+
+    &:active {
+      transform: scale(0.97);
+    }
+
+    ion-icon {
+      font-size: clamp(4.4rem, 13vw, 5.4rem);
+      color: var(--ion-color-primary-shade);
+    }
+  }
+}
+
+.hidden-input {
+  display: none;
+}
+
+.pending-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* --- BOTONES PRINCIPALES --- */
+.btn-outline-primary {
+  --border-color: var(--ion-color-primary);
+  --border-width: 1.5px;
+  --color: var(--ion-color-primary-shade);
+  --border-radius: 14px;
+  font-weight: 800;
+  font-size: clamp(0.94rem, 3.5vw, 1.02rem);
+  letter-spacing: 0.2px;
+  margin: 0;
+  min-height: 48px;
+}
+
+.btn-outline-danger {
+  --border-color: rgba(var(--ion-color-danger-rgb), 0.45);
+  --border-width: 1.5px;
+  --color: var(--ion-color-danger);
+  --border-radius: 14px;
+  font-weight: 800;
+  font-size: clamp(0.94rem, 3.5vw, 1.02rem);
+  margin: 0;
+  min-height: 48px;
+}
+
+.btn-clear-danger {
+  --color: var(--ion-color-danger);
+  font-weight: 800;
+  font-size: 0.9rem;
+  min-height: 40px;
+  margin: 0;
+}
+
+/* --- BOTÓN DE GUARDAR MÁS GRANDE Y DESTACADO --- */
+.bottom-action-section {
+  margin-top: 12px;
+  flex-shrink: 0;
+}
+
+.btn-primary-custom {
+  --background: linear-gradient(135deg, var(--ion-color-secondary-shade) 0%, var(--ion-color-primary-shade) 100%);
+  --background-activated: var(--ion-color-primary-shade);
+  --border-radius: 16px;
+  --box-shadow: 0 8px 20px rgba(var(--ion-color-primary-rgb), 0.28);
+  --color: #ffffff;
+  font-weight: 800;
+  font-size: clamp(1.04rem, 4vw, 1.15rem);
+  letter-spacing: 0.3px;
+  min-height: 56px;
+  margin: 0;
+
+  ion-icon {
+    font-size: 1.35rem;
+    margin-right: 6px;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.22s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================
+   MODAL DE AJUSTE DE FOTO (RECORTADOR PROPIO)
+   ========================================= */
+
+/* Pantalla completa también en tablets / escritorio */
+ion-modal.modal-recorte {
+  --width: 100%;
+  --height: 100%;
+  --border-radius: 0;
+}
+
+.cropper-content {
+  --background: #1f2d18 !important;
+  --padding-top: 0px;
+  --padding-bottom: 0px;
+  --overflow: hidden;
+
+  &::part(background) {
+    background-image: none !important;
+    background-color: #1f2d18 !important;
+  }
+}
+
+.cropper-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  padding-top: var(--app-safe-top, env(safe-area-inset-top, 0px));
+  position: relative;
+  box-sizing: border-box;
+  background: #1f2d18;
+  overflow: hidden;
+}
+
+/* --- Título e instrucciones --- */
+.cropper-header {
+  flex-shrink: 0;
+  text-align: center;
+  padding: 14px 20px 10px;
+
+  .cropper-title {
+    margin: 0 0 4px 0;
+    color: #ffffff;
+    font-size: clamp(1.15rem, 4.6vw, 1.35rem);
+    font-weight: 800;
+    letter-spacing: 0.2px;
+  }
+
+  .cropper-hint {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.82);
+    font-size: clamp(0.86rem, 3.3vw, 0.95rem);
+    font-weight: 500;
+    line-height: 1.35;
+  }
+}
+
+/* --- Área de ajuste: ocupa todo el espacio libre del modal --- */
+.crop-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 180px;
+  width: 100%;
+  overflow: hidden;
+  background: #111a0d;
+  cursor: grab;
+
+  /* Imprescindible: el navegador no debe hacer scroll ni zoom propio al arrastrar o pellizcar */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+/* La imagen se dibuja a su tamaño real y se escala/mueve solo con transform */
+.crop-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  max-width: none;
+  max-height: none;
+  transform-origin: 0 0;
+  will-change: transform;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Círculo guía: lo de afuera se oscurece, lo de adentro es la foto final */
+.crop-mask {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.92);
+  box-shadow: 0 0 0 100vmax rgba(10, 18, 8, 0.62);
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+/* --- Controles: zoom y herramientas --- */
+.crop-controls {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px clamp(14px, 4vw, 20px) 6px;
+  background: #1f2d18;
+}
+
+.zoom-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.zoom-btn {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  padding: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease, opacity 0.2s ease;
+
+  ion-icon {
+    font-size: 26px;
+  }
+
+  &:active:not(:disabled) {
+    background: rgba(255, 255, 255, 0.32);
+  }
+
+  &:disabled {
+    opacity: 0.35;
+  }
+}
+
+/* Slider con pulgar grande (más fácil de usar para adultos mayores) */
+.zoom-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.4;
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.35);
+  }
+
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 28px;
+    height: 28px;
+    margin-top: -11px;
+    border-radius: 50%;
+    background: var(--ion-color-primary);
+    border: 3px solid #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  }
+
+  &::-moz-range-track {
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.35);
+  }
+
+  &::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--ion-color-primary);
+    border: 3px solid #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  }
+}
+
+.tools-row {
+  display: flex;
+  gap: 8px;
+}
+
+.tool-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 46px;
+  padding: 0 8px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  font-family: var(--ion-font-family);
+  font-size: clamp(0.88rem, 3.4vw, 0.98rem);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease, opacity 0.2s ease;
+
+  ion-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  &:active:not(:disabled) {
+    background: rgba(255, 255, 255, 0.28);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+  }
+}
+
+/* --- Barra de acción inferior --- */
+.cropper-actions-bottom {
+  flex-shrink: 0;
+  background-color: #1f2d18;
+  padding: clamp(10px, 3vw, 16px) clamp(12px, 4vw, 20px);
+  padding-bottom: calc(clamp(10px, 3vw, 16px) + var(--app-safe-bottom, env(safe-area-inset-bottom, 0px)));
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  margin-top: 6px;
+
+  .btn-cropper-cancel {
+    flex: 1 1 120px;
+    --border-color: rgba(255, 255, 255, 0.4);
+    --border-style: solid;
+    --border-width: 2px;
+    --border-radius: 12px;
+    --color: #ffffff;
+    height: 48px;
+    font-weight: 800;
+    margin: 0;
+  }
+
+  .btn-cropper-confirm {
+    flex: 1 1 120px;
+    --background: var(--ion-color-primary);
+    --color: #ffffff;
+    --border-radius: 12px;
+    height: 48px;
+    font-weight: 800;
+    margin: 0;
+  }
+}
+
+/* --- ADAPTABILIDAD PARA MÓVILES BAJOS --- */
+@media (max-height: 700px) {
+  .form-container {
+    padding-top: 6px;
+  }
+
+  .avatar-container {
+    margin-bottom: 12px;
+
+    .avatar-preview,
+    .empty-avatar-placeholder {
+      width: 132px;
+      height: 132px;
+    }
+  }
+
+  .btn-primary-custom {
+    min-height: 52px;
+  }
+}
+
+/* Modal en pantallas muy bajas: se libera espacio para que el área de ajuste no se achique */
+@media (max-height: 640px) {
+  .cropper-header {
+    padding: 8px 16px 6px;
+
+    .cropper-hint {
+      display: none;
+    }
+  }
+
+  .crop-controls {
+    gap: 6px;
+    padding-top: 8px;
+  }
+
+  .tool-btn {
+    min-height: 42px;
+  }
+}

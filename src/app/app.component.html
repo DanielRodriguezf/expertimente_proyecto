@@ -1,0 +1,139 @@
+<ion-app>
+
+  <!-- ANIMACIÓN DE BIENVENIDA / SPLASH CON EL LEMA -->
+  <div class="splash-screen" [class.splash-hidden]="!mostrandoSplash" aria-hidden="true">
+    <div class="splash-content">
+      <div class="splash-logo-container">
+        <ion-icon name="ribbon-outline" class="splash-icon"></ion-icon>
+      </div>
+      <h1 class="splash-title">ExpertiMente</h1>
+      <p class="splash-subtitle">
+        Tu <strong>Experiencia</strong> te respalda, tu <strong>Mente</strong> te impulsa y tu talento te convierte en un <strong>Experto</strong>.
+      </p>
+      <div class="splash-loader">
+        <div class="loader-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BANNER ESPECIAL GLOBAL DE NOTIFICACIÓN (VISIBLE EN CUALQUIER PÁGINA) -->
+  <div
+    *ngIf="sesionActiva && !mostrandoSplash && notificaciones.avisoActivo() as aviso"
+    class="global-notif-overlay"
+    role="alert"
+    aria-live="polite">
+    <div
+      class="global-notif-card"
+      [ngClass]="'notif-tipo-' + aviso.categoria"
+      (click)="notificaciones.abrirDestinoAviso()">
+
+      <div class="notif-icon-wrap" aria-hidden="true">
+        <ion-icon [name]="obtenerIconoNotificacion(aviso.categoria)"></ion-icon>
+      </div>
+
+      <div class="notif-body">
+        <h3 class="notif-title">{{ aviso.tituloGeneralizado }}</h3>
+        <p class="notif-message">{{ aviso.mensajeGeneralizado }}</p>
+      </div>
+
+      <div class="notif-actions" (click)="$event.stopPropagation()">
+        <button type="button" class="notif-btn-ver" (click)="notificaciones.abrirDestinoAviso()">
+          Ver
+        </button>
+        <button
+          type="button"
+          class="notif-btn-close"
+          aria-label="Cerrar notificación"
+          (click)="notificaciones.cerrarAvisoActual()">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Menú Lateral (Solo habilitado si hay sesión activa Y estamos en /home) -->
+  <ion-menu contentId="main-content" type="overlay" [disabled]="!sesionActiva || !esRutaHome" class="custom-side-menu">
+
+    <ion-content class="menu-content">
+      <!-- Encabezado de perfil -->
+      <div class="menu-header">
+        <div class="menu-avatar">
+          <img *ngIf="usuarioData?.fotoPerfil" [src]="usuarioData.fotoPerfil" alt="Foto de perfil" class="avatar-image" />
+          <ion-icon *ngIf="!usuarioData?.fotoPerfil" name="person-outline"></ion-icon>
+        </div>
+
+        <h2 class="menu-user-name">
+          {{ usuarioData ? ((usuarioData.nombre || '') + ' ' + (usuarioData.apellidoPaterno || '')).trim() : 'Cargando...' }}
+        </h2>
+      </div>
+
+      <!-- Opciones de navegación -->
+      <ion-list lines="none" class="menu-list">
+        <ion-item 
+          *ngFor="let p of appPages" 
+          (click)="seleccionarOpcion(p)" 
+          class="menu-item"
+          [class.menu-item-locked]="p.requiereDatos && !tieneDatosCompletos()"
+          button
+          detail="false">
+
+          <ion-icon slot="start" [name]="p.icon" class="menu-item-icon"></ion-icon>
+
+          <ion-label class="menu-item-label">
+            {{ p.title }}
+          </ion-label>
+
+          <ion-badge
+            *ngIf="p.url === '/mis-postulaciones' && notificaciones.sinLeer() > 0"
+            color="danger"
+            slot="end"
+            class="menu-notif-badge">
+            {{ notificaciones.sinLeer() }}
+          </ion-badge>
+
+          <ion-icon 
+            *ngIf="p.requiereDatos && !tieneDatosCompletos()" 
+            slot="end" 
+            name="lock-closed-outline" 
+            class="lock-icon">
+          </ion-icon>
+
+          <ion-icon 
+            *ngIf="!p.requiereDatos || tieneDatosCompletos()" 
+            slot="end" 
+            name="chevron-forward-outline" 
+            class="arrow-icon">
+          </ion-icon>
+        </ion-item>
+
+        <!-- OPCIÓN PERMANENTE DE AYUDA EN EL MENÚ HAMBURGUESA -->
+        <ion-item
+          (click)="abrirAyudaDesdeMenu()"
+          class="menu-item"
+          button
+          detail="false">
+          <ion-icon slot="start" name="help-buoy-outline" class="menu-item-icon"></ion-icon>
+          <ion-label class="menu-item-label">¿Necesitas ayuda?</ion-label>
+          <ion-icon slot="end" name="chevron-forward-outline" class="arrow-icon"></ion-icon>
+        </ion-item>
+      </ion-list>
+    </ion-content>
+
+    <!-- FOOTER FIJO DEL MENÚ -->
+    <ion-footer class="ion-no-border menu-footer-container">
+      <div class="menu-footer">
+        <ion-item (click)="cerrarSesion()" lines="none" class="menu-item logout-item" button detail="false">
+          <ion-icon slot="start" name="log-out-outline"></ion-icon>
+          <ion-label>Cerrar Sesión</ion-label>
+        </ion-item>
+
+        <p class="menu-copyright">© ExpertiMente 2026</p>
+      </div>
+    </ion-footer>
+
+  </ion-menu>
+
+  <!-- Contenido Principal de la App -->
+  <ion-router-outlet id="main-content"></ion-router-outlet>
+
+</ion-app>

@@ -1,0 +1,235 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button
+        defaultHref="/home"
+        class="menu-btn-custom"
+        aria-label="Volver al inicio">
+      </ion-back-button>
+    </ion-buttons>
+    <ion-title class="app-title">Mi Perfil Profesional</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [scrollY]="false" class="profile-content">
+  <div class="cv-container">
+
+    <!-- TARJETA HERO DE PROGRESO (MENOS DEL 100%) -->
+    <section
+      class="hero-status-card"
+      *ngIf="progresoPerfil < 1"
+      aria-label="Progreso de tu perfil">
+
+      <div class="progress-header">
+        <span class="progress-title">Progreso de tu perfil</span>
+        <span class="progress-badge">
+          {{ (progresoPerfil * 100) | number:'1.0-0' }}%
+        </span>
+      </div>
+
+      <ion-progress-bar
+        [value]="progresoPerfil"
+        class="custom-progress">
+      </ion-progress-bar>
+
+      <p class="progress-hint">
+        Completa todas las secciones para destacar tu perfil.
+      </p>
+    </section>
+
+    <!-- TARJETA HERO DE ÉXITO (100% COMPLETADO) -->
+    <section
+      class="hero-status-card success-card"
+      *ngIf="progresoPerfil === 1"
+      aria-label="Perfil completado">
+
+      <div class="success-content">
+        <div class="trophy-container" aria-hidden="true">
+          <ion-icon name="trophy-outline" class="trophy-icon"></ion-icon>
+        </div>
+
+        <div class="success-text">
+          <h3>¡Perfil 100% Completado!</h3>
+          <p>Tu información está lista para impresionar a los reclutadores.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN DE OPCIONES DEL PERFIL -->
+    <section class="sections-list" aria-label="Secciones del perfil">
+
+      <!-- ENCABEZADO DE SECCIÓN -->
+      <div class="section-header-box">
+        <h2 class="section-title">Las secciones a completar</h2>
+      </div>
+
+      <!-- 1. INFORMACIÓN PROFESIONAL -->
+      <ion-card
+        class="action-card"
+        button="true"
+        [class.completed-card]="infoProfesionalLista"
+        [class.pending-card]="!infoProfesionalLista"
+        routerLink="/usuario-info">
+
+        <div class="card-flex-row">
+          <div
+            class="icon-box"
+            [class.icon-box-success]="infoProfesionalLista"
+            [class.icon-box-pending]="!infoProfesionalLista"
+            aria-hidden="true">
+            <ion-icon name="briefcase-outline"></ion-icon>
+          </div>
+
+          <div class="text-content">
+            <h3 class="action-title" [class.action-title-pending]="!infoProfesionalLista">Información Profesional</h3>
+
+            <p class="action-status status-pending" *ngIf="!infoProfesionalLista">
+              <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+              <span>Pendiente de completar</span>
+            </p>
+
+            <p class="action-status status-success" *ngIf="infoProfesionalLista">
+              <ion-icon name="checkmark-circle" aria-hidden="true"></ion-icon>
+              <span>¡Listo!</span>
+            </p>
+          </div>
+
+          <div
+            class="action-arrow"
+            [class.arrow-success]="infoProfesionalLista"
+            [class.arrow-pending]="!infoProfesionalLista"
+            aria-hidden="true">
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </div>
+        </div>
+      </ion-card>
+
+      <!-- 2. ÁREAS DE INTERÉS -->
+      <ion-card
+        class="action-card"
+        button="true"
+        [class.completed-card]="areasListas"
+        [class.pending-card]="!areasListas"
+        (click)="irAAreas()">
+
+        <div class="card-flex-row">
+          <div
+            class="icon-box"
+            [class.icon-box-success]="areasListas"
+            [class.icon-box-pending]="!areasListas"
+            aria-hidden="true">
+            <ion-icon name="compass-outline"></ion-icon>
+          </div>
+
+          <div class="text-content">
+            <h3 class="action-title" [class.action-title-pending]="!areasListas">Áreas de Interés</h3>
+
+            <p class="action-status status-pending" *ngIf="!areasListas">
+              <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+              <span>Pendiente</span>
+            </p>
+
+            <p class="action-status status-success" *ngIf="areasListas">
+              <ion-icon name="checkmark-circle" aria-hidden="true"></ion-icon>
+              <span>
+                {{ areasInteresGuardadas.length }}
+                {{ areasInteresGuardadas.length === 1 ? 'área elegida' : 'áreas elegidas' }}
+              </span>
+            </p>
+          </div>
+
+          <div
+            class="action-arrow"
+            [class.arrow-success]="areasListas"
+            [class.arrow-pending]="!areasListas"
+            aria-hidden="true">
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </div>
+        </div>
+      </ion-card>
+
+      <!-- 3. FOTO DE PERFIL -->
+      <ion-card
+        class="action-card"
+        button="true"
+        [class.completed-card]="fotoLista"
+        [class.pending-card]="!fotoLista"
+        routerLink="/foto-perfil">
+
+        <div class="card-flex-row">
+          <div
+            class="icon-box"
+            [class.icon-box-success]="fotoLista"
+            [class.icon-box-pending]="!fotoLista"
+            aria-hidden="true">
+            <ion-icon name="camera-outline"></ion-icon>
+          </div>
+
+          <div class="text-content">
+            <h3 class="action-title" [class.action-title-pending]="!fotoLista">Foto de Perfil</h3>
+
+            <p class="action-status status-pending" *ngIf="!fotoLista">
+              <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+              <span>Opcional / Pendiente</span>
+            </p>
+
+            <p class="action-status status-success" *ngIf="fotoLista">
+              <ion-icon name="checkmark-circle" aria-hidden="true"></ion-icon>
+              <span>¡Subida!</span>
+            </p>
+          </div>
+
+          <div
+            class="action-arrow"
+            [class.arrow-success]="fotoLista"
+            [class.arrow-pending]="!fotoLista"
+            aria-hidden="true">
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </div>
+        </div>
+      </ion-card>
+
+      <!-- 4. CURRÍCULUM EN PDF -->
+      <ion-card
+        class="action-card"
+        button="true"
+        [class.completed-card]="cvListo"
+        [class.pending-card]="!cvListo"
+        routerLink="/cv">
+
+        <div class="card-flex-row">
+          <div
+            class="icon-box"
+            [class.icon-box-success]="cvListo"
+            [class.icon-box-pending]="!cvListo"
+            aria-hidden="true">
+            <ion-icon name="document-text-outline"></ion-icon>
+          </div>
+
+          <div class="text-content">
+            <h3 class="action-title" [class.action-title-pending]="!cvListo">Currículum en PDF</h3>
+
+            <p class="action-status status-pending" *ngIf="!cvListo">
+              <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+              <span>Pendiente</span>
+            </p>
+
+            <p class="action-status status-success" *ngIf="cvListo">
+              <ion-icon name="checkmark-circle" aria-hidden="true"></ion-icon>
+              <span>¡Cargado!</span>
+            </p>
+          </div>
+
+          <div
+            class="action-arrow"
+            [class.arrow-success]="cvListo"
+            [class.arrow-pending]="!cvListo"
+            aria-hidden="true">
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </div>
+        </div>
+      </ion-card>
+
+    </section>
+  </div>
+</ion-content>

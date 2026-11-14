@@ -1,0 +1,136 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home" class="menu-btn-custom" aria-label="Volver"></ion-back-button>
+    </ion-buttons>
+    <ion-title class="app-title">Cargos de Interés</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [scrollY]="false">
+  <div class="page-container fade-in">
+
+    @if (cargando) {
+      <div class="loading-container">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+        <p>Cargando tus puestos...</p>
+      </div>
+    } @else {
+
+      <!-- CASO 1: AÚN NO TIENE ÁREAS ELEGIDAS -->
+      @if (areasUsuario.length === 0) {
+        <div class="simple-box empty-state fade-in">
+          <div class="empty-icon-box" aria-hidden="true">
+            <ion-icon name="briefcase-outline"></ion-icon>
+          </div>
+          <h2>Primero elige tus áreas de trabajo</h2>
+          <p>
+            Cuéntanos en qué áreas te gustaría trabajar para mostrarte los puestos disponibles.
+          </p>
+          <ion-button expand="block" class="btn-main-action" (click)="irASeleccionarAreas()">
+            Elegir mis Áreas Ahora
+          </ion-button>
+        </div>
+      } @else {
+
+        <!-- SECCIÓN SUPERIOR: ÁREAS Y ESCANEO -->
+        <section class="top-summary-card fade-in" aria-label="Resumen de áreas y escaneo">
+          <div class="areas-header">
+            <span class="box-label">Tus áreas elegidas:</span>
+            <ion-button fill="outline" size="small" class="btn-change-areas" (click)="irASeleccionarAreas()">
+              <ion-icon name="create-outline" slot="start" aria-hidden="true"></ion-icon>
+              Cambiar áreas
+            </ion-button>
+          </div>
+
+          <div class="areas-list">
+            @for (area of areasUsuario; track area) {
+              <span class="area-tag">{{ area }}</span>
+            }
+          </div>
+
+          <div class="scan-action-zone">
+            @if (!todosEvaluados) {
+              <p class="helper-message">
+                Analiza tu currículum con Inteligencia Artificial para entrar al ranking de los reclutadores:
+              </p>
+            } @else {
+              <p class="helper-message success-text">
+                <ion-icon name="checkbox-outline" aria-hidden="true"></ion-icon>
+                <span>¡Listo! Ya estás participando en el ranking.</span>
+              </p>
+            }
+
+            <ion-button 
+              expand="block" 
+              class="btn-main-action" 
+              [disabled]="escaneandoGlobal || !tieneCvDisponible || cargosDeMisAreas.length === 0"
+              (click)="escanearTodosLosCargosDeMisAreas()">
+              @if (escaneandoGlobal) {
+                <ion-spinner name="crescent" slot="start"></ion-spinner>
+                Analizando con IA...
+              } @else {
+                <ion-icon [name]="todosEvaluados ? 'refresh-outline' : 'sparkles-outline'" slot="start"></ion-icon>
+                {{ todosEvaluados ? 'Actualizar Compatibilidad' : 'Escanear mi Currículum' }}
+              }
+            </ion-button>
+          </div>
+        </section>
+
+        <!-- SECCIÓN DE LISTADO DE PUESTOS -->
+        <section class="jobs-section" aria-label="Puestos en tus áreas">
+          <div class="section-header-box">
+            <h2 class="section-title">Puestos disponibles en tus áreas: {{ cargosDeMisAreas.length }}</h2>
+          </div>
+
+          @if (cargosDeMisAreas.length === 0) {
+            <div class="simple-box empty-state fade-in">
+              <p>Por ahora no hay puestos activos en las áreas que seleccionaste.</p>
+            </div>
+          } @else {
+            <div class="jobs-scroll-container">
+              @for (cargo of cargosDeMisAreas; track cargo.id) {
+                <ion-card class="job-card fade-in" [class.evaluated]="resultadosMap[cargo.id]">
+                  <div class="job-card-body">
+
+                    <div class="job-main-info">
+                      <div class="job-text">
+                        <span class="job-area">{{ cargo.areaLaboral }}</span>
+                        <h3 class="job-title">{{ cargo.nombre }}</h3>
+                      </div>
+
+                      <!-- PORCENTAJE -->
+                      @if (resultadosMap[cargo.id]; as resultado) {
+                        <div class="score-badge" [ngClass]="obtenerClasePorcentaje(resultado.porcentajeIdoneidad)">
+                          <span class="score-number">{{ resultado.porcentajeIdoneidad }}%</span>
+                          <span class="score-caption">Compatible</span>
+                        </div>
+                      } @else {
+                        <div class="score-badge pending">
+                          <span class="score-caption">Sin calcular</span>
+                        </div>
+                      }
+                    </div>
+
+                    <ion-button 
+                      expand="block" 
+                      fill="outline" 
+                      class="btn-view-job" 
+                      (click)="verDetallesCargo(cargo.id)">
+                      Ver de qué trata el puesto
+                      <ion-icon name="chevron-forward-outline" slot="end" aria-hidden="true"></ion-icon>
+                    </ion-button>
+
+                  </div>
+                </ion-card>
+              }
+            </div>
+          }
+        </section>
+
+      }
+
+    }
+
+  </div>
+</ion-content>

@@ -1,0 +1,199 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home" class="menu-btn-custom" aria-label="Volver"></ion-back-button>
+    </ion-buttons>
+    <ion-title class="app-title">Mi Currículum</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [scrollY]="false" class="cv-content">
+  <div class="cv-container fade-in">
+
+    <div class="form-section">
+
+      <!-- SELECTOR DE MODO DE ALTO CONTRASTE -->
+      <ion-segment [(ngModel)]="modoOpcion" (ionChange)="alCambiarModo()" mode="ios" class="custom-segment">
+        <ion-segment-button value="manual">
+          <div class="segment-content">
+            <ion-icon name="cloud-upload-outline" aria-hidden="true"></ion-icon>
+            <ion-label>Subir PDF</ion-label>
+          </div>
+        </ion-segment-button>
+
+        <ion-segment-button value="ia">
+          <div class="segment-content">
+            <ion-icon name="color-wand-outline" aria-hidden="true"></ion-icon>
+            <ion-label>Crear con IA</ion-label>
+          </div>
+        </ion-segment-button>
+      </ion-segment>
+
+      <div class="cv-scroll-area">
+
+        <!-- ==================== MODO MANUAL ==================== -->
+        @if (modoOpcion === 'manual') {
+          <!-- TARJETA INFORMATIVA -->
+          <ion-card class="form-card info-card fade-in">
+            <ion-card-content class="info-card-content">
+              <div class="info-icon-box" aria-hidden="true">
+                <ion-icon name="bulb-outline"></ion-icon>
+              </div>
+              <div class="info-text">
+                <h3 class="info-title">Tu currículum en formato PDF</h3>
+                <p class="info-desc">
+                  Mantén tu documento actualizado para que los reclutadores revisen tu perfil y evalúen tu compatibilidad.
+                </p>
+              </div>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- SI YA TIENE CV SUBIDO: SOLO MUESTRA EL ARCHIVO GUARDADO -->
+          @if (tieneCVSubido) {
+            <ion-card class="form-card cv-saved-card fade-in">
+              <ion-card-content>
+                <ion-item lines="none" class="transparent-item">
+                  <div slot="start" class="icon-box doc-box" aria-hidden="true">
+                    <ion-icon name="file-tray-full-outline"></ion-icon>
+                  </div>
+                  <ion-label class="cv-saved-label">
+                    <span class="saved-badge">Documento activo</span>
+                    <h3 class="action-title">PDF Guardado</h3>
+                    <p class="action-desc">{{ nombreCVSaved }}</p>
+                  </ion-label>
+                </ion-item>
+
+                <div class="button-row mt-15">
+                  <ion-button expand="block" fill="outline" class="btn-outline-danger" (click)="eliminarCVGuardado()">
+                    <ion-icon slot="start" name="trash-outline" aria-hidden="true"></ion-icon>
+                    Quitar PDF
+                  </ion-button>
+                  <ion-button expand="block" class="btn-ver-pdf" (click)="verCVSaved()">
+                    <ion-icon slot="start" name="download-outline" aria-hidden="true"></ion-icon>
+                    Ver / Descargar
+                  </ion-button>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          } @else {
+            <!-- SI NO TIENE CV SUBIDO: MUESTRA LA ZONA DE CARGA O EL ARCHIVO PENDIENTE -->
+            <ion-card class="form-card upload-card fade-in">
+              <ion-card-content>
+                <input
+                  type="file"
+                  #fileInput
+                  (change)="alSeleccionarArchivo($event)"
+                  accept="application/pdf"
+                  class="hidden-input">
+
+                @if (!archivoSeleccionadoNombre) {
+                  <div class="drop-zone" (click)="abrirSelectorArchivo()">
+                    <div class="upload-icon-box" aria-hidden="true">
+                      <ion-icon name="cloud-upload-outline" class="upload-icon"></ion-icon>
+                    </div>
+                    <h4 class="drop-title">Subir CV Manual</h4>
+                    <p class="drop-desc">Formato PDF (Máximo 600KB)</p>
+
+                    <ion-button fill="solid" class="btn-secondary-custom" shape="round" (click)="abrirSelectorArchivo(); $event.stopPropagation()">
+                      <ion-icon slot="start" name="folder-open-outline" aria-hidden="true"></ion-icon>
+                      Buscar Archivo
+                    </ion-button>
+                  </div>
+                } @else {
+                  <ion-item lines="none" class="pending-file fade-in">
+                    <ion-icon name="checkmark-circle" class="icon-green" slot="start" aria-hidden="true"></ion-icon>
+                    <ion-label>
+                      <h4 class="pending-title">{{ archivoSeleccionadoNombre }}</h4>
+                      <p class="pending-desc">Archivo listo para guardar</p>
+                    </ion-label>
+                    <ion-button fill="clear" class="btn-clear-danger" slot="end" (click)="quitarArchivoPendiente()" aria-label="Eliminar archivo pendiente">
+                      <ion-icon slot="icon-only" name="trash-outline" aria-hidden="true"></ion-icon>
+                    </ion-button>
+                  </ion-item>
+
+                  <ion-button expand="block" class="btn-primary-custom" (click)="guardarDatos()">
+                    <ion-icon slot="start" name="checkmark-circle" aria-hidden="true"></ion-icon>
+                    Guardar Currículum
+                  </ion-button>
+                }
+              </ion-card-content>
+            </ion-card>
+          }
+        }
+
+        <!-- ==================== MODO CREAR CON IA ==================== -->
+        @if (modoOpcion === 'ia') {
+          @if (tieneCVSubido) {
+            <!-- AVISO DE QUE YA TIENE UN CV ACTIVO -->
+            <ion-card class="form-card info-card fade-in">
+              <ion-card-content class="info-card-content">
+                <div class="info-icon-box" aria-hidden="true">
+                  <ion-icon name="lock-closed-outline"></ion-icon>
+                </div>
+                <div class="info-text">
+                  <h3 class="info-title">Ya tienes un Currículum activo</h3>
+                  <p class="info-desc">
+                    Para generar un nuevo currículum con Inteligencia Artificial, primero debes quitar el documento PDF que tienes guardado actualmente.
+                  </p>
+                </div>
+              </ion-card-content>
+            </ion-card>
+
+            <!-- TARJETA DEL CV ACTUAL PARA PODER VERLO O QUITARLO DESDE AQUÍ MISMO -->
+            <ion-card class="form-card cv-saved-card fade-in">
+              <ion-card-content>
+                <ion-item lines="none" class="transparent-item">
+                  <div slot="start" class="icon-box doc-box" aria-hidden="true">
+                    <ion-icon name="file-tray-full-outline"></ion-icon>
+                  </div>
+                  <ion-label class="cv-saved-label">
+                    <span class="saved-badge">Documento activo</span>
+                    <h3 class="action-title">PDF Guardado</h3>
+                    <p class="action-desc">{{ nombreCVSaved }}</p>
+                  </ion-label>
+                </ion-item>
+
+                <div class="button-row mt-15">
+                  <ion-button expand="block" fill="outline" class="btn-outline-danger" (click)="eliminarCVGuardado()">
+                    <ion-icon slot="start" name="trash-outline" aria-hidden="true"></ion-icon>
+                    Quitar PDF
+                  </ion-button>
+                  <ion-button expand="block" class="btn-ver-pdf" (click)="verCVSaved()">
+                    <ion-icon slot="start" name="download-outline" aria-hidden="true"></ion-icon>
+                    Ver / Descargar
+                  </ion-button>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          } @else {
+            <!-- SI NO TIENE NINGÚN CV GUARDADO: PERMITE CREAR CON IA -->
+            <ion-card class="form-card ia-card fade-in">
+              <ion-card-content class="ia-card-content">
+                <div class="icon-box ia-box" aria-hidden="true">
+                  <ion-icon name="hardware-chip-outline"></ion-icon>
+                </div>
+
+                <h3 class="action-title mb-10">Generación Inteligente</h3>
+                <p class="action-desc ia-desc mb-15">
+                  La Inteligencia Artificial redactará y estructurará tu Currículum en PDF automáticamente utilizando la experiencia laboral, estudios y habilidades registradas en tu perfil.
+                </p>
+
+                <ion-button expand="block" class="btn-primary-custom btn-ia" [disabled]="generandoCV" (click)="generarCVConIA()">
+                  @if (generandoCV) {
+                    <ion-spinner name="crescent" slot="start"></ion-spinner>
+                    Generando tu CV...
+                  } @else {
+                    <ion-icon slot="start" name="color-wand-outline" aria-hidden="true"></ion-icon>
+                    Generar CV con IA
+                  }
+                </ion-button>
+              </ion-card-content>
+            </ion-card>
+          }
+        }
+
+      </div>
+
+    </div>
+  </div>
+</ion-content>

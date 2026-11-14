@@ -1,0 +1,132 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home" class="menu-btn-custom" aria-label="Volver"></ion-back-button>
+    </ion-buttons>
+    <ion-title class="app-title">Mi Perfil</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [scrollY]="false" class="profile-content">
+  <div class="perfil-container fade-in">
+
+    <!-- Pantalla de Carga -->
+    @if (cargando) {
+      <div class="loading-container simple-box">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+        <p class="loading-text">Cargando tus datos...</p>
+      </div>
+    }
+
+    <!-- Contenedor del Perfil (Centrado verticalmente y protegido del menú inferior) -->
+    @if (!cargando && usuarioData) {
+      <div class="perfil-center-wrapper">
+
+        <!-- TARJETA CABECERA: FOTO GRANDE ARRIBA Y NOMBRE GRANDE DEBAJO -->
+        <ion-card class="form-card profile-hero-card">
+          <ion-card-content class="hero-content">
+            <div class="avatar-container" routerLink="/foto-perfil">
+              @if (usuarioData?.fotoPerfil) {
+                <img [src]="usuarioData.fotoPerfil" alt="Foto de perfil" class="profile-avatar" />
+              } @else {
+                <div class="empty-avatar-placeholder" aria-hidden="true">
+                  <ion-icon name="person-outline"></ion-icon>
+                </div>
+              }
+            </div>
+
+            <div class="hero-text">
+              <span class="role-badge">Postulante</span>
+              <h1 class="profile-name">
+                {{ usuarioData?.nombre }} {{ usuarioData?.apellidoPaterno }} {{ usuarioData?.apellidoMaterno }}
+              </h1>
+              <p class="profile-subtitle">Toca tu foto si deseas actualizarla</p>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- TARJETA DE DATOS PERSONALES -->
+        <ion-card class="form-card data-card">
+          <ion-card-content class="data-content">
+
+            <div class="data-row">
+              <div class="icon-box" aria-hidden="true">
+                <ion-icon name="finger-print-outline"></ion-icon>
+              </div>
+              <div class="data-text">
+                <span class="label">RUT</span>
+                <p class="value">{{ usuarioData?.rut || 'Sin registrar' }}</p>
+              </div>
+            </div>
+
+            <div class="data-row">
+              <div class="icon-box" aria-hidden="true">
+                <ion-icon name="mail-outline"></ion-icon>
+              </div>
+              <div class="data-text">
+                <span class="label">Correo Electrónico</span>
+                <p class="value">{{ usuarioData?.correo || 'Sin registrar' }}</p>
+              </div>
+            </div>
+
+            <div class="data-row">
+              <div class="icon-box" aria-hidden="true">
+                <ion-icon name="call-outline"></ion-icon>
+              </div>
+              <div class="data-text">
+                <span class="label">Teléfono Celular</span>
+                <p class="value">{{ usuarioData?.telefono || 'Sin registrar' }}</p>
+              </div>
+            </div>
+
+            <div class="data-row">
+              <div class="icon-box" aria-hidden="true">
+                <ion-icon name="navigate-outline"></ion-icon>
+              </div>
+              <div class="data-text">
+                <span class="label">Ubicación</span>
+                <p class="value">
+                  {{ (usuarioData?.ciudad && usuarioData?.comuna)
+                    ? (usuarioData.ciudad + ', ' + usuarioData.comuna)
+                    : (usuarioData?.ciudad || usuarioData?.comuna || 'Sin registrar') }}
+                </p>
+              </div>
+            </div>
+
+          </ion-card-content>
+        </ion-card>
+
+        <!-- BOTONES DE ACCIÓN: MODIFICAR ARRIBA Y ELIMINAR ABAJO -->
+        <div class="bottom-actions-stack">
+          <ion-button expand="block" class="btn-primary-custom" (click)="modificarPerfil()">
+            <ion-icon slot="start" name="create-outline" aria-hidden="true"></ion-icon>
+            Modificar Mis Datos
+          </ion-button>
+
+          <div class="danger-zone">
+            <p class="danger-text">¿Deseas dar de baja tu registro en la plataforma?</p>
+            <ion-button expand="block" class="btn-outline-danger" fill="outline" (click)="borrarCuenta()">
+              <ion-icon slot="start" name="trash-outline" aria-hidden="true"></ion-icon>
+              Desactivar Mi Cuenta
+            </ion-button>
+          </div>
+        </div>
+
+      </div>
+    }
+
+    <!-- Mensaje de Error si no se encuentra sesión -->
+    @if (!cargando && !usuarioData) {
+      <div class="error-container simple-box fade-in">
+        <div class="error-icon-box" aria-hidden="true">
+          <ion-icon name="alert-circle-outline" class="error-icon"></ion-icon>
+        </div>
+        <p class="error-text">No se encontraron datos de tu perfil. Por favor, inicia sesión nuevamente.</p>
+        <ion-button expand="block" class="btn-primary-custom" routerLink="/login">
+          Ir a Iniciar Sesión
+        </ion-button>
+      </div>
+    }
+
+  </div>
+</ion-content>

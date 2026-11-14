@@ -1,0 +1,91 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      @if (pasoActual > 1) {
+        <ion-button (click)="pasoAnterior()" class="custom-back-btn" aria-label="Volver al paso anterior">
+          <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+        </ion-button>
+      }
+      @if (pasoActual === 1) {
+        <ion-back-button [defaultHref]="esTerna ? ('/oferta-detalle/' + ofertaId + '?tipo=terna') : ('/oferta-detalle/' + ofertaId)" class="custom-back-btn" aria-label="Volver"></ion-back-button>
+      }
+    </ion-buttons>
+    <ion-title class="header-title">{{ esTerna ? 'Evaluación de Terna' : 'Postulación' }}</ion-title>
+  </ion-toolbar>
+  
+  <ion-progress-bar 
+    [value]="pasoActual / totalPasos" 
+    class="custom-progress-bar">
+  </ion-progress-bar>
+</ion-header>
+
+<ion-content [scrollY]="false">
+  <div class="responsive-wrapper fade-in">
+    @if (cargando) {
+      <div class="loading-card simple-box">
+        <ion-spinner name="crescent" class="custom-spinner"></ion-spinner>
+        <p class="loading-text">Cargando cuestionario...</p>
+      </div>
+    } @else {
+      <div class="form-container">
+        <div class="step-indicator">
+          <span class="step-badge">Pregunta {{ pasoActual }} de {{ totalPasos }}</span>
+        </div>
+
+        <div class="questions-scroll-area">
+          @for (pregunta of preguntas; track $index) {
+            @if (pasoActual === $index + 1) {
+              <div class="form-section fade-in">
+                <h2 class="question-text">{{ pregunta.texto }}</h2>
+
+                @if (pregunta.tipo === 'texto') {
+                  <p class="subtitle text-sub">Escribe tu respuesta a continuación.</p>
+                  <ion-textarea 
+                    [(ngModel)]="respuestas[$index]"
+                    class="textarea-card"
+                    placeholder="Ingresa tu respuesta aquí..."
+                    auto-grow="true"
+                    rows="4">
+                  </ion-textarea>
+                } @else {
+                  <p class="subtitle text-sub">Selecciona la opción que mejor te represente.</p>
+                  <ion-radio-group [(ngModel)]="respuestas[$index]">
+                    @for (opcion of pregunta.opciones; track opcion.texto) {
+                      <ion-radio 
+                        [value]="opcion" 
+                        justify="space-between" 
+                        alignment="start" 
+                        class="radio-card">
+                        {{ opcion.texto }}
+                      </ion-radio>
+                    }
+                  </ion-radio-group>
+                }
+
+                <div class="action-section">
+                  @if (pasoActual < totalPasos) {
+                    <ion-button 
+                      expand="block" 
+                      class="btn-primary-custom" 
+                      [disabled]="isRespuestaInvalida($index)"
+                      (click)="siguientePaso($index)">
+                      Siguiente
+                    </ion-button>
+                  } @else {
+                    <ion-button 
+                      expand="block" 
+                      class="btn-primary-custom" 
+                      [disabled]="isRespuestaInvalida($index)"
+                      (click)="finalizarPostulacion()">
+                      Enviar Postulación
+                    </ion-button>
+                  }
+                </div>
+              </div>
+            }
+          }
+        </div>
+      </div>
+    }
+  </div>
+</ion-content>

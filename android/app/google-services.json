@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1068987662984",
+    "project_id": "expertimente-v1",
+    "storage_bucket": "expertimente-v1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1068987662984:android:0ac2f523f43656b56c153d",
+        "android_client_info": {
+          "package_name": "io.ionic.starter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1068987662984-ag8hfko2ii6skk8nmvjq40kbsa0t2qnn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "io.ionic.starter",
+            "certificate_hash": "077e493d2a319fc18d8e92daaf324a1a7928eaf9"
+          }
+        },
+        {
+          "client_id": "1068987662984-6kkcrb2v0lpceu512751jhmt5kop31u0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB46qOMaWK_fU0M_byvnRkQfk4OsCFO_FQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1068987662984-6kkcrb2v0lpceu512751jhmt5kop31u0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

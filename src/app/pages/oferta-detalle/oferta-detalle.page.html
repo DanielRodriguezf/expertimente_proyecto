@@ -1,0 +1,142 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="esTerna ? '/cargos-interes' : '/search'" class="custom-back-btn" aria-label="Volver"></ion-back-button>
+    </ion-buttons>
+    <ion-title class="header-title">
+      {{ esTerna ? 'Detalle del Cargo' : 'Detalle del Empleo' }}
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [scrollY]="false" class="detail-content">
+
+  <div class="detail-container fade-in">
+    <!-- SPINNER DE CARGA -->
+    @if (cargando) {
+      <div class="loading-container simple-box">
+        <ion-spinner name="crescent" class="custom-spinner"></ion-spinner>
+        <p class="loading-text">Cargando información...</p>
+      </div>
+    }
+
+    <!-- CONTENIDO PRINCIPAL -->
+    @if (!cargando && oferta) {
+      <ion-card class="detail-card" [class.terna-detail-card]="esTerna">
+        
+        <!-- CABECERA FIJA DE LA TARJETA -->
+        <div class="card-header-fixed">
+          <div class="header-info-row">
+            <div class="header-text-info">
+              @if (esTerna) {
+                <span class="pill-badge terna-pill">
+                  <ion-icon name="sparkles" aria-hidden="true"></ion-icon>
+                  Terna General
+                </span>
+              } @else {
+                <span class="pill-badge">{{ oferta.modalidad }}</span>
+              }
+
+              <h1 class="job-title">{{ esTerna ? oferta.nombre : oferta.titulo }}</h1>
+
+              @if (!esTerna) {
+                <h2 class="job-company">{{ oferta.nombreEmpresa }}</h2>
+              } @else {
+                <p class="terna-subtitle">{{ oferta.areaLaboral || 'Postulación directa al cargo' }}</p>
+              }
+            </div>
+
+            <div class="header-icon-box" aria-hidden="true">
+              <ion-icon [name]="esTerna ? 'ribbon-outline' : 'business-outline'"></ion-icon>
+            </div>
+          </div>
+
+          <!-- DIRECCIÓN (Ofertas normales) -->
+          @if (!esTerna && oferta.direccion) {
+            <div class="meta-row">
+              <div class="meta-item">
+                <ion-icon name="navigate-outline" aria-hidden="true"></ion-icon>
+                <span>{{ oferta.direccion }}</span>
+              </div>
+            </div>
+          }
+
+          <!-- AVISO DE PARTICIPACIÓN EN TERNA -->
+          @if (esTerna && resultadoTerna) {
+            <div class="success-banner">
+              <ion-icon name="checkmark-circle" aria-hidden="true"></ion-icon>
+              <span>
+                ¡Ya participas en esta terna!
+                @if (resultadoTerna.porcentajeIdoneidad) {
+                  Compatibilidad: {{ resultadoTerna.porcentajeIdoneidad }}%.
+                }
+              </span>
+            </div>
+          }
+        </div>
+
+        <!-- CUERPO CON SCROLL INTERNO (DESCRIPCIÓN, REQUISITOS Y CONTACTO) -->
+        <div class="card-body-scroll">
+          <!-- DESCRIPCIÓN -->
+          <div class="section-block">
+            <div class="section-heading-box">
+              <ion-icon name="reader-outline" aria-hidden="true"></ion-icon>
+              <h3 class="section-heading">{{ esTerna ? 'Acerca del cargo' : 'Descripción del puesto' }}</h3>
+            </div>
+            <p class="job-description">{{ oferta.descripcion }}</p>
+          </div>
+
+          <!-- REQUISITOS (Ofertas normales) -->
+          @if (!esTerna && oferta.habilidades) {
+            <div class="section-block">
+              <div class="section-heading-box">
+                <ion-icon name="construct-outline" aria-hidden="true"></ion-icon>
+                <h3 class="section-heading">Requisitos y habilidades</h3>
+              </div>
+              <p class="job-description">{{ oferta.habilidades }}</p>
+            </div>
+          }
+
+          <!-- CONTACTO DIRECTO -->
+          @if (!esTerna && (oferta.contactoTelefono || oferta.contactoEmail)) {
+            <div class="contact-strip">
+              <span class="contact-label">Datos de contacto:</span>
+              @if (oferta.contactoTelefono) {
+                <div class="contact-row">
+                  <ion-icon name="call-outline" aria-hidden="true"></ion-icon>
+                  <span>{{ oferta.contactoTelefono }}</span>
+                </div>
+              }
+              @if (oferta.contactoEmail) {
+                <div class="contact-row">
+                  <ion-icon name="mail-outline" aria-hidden="true"></ion-icon>
+                  <span>{{ oferta.contactoEmail }}</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+      </ion-card>
+
+      <!-- BOTÓN DE ACCIÓN PRINCIPAL FIJO ABAJO (Solo para ofertas normales) -->
+      @if (!esTerna) {
+        <div class="action-section fade-in">
+          <ion-button
+            expand="block"
+            class="btn-primary-custom"
+            [disabled]="yaPostulado"
+            (click)="irAlCuestionario()">
+            <ion-icon
+              slot="start"
+              [name]="yaPostulado ? 'checkmark-circle' : 'clipboard-outline'"
+              aria-hidden="true">
+            </ion-icon>
+            {{ yaPostulado ? 'Postulación Enviada' : 'Iniciar Cuestionario y Postular' }}
+          </ion-button>
+        </div>
+      }
+    }
+  </div>
+
+</ion-content>

@@ -1,0 +1,445 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      @if (pasoActual > 1) {
+        <ion-button (click)="pasoAnterior()" class="custom-back-btn" aria-label="Paso anterior">
+          <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+        </ion-button>
+      }
+      @if (pasoActual === 1) {
+        <ion-back-button defaultHref="/perfil-cv" class="custom-back-btn" aria-label="Volver"></ion-back-button>
+      }
+    </ion-buttons>
+    <ion-title class="header-title">Mi Experiencia</ion-title>
+  </ion-toolbar>
+  <ion-progress-bar [value]="pasoActual / totalPasos" class="custom-progress-bar"></ion-progress-bar>
+</ion-header>
+
+<ion-content [scrollY]="false" class="main-content">
+  <div class="register-container fade-in">
+
+    @if (cargando) {
+      <div class="loading-container simple-box">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+        <p class="loading-text">Cargando tu información...</p>
+      </div>
+    } @else {
+
+      <div class="step-indicator">
+        <span class="step-badge">Paso {{ pasoActual }} de {{ totalPasos }}</span>
+      </div>
+
+      <div class="form-card">
+        <form [formGroup]="cvForm" class="form-card-content">
+
+          <!-- ÁREA CON SCROLL INTERNO -->
+          <div class="step-scroll-area">
+
+            <!-- PASO 1: FORMACIÓN ACADÉMICA SIMPLE -->
+            @if (pasoActual === 1) {
+              <div class="form-section fade-in">
+                <h2 class="question-text">Tus Estudios</h2>
+                <p class="subtitle">Registra tus estudios realizados o en curso.</p>
+
+                <!-- 1. Nivel de estudio -->
+                <div class="input-wrapper">
+                  <ion-input
+                    readonly="true"
+                    label="Nivel de estudio"
+                    labelPlacement="floating"
+                    fill="outline"
+                    [value]="formacionActual.nivelEstudio"
+                    placeholder="Selecciona una opción..."
+                    (click)="abrirModalEstudios()"
+                    class="pointer-input modern-input">
+                    <ion-icon name="chevron-down-outline" slot="end" color="primary"></ion-icon>
+                  </ion-input>
+                </div>
+
+                <!-- 2. Institución educativa -->
+                <div class="input-wrapper">
+                  <ion-input
+                    label="Institución educativa"
+                    labelPlacement="floating"
+                    fill="outline"
+                    type="text"
+                    class="modern-input"
+                    placeholder="Ej. Liceo de Maipú, Duoc UC..."
+                    [(ngModel)]="formacionActual.institucion"
+                    [ngModelOptions]="{standalone: true}">
+                  </ion-input>
+                </div>
+
+                <!-- 3. Carrera o área de estudio (aparece solo según el nivel elegido) -->
+                @if (mostrarCampoCarrera) {
+                  <div class="input-wrapper fade-in">
+                    <ion-input
+                      [label]="etiquetaCarrera"
+                      labelPlacement="floating"
+                      fill="outline"
+                      type="text"
+                      class="modern-input"
+                      [placeholder]="placeholderCarrera"
+                      [(ngModel)]="formacionActual.nombreEstudio"
+                      [ngModelOptions]="{standalone: true}">
+                    </ion-input>
+                  </div>
+                }
+
+                <!-- 4. Estudio en curso (switch) -->
+                <ion-item
+                  lines="none"
+                  class="toggle-wrapper"
+                  [class.selected-radio]="formacionActual.cursandoActualmente">
+                  <ion-toggle
+                    justify="space-between"
+                    class="custom-toggle"
+                    [checked]="formacionActual.cursandoActualmente"
+                    (ionChange)="alternarCursandoActualmente($event.detail.checked)">
+                    Estoy cursando actualmente
+                  </ion-toggle>
+                </ion-item>
+
+                <!-- 5. Fechas del estudio (textos centrados) -->
+                <div class="dates-grid" [class.single-column]="formacionActual.cursandoActualmente">
+                  <div class="date-field">
+                    <span class="date-label">Inicio</span>
+                    <ion-input
+                      aria-label="Año de inicio"
+                      fill="outline"
+                      type="number"
+                      inputmode="numeric"
+                      placeholder="Ej. 2019"
+                      class="modern-input input-centrado"
+                      [(ngModel)]="formacionActual.anioInicio"
+                      [ngModelOptions]="{standalone: true}">
+                    </ion-input>
+                  </div>
+
+                  @if (!formacionActual.cursandoActualmente) {
+                    <div class="date-field fade-in">
+                      <span class="date-label">Término</span>
+                      <ion-input
+                        aria-label="Año de término"
+                        fill="outline"
+                        type="number"
+                        inputmode="numeric"
+                        placeholder="Ej. 2023"
+                        class="modern-input input-centrado"
+                        [(ngModel)]="formacionActual.anioTermino"
+                        [ngModelOptions]="{standalone: true}">
+                      </ion-input>
+                    </div>
+                  }
+                </div>
+
+                <!-- Botón Agregar / Actualizar Estudio -->
+                <div class="center-button-wrapper">
+                  @if (indiceEditandoFormacion !== null) {
+                    <ion-button fill="outline" class="btn-cancel-edit" (click)="cancelarEdicionFormacion()">
+                      Cancelar
+                    </ion-button>
+                  }
+                  <ion-button
+                    class="btn-add-experience-light"
+                    [disabled]="guardandoFormacion"
+                    (click)="guardarFormacionEnLista()">
+                    {{ indiceEditandoFormacion !== null ? 'Guardar Cambios' : 'Agregar Estudio' }}
+                    <ion-icon
+                      [name]="indiceEditandoFormacion !== null ? 'checkmark-circle' : 'add-circle-outline'"
+                      slot="end">
+                    </ion-icon>
+                  </ion-button>
+                </div>
+
+                <!-- Lista de estudios agregados -->
+                @if (formacionesAcademicas.length > 0) {
+                  <div class="experiencias-list">
+                    @for (formacion of formacionesAcademicas; track formacion.id; let i = $index) {
+                      <div class="experiencia-card fade-in" [class.editing-card]="indiceEditandoFormacion === i">
+                        <div class="exp-header">
+                          <h3>{{ formacion.nombreEstudio }}</h3>
+                          <div class="card-actions">
+                            <ion-button fill="clear" class="btn-edit" (click)="editarFormacion(i)" aria-label="Editar estudio">
+                              <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+                            </ion-button>
+                            <ion-button fill="clear" color="danger" class="btn-delete" (click)="eliminarFormacion(i)" aria-label="Eliminar estudio">
+                              <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+                            </ion-button>
+                          </div>
+                        </div>
+                        <p class="exp-detalle">
+                          <ion-icon name="school-outline" color="medium"></ion-icon>
+                          <span>{{ formacion.nivelEstudio }}</span>
+                        </p>
+                        <p class="exp-detalle">
+                          <ion-icon name="business-outline" color="medium"></ion-icon>
+                          <span>{{ formacion.institucion }}</span>
+                        </p>
+                        <p class="exp-detalle">
+                          <ion-icon name="time-outline" color="medium"></ion-icon>
+                          <span>
+                            {{ formacion.anioInicio }} - {{ formacion.cursandoActualmente ? 'Actualidad' : formacion.anioTermino }}
+                          </span>
+                        </p>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- PASO 2: EXPERIENCIA LABORAL -->
+            @if (pasoActual === 2) {
+              <div class="form-section fade-in">
+                <h2 class="question-text">Experiencia Laboral</h2>
+                <p class="subtitle">Detalla los trabajos más importantes que has realizado.</p>
+
+                <ion-item lines="none" class="checkbox-wrapper">
+                  <ion-checkbox
+                    formControlName="sinExperiencia"
+                    justify="start"
+                    class="custom-checkbox"
+                    (ionChange)="limpiarExperienciaSiAplica()">
+                    No tengo experiencia laboral
+                  </ion-checkbox>
+                </ion-item>
+
+                @if (!sinExperiencia) {
+                  <div class="fade-in experience-inputs-block">
+                    <div class="input-wrapper">
+                      <ion-input
+                        label="Cargo o Puesto"
+                        labelPlacement="floating"
+                        fill="outline"
+                        type="text"
+                        placeholder="Ej. Vendedor, Guardia..."
+                        class="modern-input"
+                        [(ngModel)]="experienciaActual.cargo"
+                        [ngModelOptions]="{standalone: true}">
+                      </ion-input>
+                    </div>
+
+                    <div class="input-wrapper">
+                      <ion-input
+                        label="Lugar o Empresa"
+                        labelPlacement="floating"
+                        fill="outline"
+                        type="text"
+                        placeholder="Ej. Supermercado Lider"
+                        class="modern-input"
+                        [(ngModel)]="experienciaActual.lugar"
+                        [ngModelOptions]="{standalone: true}">
+                      </ion-input>
+                    </div>
+
+                    <div class="input-wrapper">
+                      <ion-input
+                        label="Tiempo trabajado"
+                        labelPlacement="floating"
+                        fill="outline"
+                        type="text"
+                        placeholder="Ej. 2 años, 6 meses..."
+                        class="modern-input"
+                        [(ngModel)]="experienciaActual.tiempo"
+                        [ngModelOptions]="{standalone: true}">
+                      </ion-input>
+                    </div>
+
+                    <div class="input-wrapper">
+                      <ion-textarea
+                        label="¿Qué hacías allí? (Opcional)"
+                        labelPlacement="floating"
+                        fill="outline"
+                        rows="2"
+                        placeholder="Describe brevemente tus tareas..."
+                        class="modern-textarea"
+                        [(ngModel)]="experienciaActual.descripcion"
+                        [ngModelOptions]="{standalone: true}">
+                      </ion-textarea>
+                    </div>
+
+                    <div class="center-button-wrapper">
+                      <ion-button class="btn-add-experience-light" (click)="agregarExperiencia()">
+                        Agregar Experiencia
+                        <ion-icon name="add-circle-outline" slot="end"></ion-icon>
+                      </ion-button>
+                    </div>
+
+                    <div class="experiencias-list">
+                      @for (exp of areasExperiencia; track $index) {
+                        <div class="experiencia-card fade-in">
+                          <div class="exp-header">
+                            <h3>{{ exp.cargo }}</h3>
+                            <ion-button fill="clear" color="danger" class="btn-delete" (click)="eliminarArea($index)">
+                              <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+                            </ion-button>
+                          </div>
+                          <p class="exp-detalle">
+                            <ion-icon name="business-outline" color="medium"></ion-icon>
+                            <span>{{ exp.lugar }}</span>
+                          </p>
+                          <p class="exp-detalle">
+                            <ion-icon name="time-outline" color="medium"></ion-icon>
+                            <span>{{ exp.tiempo }}</span>
+                          </p>
+                          @if (exp.descripcion) {
+                            <p class="exp-desc">{{ exp.descripcion }}</p>
+                          }
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- PASO 3: DISPONIBILIDAD LABORAL -->
+            @if (pasoActual === 3) {
+              <div class="form-section fade-in">
+                <h2 class="question-text">Disponibilidad Laboral</h2>
+                <p class="subtitle">¿Qué tipo de jornada te acomoda más?</p>
+
+                <ion-radio-group formControlName="disponibilidad">
+                  <div class="radio-group-container">
+                    <ion-item class="radio-item" lines="none" [class.selected-radio]="cvForm.get('disponibilidad')?.value === 'Jornada Completa'">
+                      <ion-radio value="Jornada Completa" justify="space-between" class="custom-radio">Jornada Completa</ion-radio>
+                    </ion-item>
+                    <ion-item class="radio-item" lines="none" [class.selected-radio]="cvForm.get('disponibilidad')?.value === 'Media Jornada'">
+                      <ion-radio value="Media Jornada" justify="space-between" class="custom-radio">Media Jornada (Part-Time)</ion-radio>
+                    </ion-item>
+                    <ion-item class="radio-item" lines="none" [class.selected-radio]="cvForm.get('disponibilidad')?.value === 'Por Turnos'">
+                      <ion-radio value="Por Turnos" justify="space-between" class="custom-radio">Sistema de Turnos</ion-radio>
+                    </ion-item>
+                    <ion-item class="radio-item" lines="none" [class.selected-radio]="cvForm.get('disponibilidad')?.value === 'Fines de semana'">
+                      <ion-radio value="Fines de semana" justify="space-between" class="custom-radio">Solo Fines de Semana</ion-radio>
+                    </ion-item>
+                    <ion-item class="radio-item" lines="none" [class.selected-radio]="cvForm.get('disponibilidad')?.value === 'Disponibilidad flexible'">
+                      <ion-radio value="Disponibilidad flexible" justify="space-between" class="custom-radio">Flexible (A convenir)</ion-radio>
+                    </ion-item>
+                  </div>
+                </ion-radio-group>
+              </div>
+            }
+
+            <!-- PASO 4: HABILIDADES BLANDAS -->
+            @if (pasoActual === 4) {
+              <div class="form-section fade-in">
+                <h2 class="question-text">Habilidades Blandas</h2>
+                <p class="subtitle">¿Cuáles son tus fortalezas personales?</p>
+
+                <div class="input-wrapper">
+                  <ion-textarea
+                    formControlName="habilidadesBlandas"
+                    label="Tus fortalezas"
+                    labelPlacement="floating"
+                    fill="outline"
+                    rows="3"
+                    placeholder="Ej. Responsabilidad, Puntualidad..."
+                    class="modern-textarea"
+                    (ionInput)="actualizarSugerenciasBlandas()">
+                  </ion-textarea>
+                </div>
+
+                @if (sugerenciasBlandas.length > 0) {
+                  <p class="suggestions-label">Sugerencias (Toca para agregar):</p>
+                  <div class="chips-container">
+                    @for (hab of sugerenciasBlandas; track hab) {
+                      <ion-chip class="suggestion-chip" color="primary" (click)="agregarHabilidadBlanda(hab)">
+                        <ion-label>{{ hab }}</ion-label>
+                        <ion-icon name="add-outline"></ion-icon>
+                      </ion-chip>
+                    }
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- PASO 5: HABILIDADES TÉCNICAS -->
+            @if (pasoActual === 5) {
+              <div class="form-section fade-in">
+                <h2 class="question-text">Habilidades Técnicas</h2>
+                <p class="subtitle">¿Qué herramientas o conocimientos prácticos dominas?</p>
+
+                <div class="input-wrapper">
+                  <ion-textarea
+                    formControlName="habilidadesTecnicas"
+                    label="Tus habilidades técnicas"
+                    labelPlacement="floating"
+                    fill="outline"
+                    rows="3"
+                    placeholder="Ej. Manejo de caja, Excel..."
+                    class="modern-textarea"
+                    (ionInput)="actualizarSugerenciasTecnicas()">
+                  </ion-textarea>
+                </div>
+
+                @if (sugerenciasTecnicas.length > 0) {
+                  <p class="suggestions-label">Sugerencias (Toca para agregar):</p>
+                  <div class="chips-container">
+                    @for (hab of sugerenciasTecnicas; track hab) {
+                      <ion-chip class="suggestion-chip" color="primary" (click)="agregarHabilidadTecnica(hab)">
+                        <ion-label>{{ hab }}</ion-label>
+                        <ion-icon name="add-outline"></ion-icon>
+                      </ion-chip>
+                    }
+                  </div>
+                }
+              </div>
+            }
+
+          </div>
+
+          <!-- BOTÓN DE ACCIÓN PRINCIPAL -->
+          <div class="action-section fade-in">
+            <ion-button expand="block" class="btn-primary-custom" (click)="siguientePaso()">
+              {{ pasoActual === totalPasos ? textoBotonFinal : 'Continuar' }}
+            </ion-button>
+          </div>
+
+        </form>
+      </div>
+
+    }
+  </div>
+
+  <!-- MODAL CON LOS 4 NIVELES DE ESTUDIO Y SU DESCRIPCIÓN -->
+  <ion-modal
+    [isOpen]="modalEstudiosAbierto"
+    (didDismiss)="modalEstudiosAbierto = false"
+    [initialBreakpoint]="0.62"
+    [breakpoints]="[0, 0.62, 0.85]"
+    class="custom-bottom-sheet">
+    <ng-template>
+      <ion-content class="modal-content">
+        <div class="modal-header">
+          <h3>¿Cuál es tu nivel de estudio?</h3>
+          <p class="modal-subtitle">Toca la opción que mejor te represente.</p>
+        </div>
+
+        <ion-list class="custom-options-list" lines="none">
+          @for (item of OPCIONES_NIVEL_ESTUDIO; track item.valor) {
+            <ion-item
+              button
+              [detail]="false"
+              (click)="seleccionarNivel(item.valor)"
+              [class.selected]="formacionActual.nivelEstudio === item.valor">
+              <div class="option-icon" slot="start">
+                <ion-icon [name]="item.icono"></ion-icon>
+              </div>
+              <ion-label class="ion-text-wrap">
+                <h4 class="option-title">{{ item.titulo }}</h4>
+                <p class="option-desc">{{ item.descripcion }}</p>
+              </ion-label>
+              @if (formacionActual.nivelEstudio === item.valor) {
+                <ion-icon name="checkmark-circle" color="primary" slot="end"></ion-icon>
+              } @else {
+                <span class="option-radio" slot="end"></span>
+              }
+            </ion-item>
+          }
+        </ion-list>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+</ion-content>

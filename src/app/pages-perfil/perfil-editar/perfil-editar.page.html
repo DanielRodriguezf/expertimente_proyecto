@@ -1,0 +1,248 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      @if (pasoActual > 1) {
+        <ion-button (click)="pasoAnterior()" class="custom-back-btn" aria-label="Paso anterior">
+          <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+        </ion-button>
+      } @else {
+        <ion-button routerLink="/perfil" class="custom-back-btn" aria-label="Volver a Mi Perfil">
+          <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+        </ion-button>
+      }
+    </ion-buttons>
+    <ion-title class="header-title">Editar Perfil</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [scrollY]="false" class="edit-content">
+  <div class="edit-container fade-in">
+
+    @if (cargando) {
+      <div class="loading-container simple-box">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+        <p class="loading-text">Cargando tus datos...</p>
+      </div>
+    } @else {
+
+      <!-- 1. TARJETA INFORMATIVA DEL PASO E INDICADOR DE PROGRESO (NO INTERACTIVO) -->
+      <section class="info-card fade-in" aria-label="Información del paso">
+        <div class="step-status-header">
+          <span class="step-badge">Paso {{ pasoActual }} de {{ totalPasos }}</span>
+          <span class="step-name">
+            @if (pasoActual === 1) { Etapa: Identidad }
+            @if (pasoActual === 2) { Etapa: Contacto }
+            @if (pasoActual === 3) { Etapa: Ubicación }
+          </span>
+        </div>
+
+        <ion-progress-bar [value]="pasoActual / totalPasos" class="custom-progress-bar"></ion-progress-bar>
+
+        <div class="info-main-row">
+          <div class="info-icon-box" aria-hidden="true">
+            @if (pasoActual === 1) {
+              <ion-icon name="finger-print-outline"></ion-icon>
+            }
+            @if (pasoActual === 2) {
+              <ion-icon name="call-outline"></ion-icon>
+            }
+            @if (pasoActual === 3) {
+              <ion-icon name="navigate-outline"></ion-icon>
+            }
+          </div>
+          <div class="info-text">
+            @if (pasoActual === 1) {
+              <h2 class="info-title">Datos de Identidad</h2>
+              <p class="info-desc">Mantén tu nombre completo al día para tu currículum. Tu RUT está protegido por seguridad.</p>
+            }
+            @if (pasoActual === 2) {
+              <h2 class="info-title">Canales de Contacto</h2>
+              <p class="info-desc">Los reclutadores usarán tu teléfono y correo para comunicarse directamente contigo.</p>
+            }
+            @if (pasoActual === 3) {
+              <h2 class="info-title">Lugar de Residencia</h2>
+              <p class="info-desc">Indica tu ciudad y comuna actual para conectarte con oportunidades cercanas a ti.</p>
+            }
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. TARJETA PRINCIPAL DE FORMULARIO -->
+      <div class="form-card fade-in">
+
+        <!-- ==================== PASO 1: IDENTIDAD ==================== -->
+        @if (pasoActual === 1) {
+          <div class="step-body fade-in">
+            <div class="fields-scroll-area">
+              <div class="input-wrapper disabled-input">
+                <ion-input
+                  label="RUT (No modificable)"
+                  labelPlacement="floating"
+                  fill="outline"
+                  [(ngModel)]="usuario.rut"
+                  type="text"
+                  readonly="true"
+                  class="modern-input">
+                  <ion-icon name="lock-closed-outline" slot="start" class="input-icon" aria-hidden="true"></ion-icon>
+                </ion-input>
+              </div>
+
+              <div class="input-wrapper">
+                <ion-input
+                  label="Primer Nombre"
+                  labelPlacement="floating"
+                  fill="outline"
+                  [(ngModel)]="usuario.nombre"
+                  type="text"
+                  placeholder="Ingresa tu nombre"
+                  class="modern-input">
+                  <ion-icon name="person-outline" slot="start" class="input-icon" aria-hidden="true"></ion-icon>
+                </ion-input>
+              </div>
+
+              <div class="input-wrapper">
+                <ion-input
+                  label="Apellido Paterno"
+                  labelPlacement="floating"
+                  fill="outline"
+                  [(ngModel)]="usuario.apellidoPaterno"
+                  type="text"
+                  placeholder="Ingresa tu primer apellido"
+                  class="modern-input">
+                  <ion-icon name="person-outline" slot="start" class="input-icon" aria-hidden="true"></ion-icon>
+                </ion-input>
+              </div>
+
+              <div class="input-wrapper">
+                <ion-input
+                  label="Apellido Materno"
+                  labelPlacement="floating"
+                  fill="outline"
+                  [(ngModel)]="usuario.apellidoMaterno"
+                  type="text"
+                  placeholder="Ingresa tu segundo apellido"
+                  class="modern-input">
+                  <ion-icon name="person-outline" slot="start" class="input-icon" aria-hidden="true"></ion-icon>
+                </ion-input>
+              </div>
+            </div>
+
+            <div class="action-section">
+              <ion-button expand="block" class="btn-primary-custom" (click)="siguientePaso()">
+                Continuar a Contacto
+                <ion-icon slot="end" name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+        }
+
+        <!-- ==================== PASO 2: CONTACTO ==================== -->
+        @if (pasoActual === 2) {
+          <div class="step-body fade-in">
+            <div class="fields-scroll-area">
+              <div class="input-wrapper disabled-input">
+                <ion-input
+                  label="Correo Electrónico (No modificable)"
+                  labelPlacement="floating"
+                  fill="outline"
+                  [(ngModel)]="usuario.correo"
+                  type="email"
+                  readonly="true"
+                  class="modern-input">
+                  <ion-icon name="lock-closed-outline" slot="start" class="input-icon" aria-hidden="true"></ion-icon>
+                </ion-input>
+              </div>
+
+              <div class="input-wrapper">
+                <ion-input
+                  label="Teléfono Celular"
+                  labelPlacement="floating"
+                  fill="outline"
+                  [(ngModel)]="usuario.telefono"
+                  type="tel"
+                  placeholder="Ej. +56 9 1234 5678"
+                  class="modern-input">
+                  <ion-icon name="call-outline" slot="start" class="input-icon" aria-hidden="true"></ion-icon>
+                </ion-input>
+              </div>
+
+              <div class="helper-note">
+                <ion-icon name="shield-checkmark-outline" aria-hidden="true"></ion-icon>
+                <span>Tu número solo será visible para las empresas en las que participes.</span>
+              </div>
+            </div>
+
+            <div class="action-section buttons-row">
+              <ion-button fill="outline" class="btn-secondary-outline" (click)="pasoAnterior()">
+                Anterior
+              </ion-button>
+              <ion-button class="btn-primary-custom flex-btn" (click)="siguientePaso()">
+                Continuar
+                <ion-icon slot="end" name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+        }
+
+        <!-- ==================== PASO 3: UBICACIÓN ==================== -->
+        @if (pasoActual === 3) {
+          <div class="step-body fade-in">
+            <div class="fields-scroll-area">
+              <div class="input-wrapper">
+                <ion-input
+                  label="País"
+                  labelPlacement="floating"
+                  fill="outline"
+                  [(ngModel)]="usuario.pais"
+                  type="text"
+                  placeholder="Ej. Chile"
+                  class="modern-input">
+                  <ion-icon name="globe-outline" slot="start" class="input-icon" aria-hidden="true"></ion-icon>
+                </ion-input>
+              </div>
+
+              <div class="input-wrapper">
+                <ion-input
+                  label="Ciudad"
+                  labelPlacement="floating"
+                  fill="outline"
+                  [(ngModel)]="usuario.ciudad"
+                  type="text"
+                  placeholder="Ej. Santiago"
+                  class="modern-input">
+                  <ion-icon name="business-outline" slot="start" class="input-icon" aria-hidden="true"></ion-icon>
+                </ion-input>
+              </div>
+
+              <div class="input-wrapper">
+                <ion-input
+                  label="Comuna"
+                  labelPlacement="floating"
+                  fill="outline"
+                  [(ngModel)]="usuario.comuna"
+                  type="text"
+                  placeholder="Ej. Maipú"
+                  class="modern-input">
+                  <ion-icon name="navigate-outline" slot="start" class="input-icon" aria-hidden="true"></ion-icon>
+                </ion-input>
+              </div>
+            </div>
+
+            <div class="action-section buttons-row">
+              <ion-button fill="outline" class="btn-secondary-outline" (click)="pasoAnterior()">
+                Anterior
+              </ion-button>
+              <ion-button class="btn-primary-custom flex-btn" (click)="guardarCambios()" [disabled]="guardando">
+                <ion-icon slot="start" name="checkmark-circle-outline" aria-hidden="true"></ion-icon>
+                {{ guardando ? 'Guardando...' : 'Guardar Cambios' }}
+              </ion-button>
+            </div>
+          </div>
+        }
+
+      </div>
+
+    }
+
+  </div>
+</ion-content>
