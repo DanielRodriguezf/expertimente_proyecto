@@ -5,12 +5,13 @@ import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonButtons,
   IonBackButton, IonCard, IonCardContent, IonIcon, IonButton,
   IonSpinner, IonSearchbar, ViewWillEnter,
-  IonSelect, IonSelectOption, IonItem
+  IonSelect, IonSelectOption, IonItem, ToastController
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   navigateOutline, constructOutline, searchOutline,
-  businessOutline, optionsOutline, chevronForwardOutline
+  businessOutline, optionsOutline, chevronForwardOutline,
+  checkmarkCircle, warning, closeCircle, informationCircle
 } from 'ionicons/icons';
 
 import { Auth, onAuthStateChanged, Unsubscribe as AuthUnsubscribe } from '@angular/fire/auth';
@@ -58,6 +59,11 @@ export class SearchPage implements OnInit, ViewWillEnter, OnDestroy {
   areaSeleccionada: string = '';
   terminoBusqueda: string = '';
 
+  readonly opcionesAlertaArea = {
+    header: 'Selecciona un área laboral',
+    cssClass: 'alerta-expertimente'
+  };
+
   private uidActual: string = '';
   private unsubAuth: AuthUnsubscribe | null = null;
   private unsubOfertas: Unsubscribe | null = null;
@@ -67,6 +73,7 @@ export class SearchPage implements OnInit, ViewWillEnter, OnDestroy {
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   private ngZone = inject(NgZone);
+  private toastCtrl = inject(ToastController);
 
   constructor() {
     addIcons({
@@ -75,7 +82,11 @@ export class SearchPage implements OnInit, ViewWillEnter, OnDestroy {
       'search-outline': searchOutline,
       'business-outline': businessOutline,
       'options-outline': optionsOutline,
-      'chevron-forward-outline': chevronForwardOutline
+      'chevron-forward-outline': chevronForwardOutline,
+      'checkmark-circle': checkmarkCircle,
+      'warning': warning,
+      'close-circle': closeCircle,
+      'information-circle': informationCircle
     });
   }
 
@@ -226,9 +237,19 @@ export class SearchPage implements OnInit, ViewWillEnter, OnDestroy {
     this.aplicarFiltros();
   }
 
-  alSeleccionarArea(event: any) {
-    this.areaSeleccionada = event.detail.value || '';
+  async alSeleccionarArea(event: any) {
+    this.areaSeleccionada = event?.detail?.value || '';
     this.aplicarFiltros();
+
+    if (this.areaSeleccionada) {
+      if (this.ofertasFiltradas.length > 0) {
+        await this.mostrarToast(`Área de ${this.areaSeleccionada} seleccionada.`, 'success');
+      } else {
+        await this.mostrarToast(`No se encontraron ofertas en "${this.areaSeleccionada}".`, 'warning');
+      }
+    } else {
+      await this.mostrarToast('Mostrando todas las áreas laborales.', 'success');
+    }
   }
 
   aplicarFiltros() {
@@ -266,5 +287,25 @@ export class SearchPage implements OnInit, ViewWillEnter, OnDestroy {
 
   verDetalles(oferta: Oferta) {
     this.router.navigate(['/oferta-detalle', oferta.id]);
+  }
+
+  private async mostrarToast(mensaje: string, color: 'success' | 'warning' | 'danger' = 'success') {
+    const iconos = {
+      success: 'checkmark-circle',
+      warning: 'warning',
+      danger: 'close-circle'
+    };
+
+    await this.toastCtrl.dismiss().catch(() => {});
+
+    const toast = await this.toastCtrl.create({
+      message: mensaje,
+      duration: 2400,
+      position: 'bottom',
+      color,
+      icon: iconos[color] || 'information-circle',
+      cssClass: 'toast-expertimente'
+    });
+    await toast.present();
   }
 }

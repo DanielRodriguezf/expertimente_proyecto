@@ -25,10 +25,13 @@ ion-header {
   --overflow: hidden;
   --padding-top: 0px;
   --padding-bottom: 0px;
+  --keyboard-offset: 0px !important;
   overflow: hidden;
 
   &::part(scroll) {
     overflow: hidden !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
   }
 }
 
@@ -164,9 +167,7 @@ ion-header {
   }
 }
 
-/* --- 2. TARJETA DE FORMULARIO ---
-   La tarjeta se ajusta al contenido (no se estira hasta el fondo de la pantalla).
-   Si el contenido no cabe, la tarjeta se encoge y solo scrollea el área de campos. */
+/* --- 2. TARJETA DE FORMULARIO --- */
 .form-card {
   border-radius: 20px;
   background: #ffffff;
@@ -191,7 +192,7 @@ ion-header {
   min-height: 0;
 }
 
-/* --- ÁREA DE INPUTS --- */
+/* --- ÁREA DE INPUTS Y SELECTS --- */
 .fields-scroll-area {
   display: flex;
   flex-direction: column;
@@ -199,7 +200,7 @@ ion-header {
   flex: 0 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding-top: 4px;
+  padding-top: 6px;
   padding-bottom: 4px;
 
   &::-webkit-scrollbar {
@@ -213,14 +214,18 @@ ion-header {
 
 .input-wrapper {
   width: 100%;
+  flex-shrink: 0;
 }
 
-ion-input.modern-input {
+ion-input.modern-input,
+ion-select.modern-select {
   --background: #ffffff;
   --border-color: rgba(var(--ion-color-primary-rgb), 0.34);
   --border-radius: 14px;
   --color: var(--ion-color-primary-shade);
   --placeholder-color: var(--ion-color-medium);
+  --highlight-color-focused: var(--ion-color-primary);
+  color: var(--ion-color-primary-shade);
   font-size: clamp(0.92rem, 3.4vw, 0.98rem);
   font-weight: 700;
   min-height: 50px;
@@ -344,7 +349,8 @@ ion-input.modern-input {
     gap: 8px;
   }
 
-  ion-input.modern-input {
+  ion-input.modern-input,
+  ion-select.modern-select {
     min-height: 46px;
   }
 

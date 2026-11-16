@@ -15,7 +15,8 @@ import {
   IonButtons,
   IonBackButton,
   IonTitle,
-  IonSpinner
+  IonSpinner,
+  ToastController
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { 
@@ -23,17 +24,22 @@ import {
   eyeOutline, 
   eyeOffOutline,
   arrowBackOutline,
-  checkmarkCircleOutline
+  checkmarkCircleOutline,
+  checkmarkCircle,
+  warning,
+  closeCircle,
+  informationCircle,
+  globeOutline,
+  businessOutline,
+  navigateOutline
 } from 'ionicons/icons';
 
-// Importaciones de Firebase
 import { Auth, createUserWithEmailAndPassword } from '@angular/fire/auth';
 import { Firestore, doc, setDoc, updateDoc } from '@angular/fire/firestore';
 import { GoogleAuthService, PerfilGoogle } from '../../services/google-auth';
 
 const CAMPOS_DE_GOOGLE = ['nombre', 'apellidoPaterno', 'apellidoMaterno'] as const;
 
-// Las 16 Regiones de Chile y sus 346 Comunas oficiales
 const REGIONES_COMUNAS_CHILE: Record<string, string[]> = {
   'Arica y Parinacota': [
     'Arica', 'Camarones', 'General Lagos', 'Putre'
@@ -169,13 +175,25 @@ export class RegisterPage {
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   private googleAuth = inject(GoogleAuthService);
+  private toastCtrl = inject(ToastController);
 
-  // Listados para los 3 selectores: País -> Región -> Comuna
   readonly paisesDisponibles: string[] = ['Chile'];
   readonly regionesDisponibles: string[] = Object.keys(REGIONES_COMUNAS_CHILE);
   comunasDisponibles: string[] = [];
 
-  // Objeto con "Chile" seleccionado por defecto
+  readonly opcionesAlertaPais = {
+    header: 'Selecciona tu país',
+    cssClass: 'alerta-expertimente'
+  };
+  readonly opcionesAlertaRegion = {
+    header: 'Selecciona tu región',
+    cssClass: 'alerta-expertimente'
+  };
+  readonly opcionesAlertaComuna = {
+    header: 'Selecciona tu comuna',
+    cssClass: 'alerta-expertimente'
+  };
+
   usuario = {
     rut: '',
     nombre: '',
@@ -183,7 +201,7 @@ export class RegisterPage {
     apellidoMaterno: '',
     fechaNacimiento: '',
     pais: 'Chile',
-    ciudad: '', // Almacena la Región seleccionada mantendo compatibilidad con el resto de la app
+    ciudad: '',
     comuna: '',
     correo: '',
     telefono: '',
@@ -194,7 +212,6 @@ export class RegisterPage {
   errorMessage: string = '';
   cargando: boolean = false;
 
-  // --- Registro con Google ---
   esRegistroGoogle: boolean = false;
   cargandoGoogle: boolean = false;
   private registroCompletado: boolean = false;
@@ -207,7 +224,14 @@ export class RegisterPage {
       'eye-outline': eyeOutline,
       'eye-off-outline': eyeOffOutline,
       'arrow-back-outline': arrowBackOutline,
-      'checkmark-circle-outline': checkmarkCircleOutline
+      'checkmark-circle-outline': checkmarkCircleOutline,
+      'checkmark-circle': checkmarkCircle,
+      'warning': warning,
+      'close-circle': closeCircle,
+      'information-circle': informationCircle,
+      'globe-outline': globeOutline,
+      'business-outline': businessOutline,
+      'navigate-outline': navigateOutline
     });
   }
 
@@ -258,10 +282,7 @@ export class RegisterPage {
     return salida;
   }
 
-  /**
-   * Al elegir una Región, carga sus comunas ordenadas alfabéticamente y reinicia la comuna seleccionada
-   */
-  alCambiarRegion(event: any) {
+  async alCambiarRegion(event: any) {
     const regionElegida = event?.detail?.value || this.usuario.ciudad;
     this.usuario.ciudad = regionElegida;
     this.usuario.comuna = '';
@@ -269,6 +290,25 @@ export class RegisterPage {
       ? [...REGIONES_COMUNAS_CHILE[regionElegida]].sort((a, b) => a.localeCompare(b))
       : [];
     this.cdr.detectChanges();
+
+    if (regionElegida) {
+      await this.mostrarToast(`Región ${regionElegida} seleccionada. Ahora elige tu comuna.`, 'success');
+    }
+  }
+
+  async alCambiarComuna(event: any) {
+    const comunaElegida = event?.detail?.value || this.usuario.comuna;
+    if (comunaElegida) {
+      await this.mostrarToast(`Comuna ${comunaElegida} seleccionada.`, 'success');
+    }
+  }
+
+  async verificarRegionAntesDeComuna(event: Event) {
+    if (!this.usuario.ciudad) {
+      event.preventDefault();
+      event.stopPropagation();
+      await this.mostrarToast('Primero selecciona tu región para ver las comunas disponibles.', 'warning');
+    }
   }
 
   togglePassword() {
@@ -279,10 +319,22 @@ export class RegisterPage {
     this.showPasswordConfirm = !this.showPasswordConfirm;
   }
 
-  siguientePaso() {
+  async siguientePaso() {
+    if (this.pasoActual === 2) {
+      if (!this.usuario.ciudad) {
+        await this.mostrarToast('Por favor, selecciona tu región.', 'warning');
+        return;
+      }
+      if (!this.usuario.comuna) {
+        await this.mostrarToast('Por favor, selecciona tu comuna.', 'warning');
+        return;
+      }
+    }
+
     if (this.pasoActual < this.totalPasos) {
       this.errorMessage = '';
       this.pasoActual++;
+      this.cdr.detectChanges();
     }
   }
 
@@ -468,5 +520,25 @@ export class RegisterPage {
       this.cargando = false;
       this.cdr.detectChanges();
     }
+  }
+
+  private async mostrarToast(mensaje: string, color: 'success' | 'warning' | 'danger' = 'success') {
+    const iconos = {
+      success: 'checkmark-circle',
+      warning: 'warning',
+      danger: 'close-circle'
+    };
+
+    await this.toastCtrl.dismiss().catch(() => {});
+
+    const toast = await this.toastCtrl.create({
+      message: mensaje,
+      duration: 2400,
+      position: 'bottom',
+      color,
+      icon: iconos[color] || 'information-circle',
+      cssClass: 'toast-expertimente'
+    });
+    await toast.present();
   }
 }

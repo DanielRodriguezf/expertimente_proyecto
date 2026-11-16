@@ -137,9 +137,11 @@
         labelPlacement="floating"
         fill="outline"
         [(ngModel)]="usuario.pais"
+        [interfaceOptions]="opcionesAlertaPais"
         cancelText="Cancelar"
         okText="Aceptar"
         color="primary">
+        <ion-icon name="globe-outline" slot="start" class="input-icon" aria-hidden="true"></ion-icon>
         @for (pais of paisesDisponibles; track pais) {
           <ion-select-option [value]="pais">{{ pais }}</ion-select-option>
         }
@@ -151,29 +153,36 @@
         fill="outline"
         placeholder="Selecciona tu región"
         [(ngModel)]="usuario.ciudad"
+        [interfaceOptions]="opcionesAlertaRegion"
         (ionChange)="alCambiarRegion($event)"
         cancelText="Cancelar"
         okText="Aceptar"
         color="primary">
+        <ion-icon name="business-outline" slot="start" class="input-icon" aria-hidden="true"></ion-icon>
         @for (region of regionesDisponibles; track region) {
           <ion-select-option [value]="region">{{ region }}</ion-select-option>
         }
       </ion-select>
 
-      <ion-select
-        label="Comuna"
-        labelPlacement="floating"
-        fill="outline"
-        [placeholder]="usuario.ciudad ? 'Selecciona tu comuna' : 'Primero selecciona una región'"
-        [disabled]="!usuario.ciudad"
-        [(ngModel)]="usuario.comuna"
-        cancelText="Cancelar"
-        okText="Aceptar"
-        color="primary">
-        @for (comuna of comunasDisponibles; track comuna) {
-          <ion-select-option [value]="comuna">{{ comuna }}</ion-select-option>
-        }
-      </ion-select>
+      <div (click)="verificarRegionAntesDeComuna($event)">
+        <ion-select
+          label="Comuna"
+          labelPlacement="floating"
+          fill="outline"
+          [placeholder]="usuario.ciudad ? 'Selecciona tu comuna' : 'Primero selecciona una región'"
+          [disabled]="!usuario.ciudad"
+          [(ngModel)]="usuario.comuna"
+          [interfaceOptions]="opcionesAlertaComuna"
+          (ionChange)="alCambiarComuna($event)"
+          cancelText="Cancelar"
+          okText="Aceptar"
+          color="primary">
+          <ion-icon name="navigate-outline" slot="start" class="input-icon" aria-hidden="true"></ion-icon>
+          @for (comuna of comunasDisponibles; track comuna) {
+            <ion-select-option [value]="comuna">{{ comuna }}</ion-select-option>
+          }
+        </ion-select>
+      </div>
 
       <ion-button expand="block" class="btn-primary" (click)="siguientePaso()">
         Continuar

@@ -128,11 +128,12 @@
 }
 
 /* =======================================================
-   BANNER ESPECIAL DE NOTIFICACIÓN GLOBAL (CUALQUIER PÁGINA)
+   AVISO GLOBAL DE NOTIFICACIÓN (CUALQUIER PÁGINA)
+   Simple: icono + título + mensaje. Toda la tarjeta es tocable.
 ======================================================= */
-.global-notif-overlay {
+.notif-overlay {
   position: fixed;
-  top: calc(12px + var(--app-safe-top, env(safe-area-inset-top, 8px)));
+  top: calc(10px + var(--app-safe-top, env(safe-area-inset-top, 0px)));
   left: 0;
   right: 0;
   z-index: 99990;
@@ -142,131 +143,162 @@
   pointer-events: none;
 }
 
-.global-notif-card {
+.notif-card {
+  --notif-color: var(--ion-color-primary);
+
+  position: relative;
+  overflow: hidden;
   pointer-events: auto;
   width: 100%;
-  max-width: 440px;
-  background: #ffffff;
-  border-radius: 18px;
-  padding: 14px 14px;
+  max-width: 420px;
   display: flex;
   align-items: center;
   gap: 12px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
-  border-left: 6px solid var(--ion-color-primary);
+  padding: 12px 8px 15px 12px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(31, 45, 24, 0.2);
   cursor: pointer;
-  animation: slideDownNotif 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease;
+  /* "backwards" para que al terminar la entrada se pueda usar :active */
+  animation: notifEntrada 0.42s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 
-  &.notif-tipo-seleccionado {
-    border-left-color: #2e7d32;
-
-    .notif-icon-wrap {
-      background: rgba(46, 125, 50, 0.14);
-      color: #2e7d32;
-    }
+  &:active {
+    transform: scale(0.98);
   }
 
-  &.notif-tipo-rechazado {
-    border-left-color: #ef6c00;
+  &[data-tipo='seleccionado'] { --notif-color: #2e7d32; }
+  &[data-tipo='rechazado']    { --notif-color: #ef6c00; }
+  &[data-tipo='mensaje']      { --notif-color: var(--ion-color-secondary); }
 
-    .notif-icon-wrap {
-      background: rgba(239, 108, 0, 0.14);
-      color: #ef6c00;
-    }
-  }
-
-  &.notif-tipo-mensaje {
-    border-left-color: var(--ion-color-primary);
-
-    .notif-icon-wrap {
-      background: rgba(var(--ion-color-primary-rgb), 0.14);
-      color: var(--ion-color-primary);
-    }
+  &.notif-saliendo {
+    pointer-events: none;
+    animation: notifSalida 0.26s cubic-bezier(0.4, 0, 1, 1) forwards;
   }
 }
 
-.notif-icon-wrap {
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
-  background: rgba(var(--ion-color-primary-rgb), 0.12);
-  color: var(--ion-color-primary);
+.notif-icono {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  color: var(--notif-color);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: var(--notif-color);
+    opacity: 0.14;
+  }
 
   ion-icon {
-    font-size: 26px;
+    position: relative;
+    font-size: 24px;
+    animation: notifIcono 0.5s 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
   }
 }
 
-.notif-body {
+.notif-texto {
   flex: 1;
   min-width: 0;
 
-  .notif-title {
-    margin: 0 0 4px 0;
-    font-size: 0.98rem;
-    font-weight: 800;
-    color: #1f2937;
-    line-height: 1.25;
+  p {
+    margin: 0;
   }
 
-  .notif-message {
-    margin: 0;
-    font-size: 0.88rem;
-    font-weight: 600;
-    color: #4b5563;
+  .notif-titulo {
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.25;
+    color: #1f2d18;
+  }
+
+  .notif-mensaje {
+    margin-top: 2px;
+    font-size: 0.92rem;
+    font-weight: 500;
     line-height: 1.35;
+    color: #4b5563;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
   }
 }
 
-.notif-actions {
+.notif-cerrar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #6b7280;
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
+  justify-content: center;
+  cursor: pointer;
 
-  .notif-btn-ver {
-    background: var(--ion-color-primary);
-    color: #ffffff;
-    border: none;
-    border-radius: 10px;
-    padding: 8px 13px;
-    font-size: 0.86rem;
-    font-weight: 800;
-    cursor: pointer;
+  ion-icon {
+    font-size: 22px;
   }
 
-  .notif-btn-close {
-    background: rgba(0, 0, 0, 0.06);
-    color: #4b5563;
-    border: none;
-    border-radius: 50%;
-    width: 34px;
-    height: 34px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-
-    ion-icon {
-      font-size: 20px;
-    }
+  &:active {
+    background: rgba(0, 0, 0, 0.07);
   }
 }
 
-@keyframes slideDownNotif {
-  0% {
-    opacity: 0;
-    transform: translateY(-24px) scale(0.96);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+/* Barra que se va vaciando: indica cuánto falta para que el aviso se cierre solo */
+.notif-progreso {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 3px;
+  background: var(--notif-color);
+  opacity: 0.55;
+  transform-origin: left;
+  animation: notifProgreso var(--notif-duracion, 6000ms) linear forwards;
 }
+
+@keyframes notifEntrada {
+  0%   { opacity: 0; transform: translateY(-120%) scale(0.96); }
+  60%  { opacity: 1; transform: translateY(6px) scale(1.01); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes notifSalida {
+  0%   { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-120%) scale(0.96); }
+}
+
+@keyframes notifIcono {
+  0%   { transform: scale(0.4); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes notifProgreso {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
+/* Respeta a quienes tienen desactivadas las animaciones en el celular */
+@media (prefers-reduced-motion: reduce) {
+  .notif-card { animation: notifFundido 0.15s ease backwards; }
+  .notif-card.notif-saliendo { animation: notifFundidoSalida 0.15s ease forwards; }
+  .notif-icono ion-icon,
+  .notif-progreso { animation: none; }
+}
+
+@keyframes notifFundido { from { opacity: 0; } to { opacity: 1; } }
+@keyframes notifFundidoSalida { from { opacity: 1; } to { opacity: 0; } }
 
 /* =======================================================
    MENÚ LATERAL ACCESIBLE Y RESPONSIVO

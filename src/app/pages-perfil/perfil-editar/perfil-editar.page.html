@@ -25,7 +25,7 @@
       </div>
     } @else {
 
-      <!-- 1. TARJETA INFORMATIVA DEL PASO E INDICADOR DE PROGRESO (NO INTERACTIVO) -->
+      <!-- 1. TARJETA INFORMATIVA DEL PASO E INDICADOR DE PROGRESO -->
       <section class="info-card fade-in" aria-label="Información del paso">
         <div class="step-status-header">
           <span class="step-badge">Paso {{ pasoActual }} de {{ totalPasos }}</span>
@@ -61,7 +61,7 @@
             }
             @if (pasoActual === 3) {
               <h2 class="info-title">Lugar de Residencia</h2>
-              <p class="info-desc">Indica tu ciudad y comuna actual para conectarte con oportunidades cercanas a ti.</p>
+              <p class="info-desc">Selecciona tu región y comuna actual para conectarte con oportunidades cercanas a ti.</p>
             }
           </div>
         </div>
@@ -184,47 +184,67 @@
           </div>
         }
 
-        <!-- ==================== PASO 3: UBICACIÓN ==================== -->
+        <!-- ==================== PASO 3: UBICACIÓN (PAÍS -> REGIÓN -> COMUNA) ==================== -->
         @if (pasoActual === 3) {
           <div class="step-body fade-in">
             <div class="fields-scroll-area">
               <div class="input-wrapper">
-                <ion-input
+                <ion-select
                   label="País"
                   labelPlacement="floating"
                   fill="outline"
                   [(ngModel)]="usuario.pais"
-                  type="text"
-                  placeholder="Ej. Chile"
-                  class="modern-input">
+                  [interfaceOptions]="opcionesAlertaPais"
+                  cancelText="Cancelar"
+                  okText="Aceptar"
+                  color="primary"
+                  class="modern-select">
                   <ion-icon name="globe-outline" slot="start" class="input-icon" aria-hidden="true"></ion-icon>
-                </ion-input>
+                  @for (pais of paisesDisponibles; track pais) {
+                    <ion-select-option [value]="pais">{{ pais }}</ion-select-option>
+                  }
+                </ion-select>
               </div>
 
               <div class="input-wrapper">
-                <ion-input
-                  label="Ciudad"
+                <ion-select
+                  label="Región"
                   labelPlacement="floating"
                   fill="outline"
+                  placeholder="Selecciona tu región"
                   [(ngModel)]="usuario.ciudad"
-                  type="text"
-                  placeholder="Ej. Santiago"
-                  class="modern-input">
+                  [interfaceOptions]="opcionesAlertaRegion"
+                  (ionChange)="alCambiarRegion($event)"
+                  cancelText="Cancelar"
+                  okText="Aceptar"
+                  color="primary"
+                  class="modern-select">
                   <ion-icon name="business-outline" slot="start" class="input-icon" aria-hidden="true"></ion-icon>
-                </ion-input>
+                  @for (region of regionesDisponibles; track region) {
+                    <ion-select-option [value]="region">{{ region }}</ion-select-option>
+                  }
+                </ion-select>
               </div>
 
-              <div class="input-wrapper">
-                <ion-input
+              <div class="input-wrapper" (click)="verificarRegionAntesDeComuna($event)">
+                <ion-select
                   label="Comuna"
                   labelPlacement="floating"
                   fill="outline"
+                  [placeholder]="usuario.ciudad ? 'Selecciona tu comuna' : 'Primero selecciona una región'"
+                  [disabled]="!usuario.ciudad"
                   [(ngModel)]="usuario.comuna"
-                  type="text"
-                  placeholder="Ej. Maipú"
-                  class="modern-input">
+                  [interfaceOptions]="opcionesAlertaComuna"
+                  (ionChange)="alCambiarComuna($event)"
+                  cancelText="Cancelar"
+                  okText="Aceptar"
+                  color="primary"
+                  class="modern-select">
                   <ion-icon name="navigate-outline" slot="start" class="input-icon" aria-hidden="true"></ion-icon>
-                </ion-input>
+                  @for (comuna of comunasDisponibles; track comuna) {
+                    <ion-select-option [value]="comuna">{{ comuna }}</ion-select-option>
+                  }
+                </ion-select>
               </div>
             </div>
 

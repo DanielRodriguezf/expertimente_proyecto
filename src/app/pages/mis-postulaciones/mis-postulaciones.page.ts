@@ -88,6 +88,22 @@ export class MisPostulacionesPage implements OnInit, ViewWillEnter {
     }
   }
 
+  private normalizarTexto(texto: string): string {
+    return (texto || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
+  }
+
+  private obtenerTimestamp(fecha: any): number {
+    if (!fecha) return 0;
+    if (typeof fecha.toMillis === 'function') return fecha.toMillis();
+    if (typeof fecha.seconds === 'number') return fecha.seconds * 1000;
+    const parsed = new Date(fecha).getTime();
+    return isNaN(parsed) ? 0 : parsed;
+  }
+
   // Función auxiliar para extraer el nombre de la empresa desde el mensaje si el campo viene vacío
   private obtenerNombreEmpresa(data: any, tieneRespuestaEmpresa: boolean): string {
     const empresaDirecta = (data['nombreEmpresa'] || data['empresa'] || '').trim();
@@ -95,11 +111,14 @@ export class MisPostulacionesPage implements OnInit, ViewWillEnter {
       return empresaDirecta;
     }
 
-    // Si no viene en el campo pero sí en el mensaje: 'Has sido seleccionado para el cargo "Panadero" por Empresa A. El reclutador...'
     if (data['mensaje']) {
-      const match = data['mensaje'].match(/por\s+([^.]+)\./i);
-      if (match && match[1]) {
-        return match[1].trim();
+      const matchPor = data['mensaje'].match(/por\s+([^.]+)\./i);
+      if (matchPor && matchPor[1]) {
+        return matchPor[1].trim();
+      }
+      const matchFelicidades = data['mensaje'].match(/¡Felicidades!\s+(.+?)\s+ha\s+aceptado/i);
+      if (matchFelicidades && matchFelicidades[1]) {
+        return matchFelicidades[1].trim();
       }
     }
 
@@ -130,60 +149,81 @@ export class MisPostulacionesPage implements OnInit, ViewWillEnter {
       ]);
 
       const tempPosts: any[] = [];
-      const notificacionesPorCargo: { [cargoId: string]: any } = {};
-      const notificacionesPorOferta: { [ofertaId: string]: any } = {};
+      const listaNotificaciones: any[] = [];
+      const notificacionesProcesadas = new Set<string>();
 
-      // Indexamos las notificaciones por cargoId u ofertaId
       if (snapNotif) {
         snapNotif.forEach((docSnap) => {
-          const data = docSnap.data();
-          const notifItem = { idNotif: docSnap.id, ...data };
-
-          if (data['cargoId']) {
-            // Si hay más de una notificación para el mismo cargo, priorizamos la no leída o la más reciente
-            const existente = notificacionesPorCargo[data['cargoId']];
-            if (!existente || data['leido'] === false) {
-              notificacionesPorCargo[data['cargoId']] = notifItem;
-            }
-          } else if (data['ofertaId'] || data['postulacionId']) {
-            const key = data['ofertaId'] || data['postulacionId'];
-            notificacionesPorOferta[key] = notifItem;
-          }
+          listaNotificaciones.push({
+            idNotif: docSnap.id,
+            ...docSnap.data()
+          });
         });
       }
+
+      // Ordenar notificaciones: primero las no leídas y luego las más recientes
+      listaNotificaciones.sort((a, b) => {
+        if (a['leido'] === false && b['leido'] !== false) return -1;
+        if (a['leido'] !== false && b['leido'] === false) return 1;
+        return this.obtenerTimestamp(b['fecha']) - this.obtenerTimestamp(a['fecha']);
+      });
 
       // Procesar ofertas normales
       snapNormales.forEach((docSnap) => {
         const data = docSnap.data();
-        const notifAsociada = notificacionesPorOferta[docSnap.id] || notificacionesPorOferta[data['ofertaId']] || null;
+        const tituloNorm = this.normalizarTexto(data['tituloOferta'] || '');
 
-        const leidoDoc = data['leido'] ?? true;
-        const leidoNotif = notifAsociada ? (notifAsociada['leido'] ?? true) : true;
-        const estaLeido = leidoDoc && leidoNotif;
+        const notifsAsociadas = listaNotificaciones.filter((n) => {
+          if (n['ofertaId'] && (n['ofertaId'] === docSnap.id || n['ofertaId'] === data['ofertaId'])) {
+            return true;
+          }
+          if (n['postulacionId'] && n['postulacionId'] === docSnap.id) {
+            return true;
+          }
+          const notifTituloNorm = this.normalizarTexto(n['tituloOferta'] || '');
+          return Boolean(tituloNorm && notifTituloNorm && tituloNorm === notifTituloNorm && !n['cargo'] && !n['cargoId']);
+        });
+
+        notifsAsociadas.forEach((n) => notificacionesProcesadas.add(n.idNotif));
+        const notifAsociada = notifsAsociadas[0] || null;
+
+        const leidoDoc = data['leido'] !== false;
+        const leidoNotifs = notifsAsociadas.every((n) => n['leido'] !== false);
+        const estaLeido = leidoDoc && leidoNotifs;
 
         tempPosts.push({
           ...data,
           id: docSnap.id,
           idNotif: notifAsociada ? notifAsociada.idNotif : null,
+          idsNotif: notifsAsociadas.map((n) => n.idNotif),
           coleccionOrigen: 'postulaciones',
           tipo: 'oferta',
           tituloOferta: data['tituloOferta'] || 'Oferta de Empleo',
           nombreEmpresa: (data['nombreEmpresa'] || notifAsociada?.['nombreEmpresa'] || '').trim() || 'Empresa Confidencial',
-          estado: notifAsociada?.['estado'] || data['estado'] || 'Enviada',
+          estado: notifAsociada?.['estado'] || (notifAsociada?.['tipo'] === 'seleccionado' ? 'Aceptada' : data['estado']) || 'Enviada',
+          fechaOrden: this.obtenerTimestamp(notifAsociada?.['fecha'] || data['fecha'] || data['fechaPostulacion']),
           leido: estaLeido,
           mostrarBadgeNueva: !estaLeido
         });
       });
 
-      const cargosTernaProcesados = new Set<string>();
-
       // Procesar postulaciones de terna
       snapTernas.forEach((docSnap) => {
         const data = docSnap.data();
         const cargoId = data['cargoId'];
-        if (cargoId) cargosTernaProcesados.add(cargoId);
+        const nombreCargoTernaNorm = this.normalizarTexto(data['nombreCargo'] || data['cargo'] || '');
 
-        const datosNotif = (cargoId && notificacionesPorCargo[cargoId]) ? notificacionesPorCargo[cargoId] : null;
+        // Vinculamos notificaciones tanto por cargoId como por el nombre del cargo ("Profesor de Lenguaje y Comunicación")
+        const notifsAsociadas = listaNotificaciones.filter((n) => {
+          if (cargoId && n['cargoId'] && n['cargoId'] === cargoId) {
+            return true;
+          }
+          const nombreCargoNotifNorm = this.normalizarTexto(n['cargo'] || n['nombreCargo'] || '');
+          return Boolean(nombreCargoTernaNorm && nombreCargoNotifNorm && nombreCargoTernaNorm === nombreCargoNotifNorm);
+        });
+
+        notifsAsociadas.forEach((n) => notificacionesProcesadas.add(n.idNotif));
+        const datosNotif = notifsAsociadas[0] || null;
         const dataCombinada = datosNotif ? { ...data, ...datosNotif } : data;
 
         const estadoRaw = (dataCombinada['estado'] || '').toLowerCase();
@@ -209,15 +249,15 @@ export class MisPostulacionesPage implements OnInit, ViewWillEnter {
         const nombreCargo = dataCombinada['nombreCargo'] || dataCombinada['cargo'] || 'Cargo de Interés';
         const nombreEmpresa = this.obtenerNombreEmpresa(dataCombinada, esSeleccionado || esRechazado);
 
-        // Si cualquiera de los dos documentos (postulaciones-terna o notificaciones) tiene leido === false, se considera no leído
-        const leidoTerna = data['leido'] !== undefined ? data['leido'] : true;
-        const leidoNotif = datosNotif && datosNotif['leido'] !== undefined ? datosNotif['leido'] : true;
-        const estaLeido = leidoTerna && leidoNotif;
+        const leidoTerna = data['leido'] !== false;
+        const leidoNotifs = notifsAsociadas.every((n) => n['leido'] !== false);
+        const estaLeido = leidoTerna && leidoNotifs;
 
         tempPosts.push({
           ...dataCombinada,
           id: docSnap.id,
           idNotif: datosNotif ? datosNotif.idNotif : null,
+          idsNotif: notifsAsociadas.map((n) => n.idNotif),
           coleccionOrigen: 'postulaciones-terna',
           tipo: tipoRaw || 'terna',
           esTerna: true,
@@ -225,46 +265,67 @@ export class MisPostulacionesPage implements OnInit, ViewWillEnter {
           nombreEmpresa: nombreEmpresa,
           estado: estadoFinal,
           mensaje: dataCombinada['mensaje'] || '',
+          fechaOrden: this.obtenerTimestamp(datosNotif?.['fecha'] || data['fechaEvaluacion'] || data['fecha']),
           leido: estaLeido,
           mostrarBadgeNueva: !estaLeido
         });
       });
 
-      // Si había una notificación de terna guardada directamente en 'notificaciones' cuyo cargoId no estaba en 'postulaciones-terna'
-      Object.keys(notificacionesPorCargo).forEach(cargoId => {
-        if (!cargosTernaProcesados.has(cargoId)) {
-          const data = notificacionesPorCargo[cargoId];
-          const estadoRaw = (data['estado'] || '').toLowerCase();
-          const tipoRaw = (data['tipo'] || '').toLowerCase();
+      // Procesar notificaciones directas en 'notificaciones' que no tenían documento previo en 'postulaciones-terna' u 'ofertas'
+      listaNotificaciones.forEach((notif) => {
+        if (notificacionesProcesadas.has(notif.idNotif)) return;
 
-          const esRechazado =
-            tipoRaw.includes('rechazad') ||
-            tipoRaw.includes('descartad') ||
-            estadoRaw.includes('rechazad');
+        const estadoRaw = (notif['estado'] || '').toLowerCase();
+        const tipoRaw = (notif['tipo'] || '').toLowerCase();
 
-          const estadoFinal = esRechazado ? 'Rechazada' : 'Aceptada';
-          const nombreCargo = data['nombreCargo'] || data['cargo'] || 'Cargo de Interés';
-          const nombreEmpresa = this.obtenerNombreEmpresa(data, true);
-          const estaLeido = data['leido'] ?? true;
+        if (tipoRaw === 'mensaje' && !estadoRaw) return;
 
-          tempPosts.push({
-            ...data,
-            id: data.idNotif,
-            idNotif: data.idNotif,
-            coleccionOrigen: 'notificaciones',
-            tipo: tipoRaw || 'terna',
-            esTerna: true,
-            tituloOferta: `Terna: ${nombreCargo}`,
-            nombreEmpresa: nombreEmpresa,
-            estado: estadoFinal,
-            mensaje: data['mensaje'] || '',
-            leido: estaLeido,
-            mostrarBadgeNueva: !estaLeido
-          });
-        }
+        const esRechazado =
+          tipoRaw.includes('rechazad') ||
+          tipoRaw.includes('descartad') ||
+          estadoRaw.includes('rechazad') ||
+          estadoRaw.includes('no seleccionad');
+
+        const estadoFinal = esRechazado ? 'Rechazada' : 'Aceptada';
+        const esNotifTerna = Boolean(notif['cargo'] || notif['nombreCargo'] || notif['cargoId']) && !notif['ofertaId'];
+        const nombreCargo = notif['nombreCargo'] || notif['cargo'] || notif['tituloOferta'] || 'Cargo de Interés';
+        const nombreEmpresa = this.obtenerNombreEmpresa(notif, true);
+        const estaLeido = notif['leido'] !== false;
+
+        tempPosts.push({
+          ...notif,
+          id: notif.idNotif,
+          idNotif: notif.idNotif,
+          idsNotif: [notif.idNotif],
+          coleccionOrigen: 'notificaciones',
+          tipo: tipoRaw || (esNotifTerna ? 'terna' : 'oferta'),
+          esTerna: esNotifTerna,
+          tituloOferta: esNotifTerna ? `Terna: ${nombreCargo}` : nombreCargo,
+          nombreEmpresa: nombreEmpresa,
+          estado: estadoFinal,
+          mensaje: notif['mensaje'] || '',
+          fechaOrden: this.obtenerTimestamp(notif['fecha']),
+          leido: estaLeido,
+          mostrarBadgeNueva: !estaLeido
+        });
       });
 
       this.misPostulaciones = tempPosts;
+
+      // Si al entrar hay una postulación aceptada o rechazada sin leer, abrimos automáticamente esa pestaña
+      const tieneNoLeidasEnAceptadas = this.misPostulaciones.some(
+        (p) => !p.leido && this.perteneceAFiltro(p, 'aceptadas')
+      );
+      const tieneNoLeidasEnRechazadas = this.misPostulaciones.some(
+        (p) => !p.leido && this.perteneceAFiltro(p, 'rechazadas')
+      );
+
+      if (tieneNoLeidasEnAceptadas) {
+        this.filtroActual = 'aceptadas';
+      } else if (tieneNoLeidasEnRechazadas) {
+        this.filtroActual = 'rechazadas';
+      }
+
       this.aplicarFiltro(); 
       
     } catch (error) {
@@ -275,26 +336,35 @@ export class MisPostulacionesPage implements OnInit, ViewWillEnter {
     }
   }
 
-  aplicarFiltro() {
-    this.postulacionesFiltradas = this.misPostulaciones.filter(p => {
-      const estado = p.estado ? p.estado.toLowerCase() : 'enviada';
-      const tipo = p.tipo ? p.tipo.toLowerCase() : '';
+  private perteneceAFiltro(p: any, filtro: string): boolean {
+    const estado = p.estado ? p.estado.toLowerCase() : 'enviada';
+    const tipo = p.tipo ? p.tipo.toLowerCase() : '';
 
-      if (this.filtroActual === 'revision') {
-        return (estado.includes('enviada') || estado.includes('revisión') || estado.includes('revision')) 
-          && !estado.includes('aceptad') 
-          && !estado.includes('rechazad') 
-          && tipo !== 'seleccionado';
-      }
-      if (this.filtroActual === 'aceptadas') {
-        return (estado.includes('aceptad') || estado.includes('seleccionad') || tipo === 'seleccionado') 
-          && !estado.includes('rechazad'); 
-      }
-      if (this.filtroActual === 'rechazadas') {
-        return estado.includes('rechazad') || tipo.includes('rechazad') || tipo.includes('descartad'); 
-      }
-      return false;
-    });
+    if (filtro === 'revision') {
+      return (estado.includes('enviada') || estado.includes('revisión') || estado.includes('revision') || estado.includes('disponible')) 
+        && !estado.includes('aceptad') 
+        && !estado.includes('rechazad') 
+        && tipo !== 'seleccionado';
+    }
+    if (filtro === 'aceptadas') {
+      return (estado.includes('aceptad') || estado.includes('seleccionad') || tipo === 'seleccionado') 
+        && !estado.includes('rechazad'); 
+    }
+    if (filtro === 'rechazadas') {
+      return estado.includes('rechazad') || tipo.includes('rechazad') || tipo.includes('descartad'); 
+    }
+    return false;
+  }
+
+  aplicarFiltro() {
+    this.postulacionesFiltradas = this.misPostulaciones
+      .filter((p) => this.perteneceAFiltro(p, this.filtroActual))
+      .sort((a, b) => {
+        // Mostrar primero las no leídas y luego las más recientes
+        if (a.leido === false && b.leido !== false) return -1;
+        if (a.leido !== false && b.leido === false) return 1;
+        return (b.fechaOrden || 0) - (a.fechaOrden || 0);
+      });
 
     this.totalPasos = this.postulacionesFiltradas.length > 0 ? this.postulacionesFiltradas.length : 1;
     this.pasoActual = 1;
@@ -310,28 +380,34 @@ export class MisPostulacionesPage implements OnInit, ViewWillEnter {
     if (this.postulacionesFiltradas.length > 0) {
       this.itemActual = this.postulacionesFiltradas[this.pasoActual - 1];
 
-      // Si el documento o su notificación asociada aún figura con leido === false en Firebase, lo actualizamos
+      // Si el documento o sus notificaciones asociadas tienen leido === false, actualizamos a true en Firebase
       if (this.itemActual && this.itemActual.leido === false) {
+        this.itemActual.leido = true;
+
         try {
           const promesasActualizacion: Promise<void>[] = [];
-
-          // 1. Actualizar documento principal (postulaciones, postulaciones-terna o notificaciones)
           const nombreColeccion = this.itemActual.coleccionOrigen || (this.itemActual.esTerna ? 'postulaciones-terna' : 'postulaciones');
+
+          // 1. Actualizar documento en su colección de origen
           if (this.itemActual.id) {
-            const docRef = doc(this.firestore, `${nombreColeccion}/${this.itemActual.id}`);
+            const docRef = doc(this.firestore, nombreColeccion, this.itemActual.id);
             promesasActualizacion.push(updateDoc(docRef, { leido: true }).catch(() => {}));
           }
 
-          // 2. Si además viene vinculado a un documento en la colección 'notificaciones', actualizarlo también en Firebase
-          if (this.itemActual.idNotif && nombreColeccion !== 'notificaciones') {
-            const notifDocRef = doc(this.firestore, `notificaciones/${this.itemActual.idNotif}`);
+          // 2. Actualizar todas las notificaciones vinculadas en la colección 'notificaciones'
+          const idsNotif: string[] = Array.isArray(this.itemActual.idsNotif) && this.itemActual.idsNotif.length > 0
+            ? this.itemActual.idsNotif
+            : (this.itemActual.idNotif ? [this.itemActual.idNotif] : []);
+
+          idsNotif.forEach((idNotificacion) => {
+            if (nombreColeccion === 'notificaciones' && idNotificacion === this.itemActual.id) {
+              return;
+            }
+            const notifDocRef = doc(this.firestore, 'notificaciones', idNotificacion);
             promesasActualizacion.push(updateDoc(notifDocRef, { leido: true }).catch(() => {}));
-          }
+          });
 
           await Promise.all(promesasActualizacion);
-
-          // Marcamos leido = true en memoria para no volver a disparar escrituras en esta sesión
-          this.itemActual.leido = true;
           this.cdr.detectChanges();
         } catch (error) {
           console.error('Error al actualizar estado leido en Firebase:', error);

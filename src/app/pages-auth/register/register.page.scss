@@ -79,6 +79,12 @@ ion-content {
     color: #000000 !important; 
     --highlight-color-focused: var(--ion-color-primary); 
     font-size: 1rem;
+
+    .input-icon {
+      color: var(--ion-color-primary-shade);
+      font-size: 1.2rem;
+      margin-right: 8px;
+    }
   }
 
   .manual-toggle {

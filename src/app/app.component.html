@@ -16,38 +16,37 @@
     </div>
   </div>
 
-  <!-- BANNER ESPECIAL GLOBAL DE NOTIFICACIÓN (VISIBLE EN CUALQUIER PÁGINA) -->
+  <!-- AVISO GLOBAL DE NOTIFICACIÓN (VISIBLE EN CUALQUIER PÁGINA) -->
   <div
     *ngIf="sesionActiva && !mostrandoSplash && notificaciones.avisoActivo() as aviso"
-    class="global-notif-overlay"
-    role="alert"
+    class="notif-overlay"
+    role="status"
     aria-live="polite">
     <div
-      class="global-notif-card"
-      [ngClass]="'notif-tipo-' + aviso.categoria"
+      class="notif-card"
+      [class.notif-saliendo]="notificaciones.avisoSaliendo()"
+      [attr.data-tipo]="aviso.categoria"
+      [style.--notif-duracion]="notificaciones.duracionAvisoMs + 'ms'"
       (click)="notificaciones.abrirDestinoAviso()">
 
-      <div class="notif-icon-wrap" aria-hidden="true">
+      <div class="notif-icono" aria-hidden="true">
         <ion-icon [name]="obtenerIconoNotificacion(aviso.categoria)"></ion-icon>
       </div>
 
-      <div class="notif-body">
-        <h3 class="notif-title">{{ aviso.tituloGeneralizado }}</h3>
-        <p class="notif-message">{{ aviso.mensajeGeneralizado }}</p>
+      <div class="notif-texto">
+        <p class="notif-titulo">{{ aviso.titulo }}</p>
+        <p class="notif-mensaje">{{ aviso.mensaje }}</p>
       </div>
 
-      <div class="notif-actions" (click)="$event.stopPropagation()">
-        <button type="button" class="notif-btn-ver" (click)="notificaciones.abrirDestinoAviso()">
-          Ver
-        </button>
-        <button
-          type="button"
-          class="notif-btn-close"
-          aria-label="Cerrar notificación"
-          (click)="notificaciones.cerrarAvisoActual()">
-          <ion-icon name="close-outline"></ion-icon>
-        </button>
-      </div>
+      <button
+        type="button"
+        class="notif-cerrar"
+        aria-label="Cerrar aviso"
+        (click)="$event.stopPropagation(); notificaciones.cerrarAvisoActual()">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+
+      <span class="notif-progreso" aria-hidden="true"></span>
     </div>
   </div>
 

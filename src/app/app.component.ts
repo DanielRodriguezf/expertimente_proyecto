@@ -356,6 +356,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
   async cerrarSesion() {
     try {
+      // Quita el token de este dispositivo ANTES de cerrar sesión (aún hay usuario autenticado)
+      await this.notificaciones.desregistrarDispositivo();
       this.detenerNotificaciones();
       await this.googleAuth.cerrarSesion(); 
       await this.menuCtrl.close(); 
