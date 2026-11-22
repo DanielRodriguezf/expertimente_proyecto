@@ -23,7 +23,7 @@
           <h2>
             {{
               isEditMode
-                ? 'Editar oferta'
+                ? (esBorrador ? 'Continuar borrador' : 'Editar oferta')
                 : 'Nueva oferta de trabajo'
             }}
           </h2>
@@ -52,7 +52,7 @@
         <span class="intro-label">
           {{
             isEditMode
-              ? 'EDITAR VACANTE'
+              ? (esBorrador ? 'BORRADOR' : 'EDITAR VACANTE')
               : 'NUEVA VACANTE'
           }}
         </span>
@@ -60,7 +60,7 @@
         <h1>
           {{
             isEditMode
-              ? 'Actualiza la información de la oferta'
+              ? (esBorrador ? 'Termina tu borrador y publícalo' : 'Actualiza la información de la oferta')
               : 'Publica una nueva oportunidad laboral'
           }}
         </h1>
@@ -81,58 +81,27 @@
       class="offer-form">
 
       <!-- 01: INFORMACIÓN PRINCIPAL -->
-
       <section class="form-section">
         <div class="section-heading">
           <div class="section-number">01</div>
-
           <div>
             <h2>Información principal</h2>
-
-            <p>
-              Identifica correctamente el cargo y el área
-              a la que pertenece la vacante.
-            </p>
+            <p>Identifica correctamente el cargo, el área y el perfil requerido para la vacante.</p>
           </div>
         </div>
 
         <!-- TÍTULO Y CARGO -->
-
         <div class="form-grid two-columns">
-
-          <!-- TÍTULO -->
-
           <div class="form-group">
-            <label>
-              Título de la oferta
-              <span class="required">*</span>
-            </label>
-
-            <ion-input
-              formControlName="titulo"
-              placeholder="Ej: Técnico de soporte para oficina"
-              fill="outline">
-            </ion-input>
-
-            <span
-              class="error-text"
-              *ngIf="
-                ofertaForm.get('titulo')?.touched &&
-                ofertaForm.get('titulo')?.invalid
-              ">
-              Ingresa un título descriptivo
-              de al menos 4 caracteres.
+            <label>Título de la oferta <span class="required">*</span></label>
+            <ion-input formControlName="titulo" placeholder="Ej: Técnico de soporte para oficina" fill="outline"></ion-input>
+            <span class="error-text" *ngIf="ofertaForm.get('titulo')?.touched && ofertaForm.get('titulo')?.invalid">
+              Ingresa un título descriptivo de al menos 4 caracteres.
             </span>
           </div>
 
-          <!-- CARGO -->
-
           <div class="form-group autocomplete-group">
-            <label>
-              Cargo
-              <span class="required">*</span>
-            </label>
-
+            <label>Cargo <span class="required">*</span></label>
             <ion-input
               type="text"
               formControlName="cargoNombre"
@@ -144,57 +113,33 @@
               (ionBlur)="ocultarSugerenciasCargo()">
             </ion-input>
 
-            <!-- SUGERENCIAS DE CARGOS -->
-
-            <div
-              class="autocomplete-results"
-              *ngIf="
-                mostrarSugerenciasCargo &&
-                cargosFiltrados.length > 0
-              ">
-
-              <button
-                type="button"
-                class="autocomplete-option"
-                *ngFor="let cargo of cargosFiltrados"
-                (click)="seleccionarCargo(cargo)">
-
+            <div class="autocomplete-results" *ngIf="mostrarSugerenciasCargo && cargosFiltrados.length > 0">
+              <button type="button" class="autocomplete-option" *ngFor="let cargo of cargosFiltrados" (mousedown)="seleccionarCargo(cargo)">
                 <div class="suggestion-icon">💼</div>
-
                 <div class="suggestion-content">
                   <strong>{{ cargo.nombre }}</strong>
                   <span>{{ cargo.area }}</span>
                 </div>
               </button>
             </div>
-
-            <span class="helper-text">
-              Busca un cargo registrado en la plataforma.
+            <span class="helper-text" *ngIf="cargandoCatalogos">Cargando cargos validados…</span>
+            <span class="helper-text" *ngIf="!cargandoCatalogos && cargosLaborales.length === 0 && errorCatalogos">
+              No se pudieron cargar los cargos ({{ errorCatalogos }}).
             </span>
-
-            <span
-              class="error-text"
-              *ngIf="
-                ofertaForm.get('cargoNombre')?.touched &&
-                ofertaForm.get('cargoNombre')?.invalid
-              ">
-              Debes indicar el cargo de la oferta.
+            <span class="helper-text" *ngIf="!cargandoCatalogos && cargosLaborales.length === 0 && !errorCatalogos">
+              Se leyeron {{ documentosCargosLeidos }} documentos de la colección «{{ coleccionCargos }}»
+              (proyecto / base de datos: {{ proyectoFirebase }}).
+            </span>
+            <span class="helper-text" *ngIf="!cargandoCatalogos && cargosLaborales.length > 0">
+              {{ cargosLaborales.length }} cargos disponibles.
             </span>
           </div>
         </div>
 
         <!-- ÁREA Y MODALIDAD -->
-
         <div class="form-grid two-columns">
-
-          <!-- ÁREA LABORAL -->
-
           <div class="form-group autocomplete-group">
-            <label>
-              Área laboral
-              <span class="required">*</span>
-            </label>
-
+            <label>Área laboral <span class="required">*</span></label>
             <ion-input
               type="text"
               formControlName="areaLaboral"
@@ -206,143 +151,179 @@
               (ionBlur)="ocultarSugerenciasArea()">
             </ion-input>
 
-            <!-- SUGERENCIAS DE ÁREAS -->
-
-            <div
-              class="autocomplete-results"
-              *ngIf="
-                mostrarSugerenciasArea &&
-                areasFiltradas.length > 0
-              ">
-
-              <button
-                type="button"
-                class="autocomplete-option"
-                *ngFor="let area of areasFiltradas"
-                (click)="seleccionarArea(area)">
-
+            <div class="autocomplete-results" *ngIf="mostrarSugerenciasArea && areasFiltradas.length > 0">
+              <button type="button" class="autocomplete-option" *ngFor="let area of areasFiltradas" (mousedown)="seleccionarArea(area)">
                 <div class="suggestion-icon">🗂️</div>
-
                 <div class="suggestion-content">
                   <strong>{{ area.nombre }}</strong>
-
-                  <span *ngIf="area.plantillaId">
-                    Plantilla disponible
-                  </span>
-
-                  <span *ngIf="!area.plantillaId">
-                    Cuestionario personalizable
-                  </span>
+                  <span *ngIf="area.plantillaId">Plantilla disponible</span>
+                  <span *ngIf="!area.plantillaId">Cuestionario personalizable</span>
                 </div>
               </button>
             </div>
-
-            <span class="helper-text">
-              Esta área será utilizada para clasificar
-              la oferta y los postulantes.
-            </span>
-
-            <span
-              class="error-text"
-              *ngIf="
-                ofertaForm.get('areaLaboral')?.touched &&
-                ofertaForm.get('areaLaboral')?.invalid
-              ">
-              Debes indicar un área laboral.
+            <span class="helper-text" *ngIf="cargandoCatalogos">Cargando áreas validadas…</span>
+            <span class="helper-text" *ngIf="!cargandoCatalogos">
+              {{ areasLaborales.length }} áreas disponibles. Será utilizada para clasificar la oferta.
+              <ng-container *ngIf="areasLaborales.length === 0 && documentosAreasLeidos === null">
+                (No se pudo leer la colección de áreas.)
+              </ng-container>
             </span>
           </div>
 
-          <!-- MODALIDAD -->
-
           <div class="form-group">
-            <label>
-              Modalidad de trabajo
-              <span class="required">*</span>
-            </label>
-
-            <ion-select
-              formControlName="modalidad"
-              interface="popover"
-              fill="outline">
-
-              <ion-select-option value="Remoto">
-                🏠 Remoto
-              </ion-select-option>
-
-              <ion-select-option value="Híbrido">
-                🏢 Híbrido
-              </ion-select-option>
-
-              <ion-select-option value="Presencial">
-                📍 Presencial
-              </ion-select-option>
+            <label>Modalidad de trabajo <span class="required">*</span></label>
+            <ion-select formControlName="modalidad" interface="popover" fill="outline">
+              <ion-select-option value="Remoto">🏠 Remoto</ion-select-option>
+              <ion-select-option value="Híbrido">🏢 Híbrido</ion-select-option>
+              <ion-select-option value="Presencial">📍 Presencial</ion-select-option>
             </ion-select>
           </div>
         </div>
 
-        <!-- INFORMACIÓN DEL CUESTIONARIO -->
+        <!-- EXPERIENCIA Y NIVEL EDUCATIVO -->
+        <div class="form-grid two-columns">
+          <div class="form-group">
+            <label>Nivel de Experiencia Requerida <span class="required">*</span></label>
+            <ion-select formControlName="experiencia" interface="popover" fill="outline">
+              <ion-select-option value="Sin experiencia">Sin experiencia / Trainee</ion-select-option>
+              <ion-select-option value="Menos de 1 año">Menos de 1 año (Junior)</ion-select-option>
+              <ion-select-option value="1 a 3 años">1 a 3 años (Semi-Senior)</ion-select-option>
+              <ion-select-option value="3 a 5 años">3 a 5 años (Senior)</ion-select-option>
+              <ion-select-option value="Más de 5 años">Más de 5 años (Lead / Specialist)</ion-select-option>
+            </ion-select>
+          </div>
 
-        <div
-          class="questionnaire-status"
-          *ngIf="ofertaForm.get('cargoNombre')?.value">
+          <div class="form-group">
+            <label>Nivel Educativo / Estudios <span class="required">*</span></label>
+            <ion-select formControlName="nivelEducativo" interface="popover" fill="outline">
+              <ion-select-option value="Indiferente">Indiferente / Sin requerimiento</ion-select-option>
+              <ion-select-option value="Enseñanza Media">Enseñanza Media Completa</ion-select-option>
+              <ion-select-option value="Técnico Nivel Superior">Técnico Nivel Superior</ion-select-option>
+              <ion-select-option value="Universitario">Universitario Completo</ion-select-option>
+              <ion-select-option value="Posgrado / Magíster">Posgrado / Magíster</ion-select-option>
+            </ion-select>
+          </div>
+        </div>
 
-          <div class="status-icon">🎯</div>
+        <!-- JORNADA Y RANGO SALARIAL -->
+        <div class="form-grid two-columns">
+          <div class="form-group">
+            <label>Tipo de Jornada <span class="required">*</span></label>
+            <ion-select formControlName="jornada" interface="popover" fill="outline">
+              <ion-select-option value="Completa">Jornada Completa (Full-time)</ion-select-option>
+              <ion-select-option value="Media jornada">Media Jornada (Part-time)</ion-select-option>
+              <ion-select-option value="Por Turnos">Por Turnos / Rotativo</ion-select-option>
+              <ion-select-option value="Art. 22 / Flexible">Art. 22 / Horario Flexible</ion-select-option>
+            </ion-select>
+          </div>
 
-          <div class="status-content">
-            <div class="status-title">
-              <strong>Cuestionario del cargo</strong>
-
-              <span
-                class="status-badge"
-                *ngIf="
-                  ofertaForm.get('formularioId')?.value &&
-                  ofertaForm.get('formularioId')?.value !==
-                    'personalizado'
-                ">
-                Plantilla automática
-              </span>
-
-              <span
-                class="status-badge custom"
-                *ngIf="
-                  !ofertaForm.get('formularioId')?.value ||
-                  ofertaForm.get('formularioId')?.value ===
-                    'personalizado'
-                ">
-                Personalizado
-              </span>
-            </div>
-
-            <p
-              *ngIf="
-                ofertaForm.get('formularioId')?.value &&
-                ofertaForm.get('formularioId')?.value !==
-                  'personalizado'
-              ">
-              Se cargó una plantilla de preguntas
-              según el cargo o área seleccionada.
-              Puedes modificarla libremente.
-            </p>
-
-            <p
-              *ngIf="
-                !ofertaForm.get('formularioId')?.value ||
-                ofertaForm.get('formularioId')?.value ===
-                  'personalizado'
-              ">
-              Puedes crear las preguntas necesarias
-              para evaluar a los candidatos de esta oferta.
-            </p>
+          <div class="form-group">
+            <label>Rango Salarial / Renta Estimada <span class="optional">Opcional</span></label>
+            <ion-input formControlName="rangoSalarial" placeholder="Ej: $700.000 - $900.000 Líquidos" fill="outline"></ion-input>
           </div>
         </div>
       </section>
 
-      <!-- 02: CUESTIONARIO -->
+      <!-- 02: DETALLES DEL PUESTO -->
+      <section class="form-section">
+        <div class="section-heading">
+          <div class="section-number">02</div>
+          <div>
+            <h2>Detalles del puesto</h2>
+            <p>Agrega información útil para que los candidatos entiendan claramente la oportunidad.</p>
+          </div>
+        </div>
+
+        <div class="form-grid two-columns">
+          <div class="form-group">
+            <label>Dirección / ubicación <span class="optional">Opcional</span></label>
+            <ion-input formControlName="direccion" placeholder="Ej: Providencia, Santiago" fill="outline"></ion-input>
+          </div>
+
+          <div class="form-group">
+            <label>Habilidades Técnicas <span class="optional">Opcional</span></label>
+            <ion-input formControlName="habilidades" placeholder="Ej: Excel, Angular, SQL..." fill="outline"></ion-input>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Habilidades Blandas / Competencias <span class="optional">Opcional</span></label>
+          <ion-input formControlName="habilidadesBlandas" placeholder="Ej: Liderazgo, Trabajo bajo presión, Proactividad..." fill="outline"></ion-input>
+        </div>
+
+        <div class="form-group">
+          <label>Descripción del trabajo y funciones <span class="required">*</span></label>
+          <ion-textarea formControlName="descripcion" placeholder="Describe responsabilidades, requisitos, horario, condiciones y beneficios..." rows="6" fill="outline"></ion-textarea>
+        </div>
+      </section>
+
+      <!-- 03: INFORMACIÓN DE CONTACTO -->
+
+      <section class="form-section">
+        <div class="section-heading">
+          <div class="section-number">03</div>
+
+          <div>
+            <h2>Información de contacto</h2>
+
+            <p>
+              Datos que permitirán gestionar el proceso
+              de reclutamiento.
+            </p>
+          </div>
+        </div>
+
+        <div class="form-grid two-columns">
+
+          <!-- CORREO -->
+
+          <div class="form-group">
+            <label>
+              Email de contacto
+              <span class="required">*</span>
+            </label>
+
+            <ion-input
+              formControlName="contactoEmail"
+              type="email"
+              placeholder="reclutamiento@empresa.com"
+              fill="outline">
+            </ion-input>
+
+            <span
+              class="error-text"
+              *ngIf="
+                ofertaForm.get('contactoEmail')?.touched &&
+                ofertaForm.get('contactoEmail')?.invalid
+              ">
+              Ingresa un correo electrónico válido.
+            </span>
+          </div>
+
+          <!-- TELÉFONO -->
+
+          <div class="form-group">
+            <label>
+              Teléfono de contacto
+              <span class="optional">Opcional</span>
+            </label>
+
+            <ion-input
+              formControlName="contactoTelefono"
+              type="tel"
+              placeholder="+56 9 1234 5678"
+              fill="outline">
+            </ion-input>
+          </div>
+        </div>
+      </section>
+
+      <!-- 04: CUESTIONARIO -->
 
       <section class="form-section questionnaire-section">
         <div class="section-heading questionnaire-heading">
           <div class="heading-main">
-            <div class="section-number">02</div>
+            <div class="section-number">04</div>
 
             <div>
               <h2>Cuestionario de postulación</h2>
@@ -362,6 +343,29 @@
               <span>Puntaje máximo</span>
               <strong>{{ puntajeMaximo }} pts</strong>
             </div>
+
+            <!-- BOTÓN GENERAR CON IA -->
+            <ion-button
+              type="button"
+              fill="solid"
+              color="tertiary"
+              size="small"
+              (click)="generarCuestionarioConIA()"
+              [disabled]="isGeneratingIA || isLoading">
+
+              <ion-spinner
+                name="crescent"
+                *ngIf="isGeneratingIA">
+              </ion-spinner>
+
+              <ion-icon
+                name="sparkles-outline"
+                slot="start"
+                *ngIf="!isGeneratingIA">
+              </ion-icon>
+
+              {{ isGeneratingIA ? 'Generando con IA...' : 'Generar con IA' }}
+            </ion-button>
 
             <ion-button
               type="button"
@@ -391,7 +395,7 @@
 
           <p>
             Agrega una pregunta para comenzar a crear
-            el cuestionario de esta oferta.
+            el cuestionario de esta oferta o utiliza el botón de IA.
           </p>
 
           <ion-button
@@ -618,150 +622,13 @@
         </div>
       </section>
 
-      <!-- 03: DETALLES DEL PUESTO -->
-
-      <section class="form-section">
-        <div class="section-heading">
-          <div class="section-number">03</div>
-
-          <div>
-            <h2>Detalles del puesto</h2>
-
-            <p>
-              Agrega información útil para que los candidatos
-              entiendan claramente la oportunidad.
-            </p>
-          </div>
-        </div>
-
-        <div class="form-grid two-columns">
-
-          <!-- DIRECCIÓN -->
-
-          <div class="form-group">
-            <label>
-              Dirección / ubicación
-              <span class="optional">Opcional</span>
-            </label>
-
-            <ion-input
-              formControlName="direccion"
-              placeholder="Ej: Providencia, Santiago"
-              fill="outline">
-            </ion-input>
-          </div>
-
-          <!-- HABILIDADES -->
-
-          <div class="form-group">
-            <label>
-              Habilidades o conocimientos
-              <span class="optional">Opcional</span>
-            </label>
-
-            <ion-input
-              formControlName="habilidades"
-              placeholder="Ej: Excel, atención al cliente..."
-              fill="outline">
-            </ion-input>
-          </div>
-        </div>
-
-        <!-- DESCRIPCIÓN -->
-
-        <div class="form-group">
-          <label>
-            Descripción del trabajo y funciones
-            <span class="required">*</span>
-          </label>
-
-          <ion-textarea
-            formControlName="descripcion"
-            placeholder="Describe responsabilidades, requisitos, horario, condiciones y beneficios..."
-            rows="6"
-            fill="outline">
-          </ion-textarea>
-
-          <span
-            class="error-text"
-            *ngIf="
-              ofertaForm.get('descripcion')?.touched &&
-              ofertaForm.get('descripcion')?.invalid
-            ">
-            La descripción debe contener
-            al menos 15 caracteres.
-          </span>
-        </div>
-      </section>
-
-      <!-- 04: INFORMACIÓN DE CONTACTO -->
-
-      <section class="form-section">
-        <div class="section-heading">
-          <div class="section-number">04</div>
-
-          <div>
-            <h2>Información de contacto</h2>
-
-            <p>
-              Datos que permitirán gestionar el proceso
-              de reclutamiento.
-            </p>
-          </div>
-        </div>
-
-        <div class="form-grid two-columns">
-
-          <!-- CORREO -->
-
-          <div class="form-group">
-            <label>
-              Email de contacto
-              <span class="required">*</span>
-            </label>
-
-            <ion-input
-              formControlName="contactoEmail"
-              type="email"
-              placeholder="reclutamiento@empresa.com"
-              fill="outline">
-            </ion-input>
-
-            <span
-              class="error-text"
-              *ngIf="
-                ofertaForm.get('contactoEmail')?.touched &&
-                ofertaForm.get('contactoEmail')?.invalid
-              ">
-              Ingresa un correo electrónico válido.
-            </span>
-          </div>
-
-          <!-- TELÉFONO -->
-
-          <div class="form-group">
-            <label>
-              Teléfono de contacto
-              <span class="optional">Opcional</span>
-            </label>
-
-            <ion-input
-              formControlName="contactoTelefono"
-              type="tel"
-              placeholder="+56 9 1234 5678"
-              fill="outline">
-            </ion-input>
-          </div>
-        </div>
-      </section>
-
       <!-- ACCIONES DEL FORMULARIO -->
 
       <div class="form-actions">
         <div class="actions-help">
           <strong>
             {{
-              isEditMode
+              isEditMode && !esBorrador
                 ? '¿Terminaste los cambios?'
                 : '¿Lista la oferta?'
             }}
@@ -769,9 +636,9 @@
 
           <span>
             {{
-              isEditMode
+              isEditMode && !esBorrador
                 ? 'Guarda para actualizar la publicación.'
-                : 'Publica para que los candidatos puedan visualizarla.'
+                : 'Publica para que los candidatos puedan verla, o guárdala como borrador para seguir después.'
             }}
           </span>
         </div>
@@ -783,6 +650,21 @@
             color="medium"
             (click)="volver()">
             Cancelar
+          </ion-button>
+
+          <!-- Solo en oferta nueva o en un borrador existente -->
+          <ion-button
+            *ngIf="!isEditMode || esBorrador"
+            type="button"
+            fill="outline"
+            color="primary"
+            [disabled]="isLoading"
+            (click)="guardarComoBorrador()">
+            <ion-icon
+              name="document-text-outline"
+              slot="start">
+            </ion-icon>
+            Guardar como borrador
           </ion-button>
 
           <ion-button
@@ -802,7 +684,7 @@
               </ion-icon>
 
               {{
-                isEditMode
+                isEditMode && !esBorrador
                   ? 'Guardar cambios'
                   : 'Publicar oferta'
               }}

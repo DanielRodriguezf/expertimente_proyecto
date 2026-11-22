@@ -12,6 +12,11 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
+  path: 'auth/login',
+  redirectTo: 'login',
+  pathMatch: 'full'
+  },
+  {
     path: 'login',
     loadComponent: () => import('./pages/login/login.page').then( m => m.LoginPage),
     title: 'Login - ExpertiMente'
@@ -41,6 +46,10 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     loadComponent: () => import('./pages_admin/dashboard/dashboard.page').then( m => m.DashboardPage)
+  },
+  {
+    path: 'buscar-postulantes',
+    loadComponent: () => import('./pages/buscar-postulantes/buscar-postulantes.page').then( m => m.BuscarPostulantesPage)
   },
   
 

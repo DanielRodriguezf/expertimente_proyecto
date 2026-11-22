@@ -1,0 +1,130 @@
+<ion-content class="ion-padding">
+  
+<!-- Filtro por Dropdown (Nativo, sin bloqueos) -->
+  <div class="filtro-area-container" *ngIf="!candidatoSeleccionado">
+    <h3 class="filtro-titulo">Área laboral</h3>
+    
+    <div class="selector-nativo-container">
+      <ion-icon name="briefcase-outline" color="success"></ion-icon>
+      <!-- Usamos (change) en lugar de ionChange para HTML nativo -->
+      <select 
+        [(ngModel)]="areaSeleccionada" 
+        (change)="alCambiarArea()" 
+        class="selector-nativo">
+        <option value="Todas">Todas las áreas</option>
+        <option *ngFor="let area of sugerenciasAreas" [value]="area">
+          {{ area }}
+        </option>
+      </select>
+    </div>
+    
+    <p class="filtro-helper">Realiza una búsqueda para cargar las áreas disponibles.</p>
+  </div>
+
+  <!-- Buscador Superior -->
+  <div class="buscador-container" *ngIf="!candidatoSeleccionado">
+    <ion-searchbar
+      placeholder="Buscar por área laboral (ej. Gastronomía, Repostería)..."
+      [value]="textoBusqueda"
+      [debounce]="200"
+      (ionInput)="buscarCandidatos($event)">
+    </ion-searchbar>
+
+    <!-- Autocompletado de Áreas Independientes -->
+    <ion-list class="sugerencias-list" *ngIf="mostrarSugerencias">
+      <ion-item 
+        button 
+        *ngFor="let area of sugerenciasFiltradas" 
+        (click)="seleccionarSugerencia(area)">
+        <ion-icon name="search-outline" slot="start"></ion-icon>
+        <ion-label>{{ area }}</ion-label>
+      </ion-item>
+    </ion-list>
+  </div>
+
+  <!-- Vistas Principales (Cuadrícula) -->
+  <ng-container *ngIf="!candidatoSeleccionado">
+    <!-- Estado Vacio -->
+    <section *ngIf="candidatosFiltrados.length === 0" class="estado-vacio">
+      <h2>No hay coincidencias</h2>
+      <p>Prueba buscando otras áreas laborales como "Gastronomía" o "Repostería".</p>
+    </section>
+
+    <!-- Cuadrícula de Candidatos -->
+    <ion-grid *ngIf="candidatosFiltrados.length > 0">
+      <ion-row>
+        <!-- Iteramos añadiendo el index 'i' para el ranking visual -->
+        <ion-col *ngFor="let candidato of candidatosFiltrados; let i = index" size="12" size-md="6" size-lg="4">
+          <ion-card>
+            <img 
+              *ngIf="candidato.foto" 
+              [src]="candidato.foto" 
+              class="foto-perfil" 
+              [alt]="candidato.nombrePostulante" />
+
+            <ion-card-header>
+              <!-- Indicador de Ranking -->
+              <ion-card-subtitle *ngIf="candidato.porcentajeIdoneidad && candidato.porcentajeIdoneidad > 0" color="primary">
+                 Top #{{ i + 1 }} en esta búsqueda 🏆
+              </ion-card-subtitle>
+
+              <ion-card-title>{{ candidato.nombrePostulante || 'Postulante registrado' }}</ion-card-title>
+              <ion-card-subtitle>{{ candidato.nombreCargo || 'Cargo no especificado' }}</ion-card-subtitle>
+              <p class="area-tag"><strong>Área:</strong> {{ candidato.areaLaboral }}</p>
+            </ion-card-header>
+
+            <ion-card-content>
+              <div class="badge-container">
+                <ion-badge 
+                  *ngIf="tieneIdoneidad(candidato.porcentajeIdoneidad); else sinEval"
+                  [color]="obtenerColorIdoneidad(candidato.porcentajeIdoneidad)">
+                  Idoneidad: {{ candidato.porcentajeIdoneidad }}%
+                </ion-badge>
+                
+                <ng-template #sinEval>
+                  <ion-badge color="medium">Sin evaluación</ion-badge>
+                </ng-template>
+              </div>
+
+              <p class="resumen-ia" *ngIf="candidato.resumenIA">
+                <strong>IA:</strong> {{ candidato.resumenIA }}
+              </p>
+
+              <ion-button expand="block" fill="outline" (click)="verDetalle(candidato)">
+                Ver detalle
+              </ion-button>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ng-container>
+
+  <!-- Vista Secundaria (Perfil Detallado) -->
+  <section *ngIf="candidatoSeleccionado as c" class="detalle-perfil">
+    <ion-button fill="clear" (click)="volverBusqueda()">
+      <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+      Volver a la búsqueda
+    </ion-button>
+
+    <h2>{{ c.nombrePostulante || 'Postulante' }}</h2>
+    <h3>{{ c.nombreCargo }}</h3>
+    <p class="area-destacada"><strong>Área laboral:</strong> {{ c.areaLaboral }}</p>
+
+    <div class="info-card">
+      <p><strong>Contacto:</strong> {{ c.contacto || 'No especificado' }}</p>
+      <p>
+        <strong>Idoneidad:</strong> 
+        <span *ngIf="tieneIdoneidad(c.porcentajeIdoneidad)">{{ c.porcentajeIdoneidad }}%</span>
+        <span *ngIf="!tieneIdoneidad(c.porcentajeIdoneidad)">Sin evaluación</span>
+      </p>
+    </div>
+
+    <div *ngIf="c.fortalezas && c.fortalezas.length > 0" class="fortalezas-container">
+      <h4>Fortalezas destacadas (IA)</h4>
+      <ul>
+        <li *ngFor="let fortaleza of c.fortalezas">{{ fortaleza }}</li>
+      </ul>
+    </div>
+  </section>
+</ion-content>

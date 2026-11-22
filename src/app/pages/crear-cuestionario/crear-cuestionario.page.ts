@@ -2,17 +2,52 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { 
-  IonContent, IonHeader, IonToolbar, IonTitle, IonButton, 
-  IonInput, IonItem, IonSelect, IonSelectOption, 
-  IonIcon, IonCard, IonCardContent, ToastController, IonSpinner 
+import {
+  IonContent, IonHeader, IonToolbar, IonTitle, IonButton,
+  IonInput, IonItem, IonSelect, IonSelectOption,
+  IonIcon, IonCard, IonCardContent, ToastController, IonSpinner
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { addOutline, trashOutline, saveOutline } from 'ionicons/icons';
 
-// Importaciones de Firebase
 import { Auth } from '@angular/fire/auth';
 import { Firestore, collection, addDoc } from '@angular/fire/firestore';
+
+import {
+  buscarPlantillaPorDefecto,
+  PLANTILLAS_POR_AREA
+} from '../../services/cuestionarios-defecto.data';
+
+const CARGOS_DESTACADOS_POR_AREA: Record<string, string[]> = {
+  'Administración y Oficina': [
+    'Secretaria / Asistente Administrativa',
+    'Digitador / Operador de Ingreso de Datos',
+    'Administrativo/a',
+    'Recepcionista'
+  ],
+  'Artesanía y Oficios Manuales': [
+    'Alfarero / Ceramista',
+    'Artesano/a',
+    'Orfebre'
+  ],
+  'Gastronomía y Producción Alimentaria': [
+    'Pastelero',
+    'Maestro Panadero',
+    'Encargado de Heladería',
+    'Cocinero/a',
+    'Chef'
+  ],
+  'Educación y Docencia': [
+    'Profesor de Lenguaje y Comunicación',
+    'Profesor/a de Educación Básica',
+    'Educador/a de Párvulos'
+  ],
+  'Textil y Confección': [
+    'Costurera / Operaria de Confección',
+    'Modista',
+    'Patronista'
+  ]
+};
 
 @Component({
   selector: 'app-crear-cuestionario',
@@ -20,8 +55,8 @@ import { Firestore, collection, addDoc } from '@angular/fire/firestore';
   styleUrls: ['./crear-cuestionario.page.scss'],
   standalone: true,
   imports: [
-    CommonModule, ReactiveFormsModule, IonContent, IonHeader, 
-    IonToolbar, IonTitle, IonButton, IonInput, IonItem, 
+    CommonModule, ReactiveFormsModule, IonContent, IonHeader,
+    IonToolbar, IonTitle, IonButton, IonInput, IonItem,
     IonSelect, IonSelectOption, IonIcon, IonCard, IonCardContent, IonSpinner
   ]
 })
@@ -35,38 +70,82 @@ export class CrearCuestionarioPage implements OnInit {
   cuestionarioForm!: FormGroup;
   isSaving = false;
 
+  areasDisponibles: string[] = Array.from(
+    new Set(Object.values(PLANTILLAS_POR_AREA).map(p => p.titulo))
+  ).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+
+  cargosDelArea: string[] = [];
+
   constructor() {
-    // Registrar iconos de Ionic
     addIcons({ addOutline, trashOutline, saveOutline });
   }
 
   ngOnInit() {
     this.cuestionarioForm = this.fb.group({
       titulo: ['', Validators.required],
-      preguntas: this.fb.array([this.crearPreguntaFormGroup()]) 
+      areaLaboral: [''],
+      cargoNombre: [''],
+      preguntas: this.fb.array([this.crearPreguntaFormGroup()])
     });
   }
 
-  // Acceso rápido al FormArray de preguntas
   get preguntas(): FormArray {
     return this.cuestionarioForm.get('preguntas') as FormArray;
   }
 
-  // Estructura de cada bloque de pregunta
-  crearPreguntaFormGroup(): FormGroup {
+  crearPreguntaFormGroup(data?: { texto?: string; tipo?: string; opciones?: string }): FormGroup {
     return this.fb.group({
-      texto: ['', Validators.required],
-      tipo: ['texto', Validators.required],
-      opciones: ['']
+      texto: [data?.texto ?? '', Validators.required],
+      tipo: [data?.tipo ?? 'texto', Validators.required],
+      opciones: [data?.opciones ?? '']
     });
   }
 
-  // Agregar nueva pregunta
+  alCambiarArea(event: any) {
+    const area = String(event?.detail?.value ?? '').trim();
+    this.cuestionarioForm.patchValue({ cargoNombre: '' }, { emitEvent: false });
+    this.cargosDelArea = CARGOS_DESTACADOS_POR_AREA[area] ?? [];
+    this.cargarPlantillaInmediata('', area);
+  }
+
+  alCambiarCargo(event: any) {
+    const cargo = String(event?.detail?.value ?? '').trim();
+    const area = String(this.cuestionarioForm.get('areaLaboral')?.value ?? '').trim();
+    this.cargarPlantillaInmediata(cargo, area);
+  }
+
+  private cargarPlantillaInmediata(cargo: string, area: string) {
+    const plantilla = buscarPlantillaPorDefecto(cargo, area);
+    if (!plantilla) {
+      return;
+    }
+
+    if (!String(this.cuestionarioForm.get('titulo')?.value ?? '').trim()) {
+      this.cuestionarioForm.patchValue({
+        titulo: `Evaluación - ${cargo || area}`
+      });
+    }
+
+    this.preguntas.clear();
+
+    plantilla.preguntas.forEach(p => {
+      const esSeleccion = p.tipo === 'seleccion' && p.opciones.length > 0;
+      this.preguntas.push(
+        this.crearPreguntaFormGroup({
+          texto: p.texto,
+          tipo: esSeleccion ? 'opcion_multiple' : 'texto',
+          opciones: esSeleccion ? p.opciones.map(o => o.texto).join(', ') : ''
+        })
+      );
+    });
+
+    void this.mostrarToast(`Plantilla cargada: ${plantilla.titulo}`, 'success');
+  }
+
   agregarPregunta() {
     this.preguntas.push(this.crearPreguntaFormGroup());
   }
 
-  // Eliminar pregunta existente
   eliminarPregunta(index: number) {
     if (this.preguntas.length > 1) {
       this.preguntas.removeAt(index);
@@ -75,7 +154,6 @@ export class CrearCuestionarioPage implements OnInit {
     }
   }
 
-  // Guardar en la colección 'cuestionarios' de Firestore
   async guardarCuestionario() {
     if (this.cuestionarioForm.invalid) {
       this.cuestionarioForm.markAllAsTouched();
@@ -108,13 +186,15 @@ export class CrearCuestionarioPage implements OnInit {
 
       const nuevoCuestionario = {
         titulo: formValues.titulo,
+        areaLaboral: formValues.areaLaboral || '',
+        cargoNombre: formValues.cargoNombre || '',
         reclutadorId: user.uid,
         preguntas: preguntasFormateadas,
         fechaCreacion: new Date()
       };
 
       await addDoc(collection(this.firestore, 'cuestionarios'), nuevoCuestionario);
-      
+
       this.mostrarToast('Cuestionario guardado exitosamente.', 'success');
       this.router.navigate(['/home']);
 

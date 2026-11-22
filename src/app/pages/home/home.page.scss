@@ -38,11 +38,11 @@
 /* ENCABEZADO */
 
 ion-header {
-  background: #ffffff;
-  border-bottom: 1px solid #d4d1c2;
+  background:#5ab034;
+  border-bottom: none;
 
   .header-toolbar {
-    --background: #ffffff;
+    --background: #5ab034;
     --padding-start: 2rem;
     --padding-end: 2rem;
     --min-height: 70px;
@@ -63,7 +63,7 @@ ion-header {
 
       .brand-title {
         margin: 0;
-        color: #1f2d18;
+        color: #ffffff;
         font-size: 1.5rem;
         font-weight: 800;
         letter-spacing: -0.5px;
@@ -86,7 +86,7 @@ ion-header {
       gap: 0.75rem;
 
       .user-name {
-        color: #1f2d18;
+        color: #ffffff;
         font-size: 0.95rem;
         font-weight: 700;
       }
@@ -127,8 +127,7 @@ ion-header {
 /* CONTENIDO GENERAL */
 
 .main-content {
-  --background: #f1eedd;
-
+  --background: #f1eedd url('../../../assets/caracolito fondo.png') repeat center top / 750px auto;
   .dashboard-container {
     max-width: 1200px;
     margin: 0 auto;
@@ -143,22 +142,24 @@ ion-header {
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
   box-sizing: border-box;
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 18px 24px;
-  background: #f1eedd;
+  padding: 18px 16px;
+  background: transparent;
 
   button {
-    padding: 12px 18px;
+    padding: 10px 14px;
     background: #ffffff;
     color: #314b27;
     border: 1px solid #cbd5be;
     border-radius: 10px;
     font: inherit;
+    font-size: 0.9rem;
     font-weight: 700;
+    white-space: nowrap;
     cursor: pointer;
     transition:
       background-color 0.2s ease,
@@ -177,6 +178,28 @@ ion-header {
     &:focus-visible {
       outline: 3px solid #9dc884;
       outline-offset: 3px;
+    }
+
+    &:focus-visible {
+      outline: 3px solid #9dc884;
+      outline-offset: 3px;
+    }
+
+    &.btn-crear-oferta-nav {
+      background: #4f9d14;
+      color: #ffffff;
+      border-color: #458a12;
+
+      &:hover:not(:disabled) {
+        background: #458a12;
+      }
+
+      &:disabled {
+        background: #d4d1c2;
+        color: #5d8a51;
+        border-color: #cbd5be;
+        cursor: not-allowed;
+      }
     }
   }
 }
@@ -207,12 +230,20 @@ ion-header {
 
 .welcome-banner {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end; /* Mueve el texto al lado derecho donde estaba el botón */
   align-items: center;
-  gap: 1rem;
+  gap: 1.5rem;
+  min-height: 320px;
   margin-bottom: 1.25rem;
-  padding: 2.5rem;
-  background: linear-gradient(135deg, #458a12 0%, #4f9d14 100%);
+  padding: 4rem 3rem;
+  background:
+    linear-gradient(
+      270deg,
+      rgba(45, 102, 12, 0.65) 0%,
+      rgba(56, 122, 16, 0.30) 50%,
+      rgba(79, 157, 20, 0) 100%
+    ),
+    url('../../../assets/caracolito banner.png') no-repeat center bottom / cover;
   color: #ffffff;
   border-radius: 20px;
   box-shadow: 0 10px 25px -5px rgba(79, 157, 20, 0.25);
@@ -220,25 +251,8 @@ ion-header {
   .banner-content {
     display: flex;
     align-items: center;
-    gap: clamp(0.65rem, 1.3vw, 1.2rem);
-    width: 100%;
-    min-width: 0;
-
-    .banner-caracol {
-      display: block;
-      flex-shrink: 0;
-      box-sizing: border-box;
-      width: clamp(72px, 12vw, 150px);
-      height: auto;
-      aspect-ratio: 1;
-      margin: 0;
-      padding: 0;
-      background: transparent;
-      border: 0;
-      border-radius: 0;
-      box-shadow: none;
-      object-fit: contain;
-    }
+    width: 56%; /* Corre el bloque de texto un poco más hacia la izquierda */
+    min-width: 300px;
 
     .banner-text {
       flex: 1;
@@ -246,17 +260,20 @@ ion-header {
     }
 
     h1 {
-      margin: 0 0 0.5rem;
-      font-size: 2rem;
+      margin: 0 0 0.65rem;
+      font-size: 2.55rem; /* Más grande */
       font-weight: 800;
       letter-spacing: -0.5px;
+      text-shadow: 0 2px 8px rgba(15, 40, 5, 0.55);
     }
 
     p {
       max-width: 100%;
       margin: 0;
       color: #f4f1e0;
-      font-size: 1rem;
+      font-size: 1.18rem; /* Más grande */
+      line-height: 1.5;
+      text-shadow: 0 1px 6px rgba(15, 40, 5, 0.55);
     }
   }
 
@@ -449,6 +466,73 @@ ion-header {
     }
   }
 
+  .jobs-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+
+    .jobs-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1rem;
+      background: #ffffff;
+      color: #527947;
+      border: 1px solid #f4f1e0;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 0.15s ease, color 0.15s ease;
+
+      &:hover {
+        background: #f4f1e0;
+      }
+
+      &.active {
+        background: #4e8b47;
+        color: #ffffff;
+        border-color: #4e8b47;
+
+        .tab-count {
+          background: rgba(255, 255, 255, 0.25);
+          color: #ffffff;
+        }
+      }
+
+      .tab-count {
+        min-width: 1.4rem;
+        padding: 0.05rem 0.45rem;
+        background: #f4f1e0;
+        color: #527947;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        text-align: center;
+      }
+    }
+  }
+
+  .draft-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding-top: 0.85rem;
+    border-top: 1px dashed #e6e1c5;
+
+    .draft-date {
+      color: #6d9662;
+      font-size: 0.8rem;
+    }
+
+    ion-button {
+      margin: 0;
+    }
+  }
+
   .loading-container,
   .empty-state {
     padding: 3rem 1rem;
@@ -525,6 +609,11 @@ ion-header {
           &.inactiva {
             background-color: #fee2e2;
             color: #b91c1c;
+          }
+
+          &.borrador {
+            background-color: #fef3c7;
+            color: #92400e;
           }
         }
       }
@@ -1549,8 +1638,8 @@ ion-header {
   box-shadow: 0 12px 36px rgba(31, 45, 24, 0.08);
 
   > ion-header {
-    background: #e8efdf;
-    border-bottom: 0;
+    background: #ffffff;
+    border-bottom: 1px solid #d4d1c2;
     box-shadow: none;
 
     &::after {
@@ -2430,5 +2519,305 @@ ion-header {
   .postulante-destacado,
   .busqueda-postulantes-page .busqueda-control {
     transition: none;
+  }
+}
+
+/* =========================================
+   WIDGET DE CHAT FLOTANTE (EXPERTIMENTE)
+   ========================================= */
+$primary-color: #4f9d14;
+$primary-dark: #3b7a0e;
+$primary-light: #eef7e6;
+$bg-color: #f4f7f1;
+$border-color: #d8e4ce;
+$card-bg: #ffffff;
+$text-dark: #1f2d18;
+$text-muted: #5d7a52;
+
+.chat-fab-button {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: linear-gradient(135deg, #458a12 0%, #5ab034 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  box-shadow: 0 6px 20px rgba(69, 138, 18, 0.38);
+  cursor: pointer;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 10px 24px rgba(69, 138, 18, 0.45);
+  }
+}
+
+.chat-widget-container {
+  position: fixed;
+  background-color: $card-bg;
+  border-radius: 18px;
+  box-shadow: 0 14px 44px rgba(24, 42, 16, 0.24);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: all 0.28s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border: 1px solid #c9dbb9;
+
+  &.is-small {
+    bottom: 20px;
+    right: 20px;
+    width: 390px;
+    height: min(610px, calc(100vh - 40px));
+  }
+
+  &.is-large {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 92vw;
+    max-width: 1080px;
+    height: 84vh;
+  }
+
+  /* Cabecera Verde ExpertiMente */
+  .chat-header {
+    background: linear-gradient(135deg, #458a12 0%, #5ab034 100%);
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #ffffff;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(31, 45, 24, 0.12);
+
+    .chat-header-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .chat-back-icon-btn {
+      background: rgba(255, 255, 255, 0.18);
+      border: none;
+      color: #ffffff;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background-color 0.2s;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+
+      ion-icon {
+        font-size: 1.15rem;
+      }
+    }
+
+    .chat-header-info {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+
+      h3 {
+        margin: 0;
+        font-size: 1.02rem;
+        color: #ffffff;
+        font-weight: 800;
+        letter-spacing: -0.2px;
+      }
+
+      .chat-subtitle {
+        font-size: 0.72rem;
+        color: rgba(255, 255, 255, 0.88);
+        font-weight: 500;
+      }
+    }
+
+    .chat-controls {
+      display: flex;
+      gap: 4px;
+
+      button {
+        background: rgba(255, 255, 255, 0.14);
+        border: none;
+        cursor: pointer;
+        color: #ffffff;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        font-size: 1.15rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.2s;
+
+        &:hover {
+          background-color: rgba(255, 255, 255, 0.28);
+        }
+      }
+    }
+  }
+
+  /* Cuerpo Flex con altura bloqueada para evitar desbordes */
+  .chat-body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    background-color: $bg-color;
+
+    /* Bandeja de entrada verde y estilizada */
+    .chat-sidebar {
+      width: 340px;
+      border-right: 1px solid $border-color;
+      overflow-y: auto;
+      background: linear-gradient(180deg, #f3f8ee 0%, #ebf3e3 100%);
+      padding: 8px;
+
+      ::ng-deep app-reclutador-herramientas {
+        display: block;
+        height: 100%;
+
+        /* Estiliza las tarjetas internas de la bandeja */
+        article,
+        .conversacion-card,
+        .item-chat,
+        ion-item {
+          background: #ffffff !important;
+          border: 1px solid #d7e6ca !important;
+          border-left: 4px solid #4f9d14 !important;
+          border-radius: 12px !important;
+          margin-bottom: 8px !important;
+          box-shadow: 0 2px 6px rgba(31, 45, 24, 0.04) !important;
+          transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease !important;
+
+          &:hover {
+            background: #f7fcf2 !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79, 157, 20, 0.12) !important;
+          }
+        }
+      }
+    }
+
+    /* Contenedor del Chat Activo */
+    .chat-main {
+      flex: 1;
+      min-width: 0;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      background-color: #ffffff;
+      overflow: hidden;
+
+      ::ng-deep app-perfil-chat-reclutador {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+        height: 100%;
+        margin-top: 0 !important;
+      }
+
+      .empty-state {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 32px;
+        background: #f8fbf5;
+
+        .empty-icon-circle {
+          width: 72px;
+          height: 72px;
+          border-radius: 50%;
+          background: #e6f2dc;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 16px;
+        }
+
+        .empty-icon {
+          font-size: 2.2rem;
+          color: #4f9d14;
+        }
+
+        h2 {
+          font-size: 1.2rem;
+          color: $text-dark;
+          margin: 0 0 8px;
+          font-weight: 800;
+        }
+
+        p {
+          font-size: 0.88rem;
+          color: $text-muted;
+          max-width: 280px;
+          line-height: 1.5;
+          margin: 0;
+        }
+      }
+    }
+  }
+
+  /* Comportamiento cuando está en tamaño pequeño */
+  &.is-small {
+    .chat-body {
+      .chat-sidebar {
+        width: 100%;
+        border-right: none;
+      }
+
+      .chat-main {
+        display: none;
+      }
+
+      &.has-active-chat {
+        .chat-sidebar {
+          display: none;
+        }
+
+        .chat-main {
+          display: flex;
+          width: 100%;
+        }
+      }
+    }
+  }
+}
+
+/* Responsive móvil para el widget */
+@media (max-width: 768px) {
+  .chat-widget-container {
+    &.is-small,
+    &.is-large {
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      max-width: 100% !important;
+      transform: none !important;
+      border-radius: 0;
+    }
   }
 }

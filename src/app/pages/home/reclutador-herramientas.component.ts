@@ -5,7 +5,8 @@ import {
   OnDestroy,
   inject,
   ChangeDetectorRef,
-  NgZone
+  NgZone,
+  CUSTOM_ELEMENTS_SCHEMA
 } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
@@ -24,6 +25,7 @@ import {
   doc,
   addDoc,
   updateDoc,
+  deleteDoc,
   serverTimestamp
 } from '@angular/fire/firestore';
 
@@ -41,9 +43,10 @@ import {
     FormsModule,
     PerfilChatReclutadorComponent
   ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA], 
   template: `
     <section class="pagina">
-      <h1>
+      <h1 *ngIf="vista !== 'mensajes'">
         {{ titulos[vista] || 'Reclutador' }}
       </h1>
 
@@ -172,102 +175,131 @@ import {
           Todavía no hay registros en esta sección.
         </p>
 
-        <!-- REGISTROS -->
+        <!-- LISTADO DE MENSAJES ESTILO WHATSAPP/INSTAGRAM -->
+        <ng-container *ngIf="vista === 'mensajes'; else vistaNormal">
+          <div class="lista-chats" *ngIf="filas.length > 0">
+            <div class="chat-item" *ngFor="let f of filas" (click)="chat(f['postulanteId'])">
+              
+              <!-- Avatar -->
+              <div class="chat-avatar">
+                <img *ngIf="f['perfil']?.fotoPerfil || f['fotoPostulante']" 
+                     [src]="f['perfil']?.fotoPerfil || f['fotoPostulante']" 
+                     alt="Foto">
+                <div class="avatar-placeholder" *ngIf="!f['perfil']?.fotoPerfil && !f['fotoPostulante']">
+                  {{ (nombre(f['perfil']) || f['nombrePostulante'] || 'P').charAt(0) | uppercase }}
+                </div>
+              </div>
 
-        <article *ngFor="let f of filas">
-          <!-- POSTULANTES ACEPTADOS -->
+              <!-- Información -->
+              <div class="chat-info">
+                <h3>{{ nombre(f['perfil']) || f['nombrePostulante'] || 'Postulante' }}</h3>
+                <p>{{ f['ultimoMensaje'] || 'Sin mensajes todavía' }}</p>
+              </div>
 
-          <ng-container *ngIf="vista === 'aceptados'">
-            <img
-              *ngIf="f['perfil']?.fotoPerfil"
-              [src]="f['perfil'].fotoPerfil"
-              alt="Foto del postulante">
+              <!-- Íconos de acción -->
+              <div class="chat-actions-container">
+                <div class="chat-action" title="Abrir chat">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                </div>
+                
+                <!-- Botón de Eliminar Chat -->
+                <button 
+                  type="button" 
+                  class="btn-eliminar-chat" 
+                  (click)="confirmarEliminarChat(f, $event)" 
+                  title="Eliminar chat">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                  </svg>
+                </button>
+              </div>
 
-            <h2>
-              {{ nombre(f['perfil']) }}
-            </h2>
+            </div>
+          </div>
+        </ng-container>
 
-            <p>
-              {{
-                f['nombreCargo'] ||
-                f['cargoNombre'] ||
-                f['ofertaTitulo']
-              }}
-              · Aceptado
-            </p>
+        <!-- REGISTROS NORMALES (TARJETAS GRANDES) -->
+        <ng-template #vistaNormal>
+          <article *ngFor="let f of filas">
+            <!-- POSTULANTES ACEPTADOS -->
+            <ng-container *ngIf="vista === 'aceptados'">
+              <img
+                *ngIf="f['perfil']?.fotoPerfil"
+                [src]="f['perfil'].fotoPerfil"
+                alt="Foto del postulante">
 
-            <p>
-              {{ f['perfil']?.correo }}
-              ·
-              {{ f['perfil']?.telefono }}
-            </p>
+              <h2>
+                {{ nombre(f['perfil']) }}
+              </h2>
 
-            <app-perfil-chat-reclutador
-              [postulanteId]="f['postulanteId']"
-              [nombrePostulante]="nombre(f['perfil'])"
-              [nombreReclutador]="nombreReclutador"
-              [nombreEmpresa]="nombreEmpresa">
-            </app-perfil-chat-reclutador>
-          </ng-container>
+              <p>
+                {{
+                  f['nombreCargo'] ||
+                  f['cargoNombre'] ||
+                  f['ofertaTitulo']
+                }}
+                · Aceptado
+              </p>
 
-          <!-- CONVERSACIONES -->
+              <p>
+                {{ f['perfil']?.correo }}
+                ·
+                {{ f['perfil']?.telefono }}
+              </p>
 
-          <ng-container *ngIf="vista === 'mensajes'">
-            <h2>
-              {{ f['nombrePostulante'] || 'Postulante' }}
-            </h2>
+              <app-perfil-chat-reclutador
+                [postulanteId]="f['postulanteId']"
+                [nombrePostulante]="nombre(f['perfil'])"
+                [nombreReclutador]="nombreReclutador"
+                [nombreEmpresa]="nombreEmpresa">
+              </app-perfil-chat-reclutador>
+            </ng-container>
 
-            <p>
-              {{ f['ultimoMensaje'] || 'Sin mensajes todavía' }}
-            </p>
+            <!-- HISTORIAL DE SOLICITUDES -->
+            <ng-container *ngIf="vista === 'solicitudes'">
+              <h2>
+                {{ f['nombre'] }}
+              </h2>
 
-            <button
-              type="button"
-              (click)="chat(f['postulanteId'])">
-              Abrir conversación
-            </button>
-          </ng-container>
+              <p>
+                {{ f['descripcion'] }}
+              </p>
 
-          <!-- HISTORIAL DE SOLICITUDES -->
+              <strong>
+                Estado: {{ f['estado'] }}
+              </strong>
 
-          <ng-container *ngIf="vista === 'solicitudes'">
-            <h2>
-              {{ f['nombre'] }}
-            </h2>
+              <small>
+                {{ f['numeroSolicitud'] }}
+              </small>
+            </ng-container>
 
-            <p>
-              {{ f['descripcion'] }}
-            </p>
+            <!-- HISTORIAL DE COMENTARIOS -->
+            <ng-container *ngIf="vista === 'comentarios'">
+              <h2>
+                {{ f['asunto'] }}
+              </h2>
 
-            <strong>
-              Estado: {{ f['estado'] }}
-            </strong>
+              <p>
+                {{ f['mensaje'] }}
+              </p>
 
-            <small>
-              {{ f['numeroSolicitud'] }}
-            </small>
-          </ng-container>
+              <small>
+                {{
+                  f['leidoAdministracion']
+                    ? 'Leído por administración'
+                    : 'Enviado a administración'
+                }}
+              </small>
+            </ng-container>
+          </article>
+        </ng-template>
 
-          <!-- HISTORIAL DE COMENTARIOS -->
-
-          <ng-container *ngIf="vista === 'comentarios'">
-            <h2>
-              {{ f['asunto'] }}
-            </h2>
-
-            <p>
-              {{ f['mensaje'] }}
-            </p>
-
-            <small>
-              {{
-                f['leidoAdministracion']
-                  ? 'Leído por administración'
-                  : 'Enviado a administración'
-              }}
-            </small>
-          </ng-container>
-        </article>
       </ng-container>
 
       <ng-template #pendiente>
@@ -298,6 +330,122 @@ import {
       padding: 24px;
       border-radius: 16px;
       margin-bottom: 18px;
+    }
+
+    /* ESTILOS PARA LISTA DE CHATS COMPACTA */
+    .lista-chats {
+      display: flex;
+      flex-direction: column;
+      background: white;
+      border: 1px solid #dce2d2;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .chat-item {
+      display: flex;
+      align-items: center;
+      padding: 16px;
+      border-bottom: 1px solid #f0f3eb;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .chat-item:last-child {
+      border-bottom: none;
+    }
+
+    .chat-item:hover {
+      background: #f9fbf7;
+    }
+
+    .chat-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      overflow: hidden;
+      margin-right: 16px;
+      flex-shrink: 0;
+      background: #e2e8db;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #4e8b47;
+      font-size: 20px;
+    }
+
+    .chat-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .avatar-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .chat-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .chat-info h3 {
+      margin: 0 0 4px 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: #1f2d18;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chat-info p {
+      margin: 0;
+      font-size: 14px;
+      color: #66755d;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* CONTENEDOR DE ACCIONES */
+    .chat-actions-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-left: 12px;
+    }
+
+    .chat-action {
+      color: #4e8b47;
+      display: flex;
+      align-items: center;
+    }
+
+    /* ESTILOS DEL BOTÓN ELIMINAR */
+    .btn-eliminar-chat {
+      background: #fbecec;
+      color: #dc3545;
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      padding: 0;
+    }
+
+    .btn-eliminar-chat:hover {
+      background: #dc3545;
+      color: white;
     }
 
     label {
@@ -338,7 +486,7 @@ import {
       opacity: 0.5;
     }
 
-    img {
+    article img {
       width: 70px;
       height: 70px;
       object-fit: cover;
@@ -486,8 +634,11 @@ export class ReclutadorHerramientasComponent
               ...filas,
               ...resultados.flat()
             ];
+          }
 
-            filas = await Promise.all(
+          // Cargar los perfiles tanto para la vista de "aceptados" como para la de "mensajes"
+          if (this.vista === 'aceptados' || this.vista === 'mensajes') {
+            const filasCargadas = await Promise.all(
               filas.map(async fila => {
                 const id = fila['postulanteId'];
 
@@ -499,6 +650,11 @@ export class ReclutadorHerramientasComponent
                   doc(this.db, 'postulantes', id)
                 );
 
+                // FILTRO: Si estamos en aceptados y el perfil del postulante ya no existe, devolvemos null
+                if (this.vista === 'aceptados' && !perfil.exists()) {
+                  return null;
+                }
+
                 return {
                   ...fila,
                   perfil: perfil.exists()
@@ -507,6 +663,9 @@ export class ReclutadorHerramientasComponent
                 };
               })
             );
+
+            // FILTRO: Removemos todos los elementos nulos (postulantes eliminados de la BD)
+            filas = filasCargadas.filter(fila => fila !== null);
           }
 
           if (v !== this.version) {
@@ -620,7 +779,7 @@ export class ReclutadorHerramientasComponent
 
   nombre(perfil: any): string {
     if (!perfil) {
-      return 'Perfil no disponible';
+      return '';
     }
 
     const apellidos =
@@ -657,6 +816,42 @@ export class ReclutadorHerramientasComponent
         }
       }
     );
+  }
+
+  // ==========================================
+  // LÓGICA: ELIMINAR CHAT
+  // ==========================================
+  async confirmarEliminarChat(chatObj: any, event: Event) {
+    // Evitamos que al hacer clic en el botón se abra el chat accidentalmente
+    event.stopPropagation();
+
+    const nombrePersona = this.nombre(chatObj['perfil']) || chatObj['nombrePostulante'] || 'este postulante';
+    
+    // Utilizamos un confirm nativo para no inyectar módulos externos
+    const confirmacion = window.confirm(`¿Estás seguro de que deseas eliminar el chat con ${nombrePersona}? Esta acción no se puede deshacer.`);
+    
+    if (confirmacion) {
+      this.ejecutarEliminacion(chatObj.id);
+    }
+  }
+
+  async ejecutarEliminacion(chatId: string) {
+    if (!chatId) return;
+
+    try {
+      // Elimina el documento de la colección 'conversaciones' en Firestore
+      await deleteDoc(doc(this.db, 'conversaciones', chatId));
+      
+      // Lo remueve visualmente al instante del arreglo 'filas'
+      this.zone.run(() => {
+        this.filas = this.filas.filter(f => f.id !== chatId);
+        this.cdr.markForCheck();
+      });
+    } catch (err) {
+      console.error('Error eliminando el chat:', err);
+      this.error = 'Ocurrió un error al intentar eliminar el chat.';
+      this.cdr.markForCheck();
+    }
   }
 
   async leer(notificacion: any) {

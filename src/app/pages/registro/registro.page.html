@@ -80,6 +80,9 @@
             formGroupName="usuario"
             class="fade-in">
 
+            <div class="step-grid">
+            <!-- COLUMNA 1: DATOS PERSONALES + SEGURIDAD -->
+            <div class="step-col">
             <div class="section-label">
               Datos personales
             </div>
@@ -191,6 +194,67 @@
 
             <hr class="divider">
 
+            <!-- ================================== -->
+            <!-- SEGURIDAD -->
+            <!-- ================================== -->
+            <div class="section-label">
+              Seguridad
+            </div>
+
+            <!-- PASSWORD -->
+            <div class="input-group">
+              <ion-input
+                label="Contraseña *"
+                labelPlacement="floating"
+                fill="outline"
+                type="password"
+                formControlName="password">
+              </ion-input>
+
+              <div
+                class="error-msg"
+                *ngIf="
+                  registroForm
+                    .get('usuario.password')
+                    ?.touched
+                  &&
+                  registroForm
+                    .get('usuario.password')
+                    ?.invalid
+                ">
+                La contraseña debe tener
+                al menos 6 caracteres.
+              </div>
+            </div>
+
+            <!-- CONFIRMAR -->
+            <div class="input-group">
+              <ion-input
+                label="Confirmar contraseña *"
+                labelPlacement="floating"
+                fill="outline"
+                type="password"
+                formControlName="confirmPassword">
+              </ion-input>
+
+              <div
+                class="error-msg"
+                *ngIf="
+                  registroForm
+                    .get('usuario')
+                    ?.hasError('passwordMismatch')
+                  &&
+                  registroForm
+                    .get('usuario.confirmPassword')
+                    ?.touched
+                ">
+                Las contraseñas no coinciden.
+              </div>
+            </div>
+            </div>
+
+            <!-- COLUMNA 2: INFORMACIÓN PROFESIONAL -->
+            <div class="step-col">
             <!-- ================================== -->
             <!-- INFORMACIÓN PROFESIONAL -->
             <!-- ================================== -->
@@ -353,7 +417,7 @@
                 label="Descripción profesional (Opcional)"
                 labelPlacement="floating"
                 fill="outline"
-                rows="3"
+                rows="2"
                 maxlength="400"
                 placeholder="Cuéntanos brevemente sobre tu experiencia profesional."
                 formControlName="descripcionProfesional">
@@ -363,65 +427,7 @@
                 Máximo 400 caracteres.
               </div>
             </div>
-
-            <hr class="divider">
-
-            <!-- ================================== -->
-            <!-- SEGURIDAD -->
-            <!-- ================================== -->
-            <div class="section-label">
-              Seguridad
             </div>
-
-            <!-- PASSWORD -->
-            <div class="input-group">
-              <ion-input
-                label="Contraseña *"
-                labelPlacement="floating"
-                fill="outline"
-                type="password"
-                formControlName="password">
-              </ion-input>
-
-              <div
-                class="error-msg"
-                *ngIf="
-                  registroForm
-                    .get('usuario.password')
-                    ?.touched
-                  &&
-                  registroForm
-                    .get('usuario.password')
-                    ?.invalid
-                ">
-                La contraseña debe tener
-                al menos 6 caracteres.
-              </div>
-            </div>
-
-            <!-- CONFIRMAR -->
-            <div class="input-group">
-              <ion-input
-                label="Confirmar contraseña *"
-                labelPlacement="floating"
-                fill="outline"
-                type="password"
-                formControlName="confirmPassword">
-              </ion-input>
-
-              <div
-                class="error-msg"
-                *ngIf="
-                  registroForm
-                    .get('usuario')
-                    ?.hasError('passwordMismatch')
-                  &&
-                  registroForm
-                    .get('usuario.confirmPassword')
-                    ?.touched
-                ">
-                Las contraseñas no coinciden.
-              </div>
             </div>
 
             <ion-button
@@ -457,6 +463,7 @@
 
             <div class="fade-in">
 
+              <div class="two-column-grid">
               <!-- NOMBRE -->
               <div class="input-group">
                 <ion-input
@@ -510,6 +517,9 @@
                 </div>
               </div>
 
+              </div>
+
+              <div class="two-column-grid">
               <!-- RUBRO -->
               <div class="input-group">
                 <ion-input
@@ -532,6 +542,8 @@
                   placeholder="contacto@empresa.cl"
                   formControlName="emailEmpresa">
                 </ion-input>
+              </div>
+
               </div>
 
               <!-- WEB -->

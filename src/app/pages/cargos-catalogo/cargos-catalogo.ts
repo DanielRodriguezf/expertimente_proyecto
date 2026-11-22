@@ -19,6 +19,8 @@ export const CARGOS_POR_AREA: Record<string, string[]> = {
   // ============================================================
 
   'Administración y Oficina': [
+    'Secretaria / Asistente Administrativa',
+    'Digitador / Operador de Ingreso de Datos',
     'Administrativo/a',
     'Asistente Administrativo/a',
     'Auxiliar Administrativo/a',
@@ -39,6 +41,20 @@ export const CARGOS_POR_AREA: Record<string, string[]> = {
     'Jefe/a de Oficina',
     'Office Manager',
     'Gerente Administrativo/a'
+  ],
+
+
+  // ============================================================
+  // ARTESANÍA
+  // ============================================================
+
+  'Artesanía': [
+    'Alfarero / Ceramista',
+    'Artesano/a',
+    'Orfebre',
+    'Tejedor/a Artesanal',
+    'Tallador/a en Madera',
+    'Marroquinero/a Artesanal'
   ],
 
 
@@ -953,6 +969,7 @@ export const CARGOS_POR_AREA: Record<string, string[]> = {
   // ============================================================
 
   'Educación': [
+    'Profesor de Lenguaje y Comunicación',
     'Profesor/a',
     'Docente',
     'Profesor/a de Educación Básica',
@@ -1004,6 +1021,9 @@ export const CARGOS_POR_AREA: Record<string, string[]> = {
   // ============================================================
 
   'Gastronomía': [
+    'Pastelero',
+    'Maestro Panadero',
+    'Encargado de Heladería',
     'Cocinero/a',
     'Ayudante de Cocina',
     'Maestro/a de Cocina',
@@ -1153,6 +1173,7 @@ export const CARGOS_POR_AREA: Record<string, string[]> = {
   // ============================================================
 
   'Textil y Moda': [
+    'Costurera / Operaria de Confección',
     'Costurero/a',
     'Modista',
     'Sastre',
@@ -1540,8 +1561,6 @@ export async function cargarCatalogoCargos(
     generarCatalogoCargos();
 
 
-  // Firestore admite hasta 500 operaciones
-  // por batch. Dejamos margen usando 450.
   const TAMANO_LOTE =
     450;
 
