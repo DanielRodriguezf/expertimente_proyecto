@@ -1,0 +1,69 @@
+<div class="chat-container">
+  <!-- Panel Vertical de Chat -->
+  <div class="chat-panel" *ngIf="chatAbierto">
+    
+    <!-- Vista 1: Bandeja de Entrada -->
+    <ng-container *ngIf="!conversacionActiva">
+      <div class="chat-header">
+        <span>Bandeja de entrada</span>
+        <ion-button fill="clear" size="small" (click)="toggleChat()">
+          <ion-icon name="close-outline"></ion-icon>
+        </ion-button>
+      </div>
+      <div class="chat-list">
+        <ion-item button (click)="abrirConversacion('Daniel Rodriguez Fuentes')">
+          <ion-avatar slot="start">
+            <img src="assets/daniel.jpg" onerror="this.src='https://ionicframework.com/docs/img/demos/avatar.ionic.png'" />
+          </ion-avatar>
+          <ion-label>
+            <h2>Daniel Rodriguez Fuentes</h2>
+            <p>Hola, vi la postulación para...</p>
+          </ion-label>
+        </ion-item>
+      </div>
+    </ng-container>
+
+    <!-- Vista 2: Conversación Activa -->
+    <ng-container *ngIf="conversacionActiva">
+      <div class="chat-header">
+        <ion-button fill="clear" size="small" (click)="volverBandeja()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+        </ion-button>
+        <span class="chat-user-title">{{ conversacionActiva }}</span>
+        <ion-button fill="clear" size="small" (click)="toggleChat()">
+          <ion-icon name="close-outline"></ion-icon>
+        </ion-button>
+      </div>
+
+      <div class="chat-messages">
+        <div 
+          *ngFor="let msg of mensajes" 
+          class="burbuja-mensaje" 
+          [class.mio]="msg.mio" 
+          [class.otro]="!msg.mio">
+          {{ msg.texto }}
+        </div>
+      </div>
+
+      <div class="chat-footer">
+        <ion-input 
+          placeholder="Escribe un mensaje..." 
+          [(ngModel)]="nuevoMensaje"
+          (keyup.enter)="enviarMensaje()">
+        </ion-input>
+        <ion-button fill="clear" (click)="enviarMensaje()">
+          <ion-icon name="send-outline"></ion-icon>
+        </ion-button>
+      </div>
+    </ng-container>
+
+  </div>
+
+  <!-- Botón Flotante con Indicador Rojo -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="!chatAbierto">
+    <ion-fab-button (click)="toggleChat()">
+      <ion-icon name="chatbubbles-outline"></ion-icon>
+      <ion-badge color="danger" class="badge-notificacion">1</ion-badge>
+    </ion-fab-button>
+  </ion-fab>
+</div>

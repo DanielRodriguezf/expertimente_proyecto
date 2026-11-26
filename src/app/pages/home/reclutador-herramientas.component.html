@@ -1,0 +1,52 @@
+<div class="herramientas-container">
+  
+  <!-- VISTA DE MENSAJES -->
+  <div class="mensajes-container" *ngIf="vista === 'mensajes'">
+    <div class="chat-list" *ngIf="chats && chats.length > 0; else sinChats">
+      
+      <div class="chat-item" *ngFor="let chat of chats">
+        
+        <!-- Avatar -->
+        <div class="chat-avatar">
+          <img *ngIf="chat.fotoPerfil" [src]="chat.fotoPerfil" [alt]="'Foto de ' + chat.nombreCandidato">
+          <div class="avatar-placeholder" *ngIf="!chat.fotoPerfil">
+            {{ chat.nombreCandidato.charAt(0) | uppercase }}
+          </div>
+        </div>
+        
+        <!-- Info del Chat -->
+        <div class="chat-info">
+          <h4>{{ chat.nombreCandidato }}</h4>
+          <p class="ultimo-mensaje">{{ chat.ultimoMensaje || 'Sin mensajes todavía' }}</p>
+        </div>
+
+        <!-- Acciones -->
+        <div class="chat-actions">
+          <!-- Abrir Chat (Verde) -->
+          <button class="btn-abrir-chat" (click)="abrirChat(chat)" title="Abrir conversación">
+            <ion-icon name="chatbubble-outline"></ion-icon>
+          </button>
+
+          <!-- Eliminar Chat (Rojo) -->
+          <button class="btn-eliminar-chat" (click)="confirmarEliminarChat(chat, $event)" title="Eliminar chat">
+            <ion-icon name="trash-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Estado vacío -->
+    <ng-template #sinChats>
+      <div class="empty-state">
+        <ion-icon name="chatbubbles-outline"></ion-icon>
+        <p>No tienes conversaciones activas.</p>
+      </div>
+    </ng-template>
+  </div>
+
+  <!-- AQUI ABAJO PUEDES MANTENER EL RESTO DE TUS VISTAS SI TIENES OTRAS -->
+  <!-- <div *ngIf="vista === 'aceptados'"> ... </div> -->
+  <!-- <div *ngIf="vista === 'solicitudes'"> ... </div> -->
+
+</div>
