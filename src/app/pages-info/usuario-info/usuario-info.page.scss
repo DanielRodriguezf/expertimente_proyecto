@@ -216,6 +216,50 @@ ion-textarea.ion-focused {
   cursor: pointer;
 }
 
+/* --- VALIDACIÓN DE CAMPOS --- */
+.input-wrapper.campo-invalido,
+.date-field.campo-invalido {
+  ion-input.modern-input,
+  ion-textarea.modern-textarea {
+    --border-color: var(--ion-color-danger);
+    --border-width: 2px;
+    --highlight-color-focused: var(--ion-color-danger);
+  }
+}
+
+.radio-group-container.campo-invalido .radio-item {
+  border-color: var(--ion-color-danger);
+}
+
+.field-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 6px 4px 0;
+  color: #c62828; /* rojo con buen contraste sobre blanco */
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.35;
+  animation: errorEntra 0.18s ease-out;
+
+  ion-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+}
+
+@keyframes errorEntra {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field-error {
+    animation: none;
+  }
+}
+
 /* --- FECHAS DEL ESTUDIO --- */
 .dates-grid {
   display: grid;

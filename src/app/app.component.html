@@ -1,6 +1,6 @@
 <ion-app>
 
-  <!-- ANIMACIÓN DE BIENVENIDA / SPLASH CON EL LEMA -->
+  <!-- ANIMACIÓN DE BIENVENIDA / SPLASH INICIAL CON EL LEMA -->
   <div class="splash-screen" [class.splash-hidden]="!mostrandoSplash" aria-hidden="true">
     <div class="splash-content">
       <div class="splash-logo-container">
@@ -16,9 +16,59 @@
     </div>
   </div>
 
+  <!-- ANIMACIÓN DE PANTALLA COMPLETA AL REGISTRARSE POR PRIMERA VEZ -->
+  <div
+    *ngIf="mostrandoBienvenidaRegistro"
+    class="welcome-register-screen"
+    [class.welcome-register-ready]="listoBienvenidaRegistro"
+    [class.welcome-register-hidden]="saliendoBienvenidaRegistro"
+    role="dialog"
+    aria-live="polite"
+    aria-label="Bienvenida a tu nueva cuenta en ExpertiMente">
+
+    <!-- Esferas decorativas de fondo -->
+    <span class="welcome-orb orb-1" aria-hidden="true"></span>
+    <span class="welcome-orb orb-2" aria-hidden="true"></span>
+
+    <div class="welcome-register-content">
+      <div class="welcome-badge-wrapper" aria-hidden="true">
+        <span class="pulse-ring ring-1"></span>
+        <span class="pulse-ring ring-2"></span>
+        <div class="welcome-logo-circle">
+          <ion-icon name="checkmark-circle-outline" class="welcome-main-icon"></ion-icon>
+        </div>
+        <div class="sparkle-badge">
+          <ion-icon name="sparkles-outline"></ion-icon>
+        </div>
+      </div>
+
+      <span class="welcome-pill">
+        <ion-icon name="ribbon-outline" aria-hidden="true"></ion-icon>
+        ¡Cuenta creada con éxito!
+      </span>
+
+      <h1 class="welcome-reg-title">
+        ¡Bienvenido/a{{ nombreBienvenidaRegistro ? ', ' + nombreBienvenidaRegistro : '' }}!
+      </h1>
+
+      <p class="welcome-reg-subtitle">
+        Ya eres parte de <strong>ExpertiMente</strong>. Estamos preparando tu espacio para que tu trayectoria conecte con nuevas oportunidades laborales.
+      </p>
+
+      <div class="welcome-reg-footer">
+        <div class="welcome-reg-loader">
+          <div class="loader-bar-fill"></div>
+        </div>
+        <span class="welcome-reg-status">
+          {{ listoBienvenidaRegistro ? '¡Todo listo! Entrando a ExpertiMente...' : 'Preparando tu perfil...' }}
+        </span>
+      </div>
+    </div>
+  </div>
+
   <!-- AVISO GLOBAL DE NOTIFICACIÓN (VISIBLE EN CUALQUIER PÁGINA) -->
   <div
-    *ngIf="sesionActiva && !mostrandoSplash && notificaciones.avisoActivo() as aviso"
+    *ngIf="sesionActiva && !mostrandoSplash && !mostrandoBienvenidaRegistro && notificaciones.avisoActivo() as aviso"
     class="notif-overlay"
     role="status"
     aria-live="polite">

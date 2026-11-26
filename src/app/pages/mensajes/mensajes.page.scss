@@ -321,8 +321,17 @@ ion-header {
     
     .check-icon { 
       vertical-align: middle; 
-      color: var(--ion-color-primary); 
-      margin-right: 2px; 
+      margin-right: 3px;
+      font-size: 1rem;
+
+      &.visto {
+        color: var(--ion-color-primary);
+      }
+
+      &.enviado {
+        color: var(--ion-color-medium);
+        opacity: 0.8;
+      }
     }
     .you-label { 
       color: var(--ion-color-primary-shade); 
@@ -367,11 +376,12 @@ ion-header {
 
 .message-row {
   display: flex;
+  flex-direction: column;
   width: 100%;
   flex-shrink: 0;
 
   &.mine {
-    justify-content: flex-end;
+    align-items: flex-end;
     .message-bubble {
       background: linear-gradient(135deg, var(--ion-color-secondary-shade) 0%, var(--ion-color-primary-shade) 100%);
       color: #ffffff;
@@ -379,14 +389,14 @@ ion-header {
       box-shadow: 0 3px 12px rgba(var(--ion-color-primary-rgb), 0.22);
       border: 1px solid rgba(var(--ion-color-primary-rgb), 0.15);
       
-      .message-time, .msg-check { 
+      .message-time { 
         color: rgba(255, 255, 255, 0.9); 
       }
     }
   }
 
   &.theirs {
-    justify-content: flex-start;
+    align-items: flex-start;
     .message-bubble {
       background: #ffffff;
       color: var(--ion-color-primary-shade);
@@ -429,8 +439,47 @@ ion-header {
     font-size: 0.72rem; 
     font-weight: 800; 
   }
-  .msg-check { 
-    font-size: 0.95rem; 
+}
+
+/* Indicador de "Enviado / Visto" ubicado justo debajo del último mensaje propio */
+.msg-status-below {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  margin-right: 4px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.73rem;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+
+  &.visto {
+    color: var(--ion-color-primary-shade);
+    border: 1px solid rgba(var(--ion-color-primary-rgb), 0.28);
+
+    .msg-check {
+      color: var(--ion-color-primary);
+    }
+  }
+
+  &.enviado {
+    color: var(--ion-color-medium-shade);
+    border: 1px solid rgba(var(--ion-color-medium-rgb), 0.22);
+
+    .msg-check {
+      color: var(--ion-color-medium);
+    }
+  }
+
+  .msg-check {
+    font-size: 0.95rem;
+  }
+
+  .msg-status-text {
+    line-height: 1;
   }
 }
 

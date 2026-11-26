@@ -10,43 +10,67 @@
     </div>
 
     <div class="form-container fade-in">
-      <form (ngSubmit)="iniciarSesion()">
+      <form (ngSubmit)="iniciarSesion()" novalidate>
         
-        <div class="input-group">
+        <!-- CORREO -->
+        <div class="input-group" [class.campo-invalido]="!!errores.correo">
           <ion-item lines="none" class="custom-input-item">
-            <ion-icon name="mail-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-icon name="mail-outline" slot="start" class="input-icon" aria-hidden="true"></ion-icon>
             <ion-input
               type="email"
+              inputmode="email"
+              autocomplete="email"
+              autocapitalize="off"
+              spellcheck="false"
               placeholder="Correo electrónico"
-              [(ngModel)]="credenciales.correo"
-              name="correo"
-              required>
+              aria-label="Correo electrónico"
+              [ngModel]="credenciales.correo"
+              (ngModelChange)="alCambiarCorreo($event)"
+              (ionBlur)="alSalirDeCorreo()"
+              name="correo">
             </ion-input>
           </ion-item>
+          @if (errores.correo) {
+            <p class="field-error" role="alert">
+              <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+              <span>{{ errores.correo }}</span>
+            </p>
+          }
         </div>
 
-        <div class="input-group">
+        <!-- CONTRASEÑA -->
+        <div class="input-group" [class.campo-invalido]="!!errores.password">
           <ion-item lines="none" class="custom-input-item">
-            <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-icon name="lock-closed-outline" slot="start" class="input-icon" aria-hidden="true"></ion-icon>
             <ion-input
               [type]="showPassword ? 'text' : 'password'"
+              autocomplete="current-password"
               placeholder="Contraseña"
-              [(ngModel)]="credenciales.password"
-              name="password"
-              required>
+              aria-label="Contraseña"
+              [ngModel]="credenciales.password"
+              (ngModelChange)="alCambiarPassword($event)"
+              name="password">
             </ion-input>
             <ion-button 
               fill="clear" 
               slot="end" 
               class="password-toggle" 
               (click)="togglePassword()"
+              [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
               type="button">
               <ion-icon 
                 slot="icon-only"
+                aria-hidden="true"
                 [name]="showPassword ? 'eye-off-outline' : 'eye-outline'">
               </ion-icon>
             </ion-button>
           </ion-item>
+          @if (errores.password) {
+            <p class="field-error" role="alert">
+              <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+              <span>{{ errores.password }}</span>
+            </p>
+          }
         </div>
 
         <div class="actions-row">

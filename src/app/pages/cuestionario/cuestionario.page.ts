@@ -12,13 +12,17 @@ import {
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { 
-  arrowBackOutline, checkmarkCircle, warning, closeCircle, informationCircle 
+  arrowBackOutline, checkmarkCircle, warning, closeCircle, informationCircle, alertCircleOutline 
 } from 'ionicons/icons';
 
 import { Auth } from '@angular/fire/auth';
 import { 
   Firestore, doc, getDoc, collection, addDoc, updateDoc, increment, setDoc 
 } from '@angular/fire/firestore';
+import { validarTextoObligatorio } from '../../utils/validadores';
+
+const MAX_RESPUESTA_TEXTO = 500;
+const MENSAJE_RESPUESTA = 'Escribe tu respuesta.';
 
 @Component({
   selector: 'app-cuestionario',
@@ -41,6 +45,7 @@ export class CuestionarioPage implements OnInit {
   cargando: boolean = true;
   
   respuestas: { [key: number]: any } = {};
+  tocadas: { [key: number]: boolean } = {};
   
   pasoActual: number = 1;
   get totalPasos(): number {
@@ -61,7 +66,8 @@ export class CuestionarioPage implements OnInit {
       'checkmark-circle': checkmarkCircle,
       'warning': warning,
       'close-circle': closeCircle,
-      'information-circle': informationCircle
+      'information-circle': informationCircle,
+      'alert-circle-outline': alertCircleOutline
     });
   }
 
@@ -103,8 +109,17 @@ export class CuestionarioPage implements OnInit {
   isRespuestaInvalida(index: number): boolean {
     const resp = this.respuestas[index];
     if (resp === undefined || resp === null) return true;
-    if (typeof resp === 'string' && resp.trim() === '') return true;
+    if (typeof resp === 'string') {
+      return validarTextoObligatorio(resp, MENSAJE_RESPUESTA, MAX_RESPUESTA_TEXTO) !== '';
+    }
     return false;
+  }
+
+  /** Mensaje bajo la respuesta de texto: aparece cuando el usuario sale del campo. */
+  errorTexto(index: number): string {
+    return this.tocadas[index]
+      ? validarTextoObligatorio(this.respuestas[index], MENSAJE_RESPUESTA, MAX_RESPUESTA_TEXTO)
+      : '';
   }
 
   siguientePaso(indexPregunta: number) {

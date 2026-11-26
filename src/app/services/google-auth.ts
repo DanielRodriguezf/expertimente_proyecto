@@ -262,12 +262,13 @@ export class GoogleAuthService {
       apellidoPaterno: datos.apellidoPaterno,
       apellidoMaterno: datos.apellidoMaterno,
       fechaNacimiento: datos.fechaNacimiento,
-      pais: datos.pais,
+      pais: datos.pais || 'Chile',
       ciudad: datos.ciudad,
       comuna: datos.comuna,
       correo: user.email ?? '',
       telefono: datos.telefono,
       estadoCuenta: 'activa',
+      ocultarAyudaInicial: false,
       fechaRegistro: new Date()
     });
 

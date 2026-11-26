@@ -87,43 +87,79 @@
                 </ion-input>
               </div>
 
-              <div class="input-wrapper">
+              <!-- NOMBRE -->
+              <div class="input-wrapper" [class.campo-invalido]="!!errorDe('nombre')">
                 <ion-input
                   label="Primer Nombre"
                   labelPlacement="floating"
                   fill="outline"
-                  [(ngModel)]="usuario.nombre"
                   type="text"
+                  maxlength="40"
+                  autocomplete="given-name"
+                  autocapitalize="words"
                   placeholder="Ingresa tu nombre"
+                  [ngModel]="usuario.nombre"
+                  (ngModelChange)="alCambiarCampo('nombre', $event)"
+                  (ionBlur)="alSalirDeCampo('nombre')"
                   class="modern-input">
                   <ion-icon name="person-outline" slot="start" class="input-icon" aria-hidden="true"></ion-icon>
                 </ion-input>
+                @if (errorDe('nombre')) {
+                  <p class="field-error" role="alert">
+                    <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+                    <span>{{ errorDe('nombre') }}</span>
+                  </p>
+                }
               </div>
 
-              <div class="input-wrapper">
+              <!-- APELLIDO PATERNO -->
+              <div class="input-wrapper" [class.campo-invalido]="!!errorDe('apellidoPaterno')">
                 <ion-input
                   label="Apellido Paterno"
                   labelPlacement="floating"
                   fill="outline"
-                  [(ngModel)]="usuario.apellidoPaterno"
                   type="text"
+                  maxlength="40"
+                  autocomplete="family-name"
+                  autocapitalize="words"
                   placeholder="Ingresa tu primer apellido"
+                  [ngModel]="usuario.apellidoPaterno"
+                  (ngModelChange)="alCambiarCampo('apellidoPaterno', $event)"
+                  (ionBlur)="alSalirDeCampo('apellidoPaterno')"
                   class="modern-input">
                   <ion-icon name="person-outline" slot="start" class="input-icon" aria-hidden="true"></ion-icon>
                 </ion-input>
+                @if (errorDe('apellidoPaterno')) {
+                  <p class="field-error" role="alert">
+                    <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+                    <span>{{ errorDe('apellidoPaterno') }}</span>
+                  </p>
+                }
               </div>
 
-              <div class="input-wrapper">
+              <!-- APELLIDO MATERNO (opcional) -->
+              <div class="input-wrapper" [class.campo-invalido]="!!errorDe('apellidoMaterno')">
                 <ion-input
-                  label="Apellido Materno"
+                  label="Apellido Materno (opcional)"
                   labelPlacement="floating"
                   fill="outline"
-                  [(ngModel)]="usuario.apellidoMaterno"
                   type="text"
+                  maxlength="40"
+                  autocomplete="off"
+                  autocapitalize="words"
                   placeholder="Ingresa tu segundo apellido"
+                  [ngModel]="usuario.apellidoMaterno"
+                  (ngModelChange)="alCambiarCampo('apellidoMaterno', $event)"
+                  (ionBlur)="alSalirDeCampo('apellidoMaterno')"
                   class="modern-input">
                   <ion-icon name="person-outline" slot="start" class="input-icon" aria-hidden="true"></ion-icon>
                 </ion-input>
+                @if (errorDe('apellidoMaterno')) {
+                  <p class="field-error" role="alert">
+                    <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+                    <span>{{ errorDe('apellidoMaterno') }}</span>
+                  </p>
+                }
               </div>
             </div>
 
@@ -153,17 +189,29 @@
                 </ion-input>
               </div>
 
-              <div class="input-wrapper">
+              <!-- TELÉFONO -->
+              <div class="input-wrapper" [class.campo-invalido]="!!errorDe('telefono')">
                 <ion-input
                   label="Teléfono Celular"
                   labelPlacement="floating"
                   fill="outline"
-                  [(ngModel)]="usuario.telefono"
                   type="tel"
+                  inputmode="tel"
+                  maxlength="16"
+                  autocomplete="tel"
                   placeholder="Ej. +56 9 1234 5678"
+                  [ngModel]="usuario.telefono"
+                  (ngModelChange)="alCambiarCampo('telefono', $event)"
+                  (ionBlur)="alSalirDeCampo('telefono')"
                   class="modern-input">
                   <ion-icon name="call-outline" slot="start" class="input-icon" aria-hidden="true"></ion-icon>
                 </ion-input>
+                @if (errorDe('telefono')) {
+                  <p class="field-error" role="alert">
+                    <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+                    <span>{{ errorDe('telefono') }}</span>
+                  </p>
+                }
               </div>
 
               <div class="helper-note">
@@ -206,7 +254,8 @@
                 </ion-select>
               </div>
 
-              <div class="input-wrapper">
+              <!-- REGIÓN -->
+              <div class="input-wrapper" [class.campo-invalido]="!!errorDe('ciudad')">
                 <ion-select
                   label="Región"
                   labelPlacement="floating"
@@ -224,9 +273,16 @@
                     <ion-select-option [value]="region">{{ region }}</ion-select-option>
                   }
                 </ion-select>
+                @if (errorDe('ciudad')) {
+                  <p class="field-error" role="alert">
+                    <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+                    <span>{{ errorDe('ciudad') }}</span>
+                  </p>
+                }
               </div>
 
-              <div class="input-wrapper" (click)="verificarRegionAntesDeComuna($event)">
+              <!-- COMUNA -->
+              <div class="input-wrapper" [class.campo-invalido]="!!errorDe('comuna')" (click)="verificarRegionAntesDeComuna($event)">
                 <ion-select
                   label="Comuna"
                   labelPlacement="floating"
@@ -245,6 +301,12 @@
                     <ion-select-option [value]="comuna">{{ comuna }}</ion-select-option>
                   }
                 </ion-select>
+                @if (errorDe('comuna')) {
+                  <p class="field-error" role="alert">
+                    <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+                    <span>{{ errorDe('comuna') }}</span>
+                  </p>
+                }
               </div>
             </div>
 

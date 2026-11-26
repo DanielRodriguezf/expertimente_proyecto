@@ -102,6 +102,41 @@ ion-content {
     font-size: 0.95rem;
   }
 
+  /* =======================================================
+     VALIDACIÓN DE CAMPOS
+  ======================================================= */
+  .campo {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .campo-invalido {
+    ion-input,
+    ion-select {
+      --border-color: var(--ion-color-danger);
+      --border-width: 2px;
+      --highlight-color-focused: var(--ion-color-danger);
+    }
+  }
+
+  .field-error {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin: 6px 4px 0;
+    color: #c62828; /* rojo con buen contraste sobre el fondo crema */
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.35;
+    animation: errorEntra 0.18s ease-out;
+
+    ion-icon {
+      font-size: 1.15rem;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+  }
+
   .btn-primary {
     margin-top: 12px;
     --border-radius: 12px;
@@ -217,6 +252,17 @@ ion-content {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes errorEntra {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .form-section .field-error {
+    animation: none;
+  }
 }
 
 /* Media Query para dispositivos celulares pequeños o en horizontal */

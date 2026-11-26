@@ -105,6 +105,10 @@ export class IaCvService {
   private readonly RESPUESTA_RAPIDA_CV = true;
   private readonly RESPUESTA_RAPIDA_ESCANEO = true;
 
+  // Tiempo máximo que se espera a Gemini (crear CV y escanear cargos).
+  // Si lo supera, se cancela la petición y se usa el método local. 45.000 ms = 45 segundos.
+  private readonly TIEMPO_MAXIMO_IA_MS = 45_000;
+
   // Caché de resultados del escaneo (se guarda en el dispositivo).
   // Sube VERSION_ESCANEO si cambias el prompt del escaneo, para descartar los resultados antiguos.
   private readonly VERSION_ESCANEO = 'v2';
@@ -124,7 +128,7 @@ export class IaCvService {
      API PÚBLICA
   ======================================================= */
 
-  /** Genera el texto del CV: 1 intento con Gemini (esperando lo que demore) y, si falla, usa la plantilla local. */
+  /** Genera el texto del CV: 1 intento con Gemini (máx. 45 s) y, si falla o se demora más, usa la plantilla local. */
   async generarTextoCv(datos: DatosGeneracionCv): Promise<ResultadoTextoCv> {
     try {
       const texto = await this.generarTextoCvConGemini(datos);
@@ -136,7 +140,7 @@ export class IaCvService {
   }
 
   /**
-   * Evalúa los cargos con 1 sola petición a Gemini (esperando todo el tiempo que necesite).
+   * Evalúa los cargos con 1 sola petición a Gemini (máx. 45 s; si se demora más, se usa el análisis local).
    * - Los cargos que ya fueron evaluados por IA con este mismo perfil se reutilizan: no gastan IA ni tiempo.
    *   Si el postulante cambia su perfil o el administrador edita el cargo, se evalúan de nuevo.
    * - Los cargos que la IA no pudo evaluar usan el análisis local por reglas (y no se guardan en la caché).
@@ -468,7 +472,7 @@ export class IaCvService {
   }
 
   /* =======================================================
-     GEMINI (OPCIÓN 1 - UN SOLO INTENTO SIN TIMEOUT)
+     GEMINI (UN SOLO INTENTO, CON LÍMITE DE 45 S)
      La IA solo redacta el resumen y las viñetas de cada experiencia.
      Encabezados, estudios y competencias se arman localmente: es más rápido y no inventa datos.
   ======================================================= */
@@ -800,8 +804,12 @@ Responde ÚNICAMENTE con un arreglo JSON válido (sin markdown), un elemento por
   }
 
   /**
-   * Realiza 1 ÚNICO intento a gemini-3.8-flash sin AbortController ni límite de tiempo,
-   * esperando todo lo que el modelo necesite para responder.
+   * Realiza 1 ÚNICO intento a gemini-3.8-flash con un límite de tiempo de TIEMPO_MAXIMO_IA_MS (45 s).
+   * Si la IA no responde dentro de ese tiempo, la petición se cancela y se lanza un error:
+   * quien llama (crear CV o escanear cargos) usa entonces el método local.
+   *
+   * El límite cuenta para TODA la operación (incluido el reintento y la lectura de la respuesta),
+   * no se reinicia en cada petición.
    *
    * Con `sinRazonamiento` se pide al modelo que no "piense" antes de responder (mucho más rápido
    * en tareas de redacción). Si el modelo no acepta ese ajuste (HTTP 400, error de parámetros),
@@ -817,11 +825,21 @@ Responde ÚNICAMENTE con un arreglo JSON válido (sin markdown), un elemento por
     }
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.MODELO_GEMINI}:generateContent?key=${apiKey}`;
+    const segundosMaximos = Math.round(this.TIEMPO_MAXIMO_IA_MS / 1000);
+
+    // Un único controlador para toda la operación: al vencer el tiempo se cancela lo que esté en curso.
+    const controlador = new AbortController();
+    let tiempoAgotado = false;
+    const temporizador = setTimeout(() => {
+      tiempoAgotado = true;
+      controlador.abort();
+    }, this.TIEMPO_MAXIMO_IA_MS);
 
     const enviar = (cuerpo: any) => fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(cuerpo)
+      body: JSON.stringify(cuerpo),
+      signal: controlador.signal
     });
 
     let cuerpoEnviado = body;
@@ -835,23 +853,33 @@ Responde ÚNICAMENTE con un arreglo JSON válido (sin markdown), un elemento por
       };
     }
 
-    console.info(`[IaCv] Consultando ${this.MODELO_GEMINI} (esperando todo el tiempo que necesite)...`);
+    try {
+      console.info(`[IaCv] Consultando ${this.MODELO_GEMINI} (máximo ${segundosMaximos} s)...`);
 
-    let respuesta = await enviar(cuerpoEnviado);
+      let respuesta = await enviar(cuerpoEnviado);
 
-    if (!respuesta.ok && respuesta.status === 400 && cuerpoEnviado !== body) {
-      console.warn('[IaCv] El modelo no acepta desactivar el razonamiento; se repite sin ese ajuste.');
-      respuesta = await enviar(body);
+      if (!respuesta.ok && respuesta.status === 400 && cuerpoEnviado !== body) {
+        console.warn('[IaCv] El modelo no acepta desactivar el razonamiento; se repite sin ese ajuste.');
+        respuesta = await enviar(body);
+      }
+
+      if (respuesta.ok) {
+        const data = await respuesta.json();
+        console.info(`[IaCv] ¡Respuesta exitosa de ${this.MODELO_GEMINI}!`);
+        return data;
+      }
+
+      const detalleServidor = await respuesta.text().catch(() => 'Sin detalle');
+      console.warn(`[IaCv] ${this.MODELO_GEMINI} respondió HTTP ${respuesta.status} →`, detalleServidor);
+      throw new Error(`HTTP ${respuesta.status} en ${this.MODELO_GEMINI}: ${detalleServidor}`);
+    } catch (error: any) {
+      if (tiempoAgotado || error?.name === 'AbortError') {
+        throw new Error(`La IA superó el tiempo máximo de espera (${segundosMaximos} s)`);
+      }
+      throw error;
+    } finally {
+      clearTimeout(temporizador);
     }
-
-    if (respuesta.ok) {
-      console.info(`[IaCv] ¡Respuesta exitosa de ${this.MODELO_GEMINI}!`);
-      return await respuesta.json();
-    }
-
-    const detalleServidor = await respuesta.text().catch(() => 'Sin detalle');
-    console.warn(`[IaCv] ${this.MODELO_GEMINI} respondió HTTP ${respuesta.status} →`, detalleServidor);
-    throw new Error(`HTTP ${respuesta.status} en ${this.MODELO_GEMINI}: ${detalleServidor}`);
   }
 
   private extraerTexto(data: any): string {

@@ -128,6 +128,296 @@
 }
 
 /* =======================================================
+   ANIMACIÓN PANTALLA COMPLETA: PRIMER REGISTRO EXITOSO
+======================================================= */
+.welcome-register-screen {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  padding-top: var(--app-safe-top, env(safe-area-inset-top, 0px));
+  padding-bottom: var(--app-safe-bottom, env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+  overflow: hidden;
+
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.16) 0%, transparent 45%),
+    radial-gradient(circle at 80% 80%, rgba(241, 238, 221, 0.18) 0%, transparent 50%),
+    linear-gradient(
+      145deg,
+      var(--ion-color-secondary-shade) 0%,
+      var(--ion-color-primary-shade) 45%,
+      var(--ion-color-primary) 80%,
+      var(--ion-color-tertiary) 100%
+    );
+  background-size: 250% 250%;
+  animation:
+    gradientAnimation 8s ease infinite,
+    welcomeOverlayIn 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99998;
+  opacity: 1;
+  visibility: visible;
+  will-change: opacity, transform, filter;
+
+  /* Fase "¡Todo listo!": destello suave en el ícono y texto antes de abrir el Home */
+  &.welcome-register-ready {
+    .welcome-logo-circle {
+      background: rgba(255, 255, 255, 0.32);
+      box-shadow: 0 0 36px rgba(255, 255, 255, 0.45), 0 12px 30px rgba(31, 45, 24, 0.28);
+      transform: scale(1.06);
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.35s ease, box-shadow 0.35s ease;
+    }
+
+    .welcome-reg-status {
+      color: #ffffff;
+      transform: translateY(-2px);
+      transition: color 0.3s ease, transform 0.3s ease;
+    }
+  }
+
+  /* Cierre coreografiado en dos tiempos: primero el contenido, luego el telón con desenfoque */
+  &.welcome-register-hidden {
+    pointer-events: none;
+    animation:
+      gradientAnimation 8s ease infinite,
+      welcomeOverlayOut 1.05s 0.12s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+
+    .welcome-register-content {
+      animation: welcomeContentOut 0.68s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    .welcome-orb {
+      opacity: 0;
+      transform: scale(1.35);
+      transition: opacity 0.7s ease, transform 0.9s ease;
+    }
+  }
+}
+
+.welcome-orb {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+  filter: blur(2px);
+
+  &.orb-1 {
+    width: 240px;
+    height: 240px;
+    top: -60px;
+    right: -60px;
+    animation: floatOrb 6s ease-in-out infinite;
+  }
+
+  &.orb-2 {
+    width: 200px;
+    height: 200px;
+    bottom: -50px;
+    left: -50px;
+    animation: floatOrb 7s ease-in-out infinite reverse;
+  }
+}
+
+.welcome-register-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 28px 22px;
+  max-width: 400px;
+  width: 92%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  will-change: transform, opacity;
+}
+
+.welcome-badge-wrapper {
+  position: relative;
+  width: clamp(92px, 24vw, 112px);
+  height: clamp(92px, 24vw, 112px);
+  margin: 0 auto 22px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .pulse-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2.5px solid rgba(255, 255, 255, 0.65);
+    opacity: 0;
+    animation: pulseExpand 2.2s cubic-bezier(0.2, 0.8, 0.4, 1) infinite;
+
+    &.ring-2 {
+      animation-delay: 0.9s;
+    }
+  }
+
+  .welcome-logo-circle {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.22);
+    border: 3.5px solid #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 12px 30px rgba(31, 45, 24, 0.28);
+    animation: popBadgeIn 0.7s 0.1s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+
+    .welcome-main-icon {
+      font-size: clamp(48px, 13vw, 60px);
+      color: #ffffff;
+    }
+  }
+
+  .sparkle-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--ion-color-light);
+    color: var(--ion-color-primary-shade);
+    border: 2.5px solid #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+    animation: popBadgeIn 0.6s 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+
+    ion-icon {
+      font-size: 18px;
+    }
+  }
+}
+
+.welcome-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: #ffffff;
+  font-size: clamp(0.8rem, 3vw, 0.88rem);
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  margin-bottom: 14px;
+  animation: slideUpFade 0.55s 0.22s ease-out backwards;
+
+  ion-icon {
+    font-size: 1rem;
+  }
+}
+
+.welcome-reg-title {
+  color: #ffffff;
+  font-size: clamp(1.75rem, 6vw, 2.3rem);
+  font-weight: 800;
+  line-height: 1.2;
+  margin: 0 0 12px 0;
+  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  word-break: break-word;
+  animation: slideUpFade 0.6s 0.32s ease-out backwards;
+}
+
+.welcome-reg-subtitle {
+  color: var(--ion-color-light);
+  font-size: clamp(0.96rem, 3.6vw, 1.08rem);
+  line-height: 1.5;
+  font-weight: 500;
+  margin: 0 0 28px 0;
+  animation: slideUpFade 0.6s 0.42s ease-out backwards;
+
+  strong {
+    color: #ffffff;
+    font-weight: 800;
+  }
+}
+
+.welcome-reg-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  animation: slideUpFade 0.6s 0.52s ease-out backwards;
+
+  .welcome-reg-loader {
+    width: 160px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.26);
+    border-radius: 999px;
+    overflow: hidden;
+
+    .loader-bar-fill {
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+      border-radius: 999px;
+      transform-origin: left;
+      animation: fillWelcomeProgress 2.6s cubic-bezier(0.25, 0.8, 0.4, 1) forwards;
+    }
+  }
+
+  .welcome-reg-status {
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 0.86rem;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+  }
+}
+
+@keyframes welcomeOverlayIn {
+  0%   { opacity: 0; transform: scale(1.03); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes welcomeContentOut {
+  0%   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0px); }
+  100% { opacity: 0; transform: translateY(-22px) scale(0.94); filter: blur(4px); }
+}
+
+@keyframes welcomeOverlayOut {
+  0%   { opacity: 1; transform: scale(1); filter: blur(0px); }
+  100% { opacity: 0; transform: scale(1.08); filter: blur(12px); visibility: hidden; }
+}
+
+@keyframes popBadgeIn {
+  0%   { opacity: 0; transform: scale(0.4) rotate(-10deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+@keyframes pulseExpand {
+  0%   { transform: scale(0.95); opacity: 0.75; }
+  100% { transform: scale(1.48); opacity: 0; }
+}
+
+@keyframes slideUpFade {
+  0%   { opacity: 0; transform: translateY(14px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fillWelcomeProgress {
+  0%   { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+
+@keyframes floatOrb {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(-12px, 16px) scale(1.06); }
+}
+
+/* =======================================================
    AVISO GLOBAL DE NOTIFICACIÓN (CUALQUIER PÁGINA)
    Simple: icono + título + mensaje. Toda la tarjeta es tocable.
 ======================================================= */
@@ -294,7 +584,9 @@
   .notif-card { animation: notifFundido 0.15s ease backwards; }
   .notif-card.notif-saliendo { animation: notifFundidoSalida 0.15s ease forwards; }
   .notif-icono ion-icon,
-  .notif-progreso { animation: none; }
+  .notif-progreso,
+  .pulse-ring,
+  .welcome-orb { animation: none; }
 }
 
 @keyframes notifFundido { from { opacity: 0; } to { opacity: 1; } }
@@ -547,5 +839,15 @@
 
   .splash-subtitle {
     margin-bottom: 16px;
+  }
+
+  .welcome-badge-wrapper {
+    width: 78px;
+    height: 78px;
+    margin-bottom: 14px;
+  }
+
+  .welcome-reg-subtitle {
+    margin-bottom: 18px;
   }
 }

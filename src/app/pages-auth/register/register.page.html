@@ -1,8 +1,8 @@
 <ion-header class="ion-no-border">
   <ion-toolbar color="light">
     <ion-buttons slot="start">
-      <ion-button (click)="pasoAnterior()" *ngIf="pasoActual > 1" color="primary">
-        <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+      <ion-button (click)="pasoAnterior()" *ngIf="pasoActual > 1" color="primary" aria-label="Paso anterior">
+        <ion-icon slot="icon-only" name="arrow-back-outline" aria-hidden="true"></ion-icon>
       </ion-button>
       <ion-back-button defaultHref="/login" *ngIf="pasoActual === 1" color="primary"></ion-back-button>
     </ion-buttons>
@@ -23,6 +23,7 @@
       <p>Paso {{ pasoActual }} de {{ totalPasos }}</p>
     </div>
 
+    <!-- ==================== PASO 1: TU IDENTIDAD ==================== -->
     <div class="form-section" *ngIf="pasoActual === 1">
       <h2>Tu Identidad</h2>
       <p class="subtitle">Queremos conocerte mejor.</p>
@@ -77,50 +78,122 @@
         </div>
       }
 
-      <ion-input
-        label="RUT (con guión)"
-        labelPlacement="floating"
-        fill="outline"
-        type="text"
-        [(ngModel)]="usuario.rut"
-        color="primary">
-      </ion-input>
+      <!-- RUT -->
+      <div class="campo" [class.campo-invalido]="!!errorDe('rut')">
+        <ion-input
+          label="RUT (con guión)"
+          labelPlacement="floating"
+          fill="outline"
+          type="text"
+          inputmode="text"
+          maxlength="12"
+          autocapitalize="characters"
+          autocomplete="off"
+          placeholder="12345678-9"
+          [ngModel]="usuario.rut"
+          (ngModelChange)="alCambiarCampo('rut', $event)"
+          (ionBlur)="alSalirDeCampo('rut')"
+          color="primary">
+        </ion-input>
+        @if (errorDe('rut')) {
+          <p class="field-error" role="alert">
+            <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+            <span>{{ errorDe('rut') }}</span>
+          </p>
+        }
+      </div>
 
-      <ion-input
-        label="Nombre"
-        labelPlacement="floating"
-        fill="outline"
-        type="text"
-        [(ngModel)]="usuario.nombre"
-        color="primary">
-      </ion-input>
+      <!-- NOMBRE -->
+      <div class="campo" [class.campo-invalido]="!!errorDe('nombre')">
+        <ion-input
+          label="Nombre"
+          labelPlacement="floating"
+          fill="outline"
+          type="text"
+          maxlength="40"
+          autocomplete="given-name"
+          autocapitalize="words"
+          [ngModel]="usuario.nombre"
+          (ngModelChange)="alCambiarCampo('nombre', $event)"
+          (ionBlur)="alSalirDeCampo('nombre')"
+          color="primary">
+        </ion-input>
+        @if (errorDe('nombre')) {
+          <p class="field-error" role="alert">
+            <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+            <span>{{ errorDe('nombre') }}</span>
+          </p>
+        }
+      </div>
 
-      <ion-input
-        label="Apellido Paterno"
-        labelPlacement="floating"
-        fill="outline"
-        type="text"
-        [(ngModel)]="usuario.apellidoPaterno"
-        color="primary">
-      </ion-input>
+      <!-- APELLIDO PATERNO -->
+      <div class="campo" [class.campo-invalido]="!!errorDe('apellidoPaterno')">
+        <ion-input
+          label="Apellido Paterno"
+          labelPlacement="floating"
+          fill="outline"
+          type="text"
+          maxlength="40"
+          autocomplete="family-name"
+          autocapitalize="words"
+          [ngModel]="usuario.apellidoPaterno"
+          (ngModelChange)="alCambiarCampo('apellidoPaterno', $event)"
+          (ionBlur)="alSalirDeCampo('apellidoPaterno')"
+          color="primary">
+        </ion-input>
+        @if (errorDe('apellidoPaterno')) {
+          <p class="field-error" role="alert">
+            <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+            <span>{{ errorDe('apellidoPaterno') }}</span>
+          </p>
+        }
+      </div>
 
-      <ion-input
-        label="Apellido Materno"
-        labelPlacement="floating"
-        fill="outline"
-        type="text"
-        [(ngModel)]="usuario.apellidoMaterno"
-        color="primary">
-      </ion-input>
+      <!-- APELLIDO MATERNO (opcional) -->
+      <div class="campo" [class.campo-invalido]="!!errorDe('apellidoMaterno')">
+        <ion-input
+          label="Apellido Materno (opcional)"
+          labelPlacement="floating"
+          fill="outline"
+          type="text"
+          maxlength="40"
+          autocomplete="off"
+          autocapitalize="words"
+          [ngModel]="usuario.apellidoMaterno"
+          (ngModelChange)="alCambiarCampo('apellidoMaterno', $event)"
+          (ionBlur)="alSalirDeCampo('apellidoMaterno')"
+          color="primary">
+        </ion-input>
+        @if (errorDe('apellidoMaterno')) {
+          <p class="field-error" role="alert">
+            <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+            <span>{{ errorDe('apellidoMaterno') }}</span>
+          </p>
+        }
+      </div>
 
-      <ion-input
-        label="Fecha de Nacimiento"
-        labelPlacement="floating"
-        fill="outline"
-        type="date"
-        [(ngModel)]="usuario.fechaNacimiento"
-        color="primary">
-      </ion-input>
+      <!-- FECHA DE NACIMIENTO -->
+      <div class="campo" [class.campo-invalido]="!!errorDe('fechaNacimiento')">
+        <ion-input
+          label="Fecha de Nacimiento"
+          labelPlacement="floating"
+          fill="outline"
+          type="date"
+          autocomplete="bday"
+          [min]="fechaNacimientoMin"
+          [max]="fechaNacimientoMax"
+          [ngModel]="usuario.fechaNacimiento"
+          (ngModelChange)="alCambiarCampo('fechaNacimiento', $event)"
+          (ionBlur)="alSalirDeCampo('fechaNacimiento')"
+          color="primary">
+        </ion-input>
+        @if (errorDe('fechaNacimiento')) {
+          <p class="field-error" role="alert">
+            <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+            <span>{{ errorDe('fechaNacimiento') }}</span>
+          </p>
+        }
+      </div>
 
       <ion-button expand="block" class="btn-primary" (click)="siguientePaso()">
         Continuar
@@ -147,24 +220,34 @@
         }
       </ion-select>
 
-      <ion-select
-        label="Región"
-        labelPlacement="floating"
-        fill="outline"
-        placeholder="Selecciona tu región"
-        [(ngModel)]="usuario.ciudad"
-        [interfaceOptions]="opcionesAlertaRegion"
-        (ionChange)="alCambiarRegion($event)"
-        cancelText="Cancelar"
-        okText="Aceptar"
-        color="primary">
-        <ion-icon name="business-outline" slot="start" class="input-icon" aria-hidden="true"></ion-icon>
-        @for (region of regionesDisponibles; track region) {
-          <ion-select-option [value]="region">{{ region }}</ion-select-option>
+      <!-- REGIÓN -->
+      <div class="campo" [class.campo-invalido]="!!errorDe('ciudad')">
+        <ion-select
+          label="Región"
+          labelPlacement="floating"
+          fill="outline"
+          placeholder="Selecciona tu región"
+          [(ngModel)]="usuario.ciudad"
+          [interfaceOptions]="opcionesAlertaRegion"
+          (ionChange)="alCambiarRegion($event)"
+          cancelText="Cancelar"
+          okText="Aceptar"
+          color="primary">
+          <ion-icon name="business-outline" slot="start" class="input-icon" aria-hidden="true"></ion-icon>
+          @for (region of regionesDisponibles; track region) {
+            <ion-select-option [value]="region">{{ region }}</ion-select-option>
+          }
+        </ion-select>
+        @if (errorDe('ciudad')) {
+          <p class="field-error" role="alert">
+            <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+            <span>{{ errorDe('ciudad') }}</span>
+          </p>
         }
-      </ion-select>
+      </div>
 
-      <div (click)="verificarRegionAntesDeComuna($event)">
+      <!-- COMUNA -->
+      <div class="campo" [class.campo-invalido]="!!errorDe('comuna')" (click)="verificarRegionAntesDeComuna($event)">
         <ion-select
           label="Comuna"
           labelPlacement="floating"
@@ -182,6 +265,12 @@
             <ion-select-option [value]="comuna">{{ comuna }}</ion-select-option>
           }
         </ion-select>
+        @if (errorDe('comuna')) {
+          <p class="field-error" role="alert">
+            <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+            <span>{{ errorDe('comuna') }}</span>
+          </p>
+        }
       </div>
 
       <ion-button expand="block" class="btn-primary" (click)="siguientePaso()">
@@ -189,28 +278,60 @@
       </ion-button>
     </div>
 
+    <!-- ==================== PASO 3: DATOS DE CONTACTO ==================== -->
     <div class="form-section" *ngIf="pasoActual === 3">
       <h2>Datos de Contacto</h2>
       <p class="subtitle">¡Para que las empresas puedan llamarte!</p>
 
-      <ion-input
-        label="Correo electrónico"
-        labelPlacement="floating"
-        fill="outline"
-        type="email"
-        [readonly]="esRegistroGoogle"
-        [(ngModel)]="usuario.correo"
-        color="primary">
-      </ion-input>
+      <!-- CORREO (en modo Google viene de la cuenta y no se edita) -->
+      <div class="campo" [class.campo-invalido]="!!errorDe('correo')">
+        <ion-input
+          label="Correo electrónico"
+          labelPlacement="floating"
+          fill="outline"
+          type="email"
+          inputmode="email"
+          autocomplete="email"
+          autocapitalize="off"
+          spellcheck="false"
+          placeholder="ejemplo@correo.com"
+          [readonly]="esRegistroGoogle"
+          [ngModel]="usuario.correo"
+          (ngModelChange)="alCambiarCampo('correo', $event)"
+          (ionBlur)="alSalirDeCampo('correo')"
+          color="primary">
+        </ion-input>
+        @if (errorDe('correo')) {
+          <p class="field-error" role="alert">
+            <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+            <span>{{ errorDe('correo') }}</span>
+          </p>
+        }
+      </div>
 
-      <ion-input
-        label="Teléfono Celular"
-        labelPlacement="floating"
-        fill="outline"
-        type="tel"
-        [(ngModel)]="usuario.telefono"
-        color="primary">
-      </ion-input>
+      <!-- TELÉFONO -->
+      <div class="campo" [class.campo-invalido]="!!errorDe('telefono')">
+        <ion-input
+          label="Teléfono Celular"
+          labelPlacement="floating"
+          fill="outline"
+          type="tel"
+          inputmode="tel"
+          maxlength="16"
+          autocomplete="tel"
+          placeholder="9 1234 5678"
+          [ngModel]="usuario.telefono"
+          (ngModelChange)="alCambiarCampo('telefono', $event)"
+          (ionBlur)="alSalirDeCampo('telefono')"
+          color="primary">
+        </ion-input>
+        @if (errorDe('telefono')) {
+          <p class="field-error" role="alert">
+            <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+            <span>{{ errorDe('telefono') }}</span>
+          </p>
+        }
+      </div>
 
       @if (esRegistroGoogle) {
         @if (errorMessage) {
@@ -228,43 +349,70 @@
       }
     </div>
 
+    <!-- ==================== PASO 4: SEGURIDAD ==================== -->
     <div class="form-section" *ngIf="pasoActual === 4">
       <h2>Seguridad</h2>
       <p class="subtitle">Crea una contraseña segura para tu cuenta.</p>
 
-      <ion-input
-        label="Contraseña"
-        labelPlacement="floating"
-        fill="outline"
-        [type]="showPassword ? 'text' : 'password'"
-        [(ngModel)]="usuario.password"
-        color="primary">
-        <ion-button 
-          fill="clear" 
-          slot="end" 
-          class="manual-toggle" 
-          (click)="togglePassword()"
-          type="button">
-          <ion-icon slot="icon-only" [name]="showPassword ? 'eye-off-outline' : 'eye-outline'" color="medium"></ion-icon>
-        </ion-button>
-      </ion-input>
+      <!-- CONTRASEÑA -->
+      <div class="campo" [class.campo-invalido]="!!errorDe('password')">
+        <ion-input
+          label="Contraseña"
+          labelPlacement="floating"
+          fill="outline"
+          autocomplete="new-password"
+          [type]="showPassword ? 'text' : 'password'"
+          [ngModel]="usuario.password"
+          (ngModelChange)="alCambiarCampo('password', $event)"
+          (ionBlur)="alSalirDeCampo('password')"
+          color="primary">
+          <ion-button 
+            fill="clear" 
+            slot="end" 
+            class="manual-toggle" 
+            (click)="togglePassword()"
+            [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+            type="button">
+            <ion-icon slot="icon-only" aria-hidden="true" [name]="showPassword ? 'eye-off-outline' : 'eye-outline'" color="medium"></ion-icon>
+          </ion-button>
+        </ion-input>
+        @if (errorDe('password')) {
+          <p class="field-error" role="alert">
+            <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+            <span>{{ errorDe('password') }}</span>
+          </p>
+        }
+      </div>
 
-      <ion-input
-        label="Verificar contraseña"
-        labelPlacement="floating"
-        fill="outline"
-        [type]="showPasswordConfirm ? 'text' : 'password'"
-        [(ngModel)]="usuario.passwordConfirm"
-        color="primary">
-        <ion-button 
-          fill="clear" 
-          slot="end" 
-          class="manual-toggle" 
-          (click)="togglePasswordConfirm()"
-          type="button">
-          <ion-icon slot="icon-only" [name]="showPasswordConfirm ? 'eye-off-outline' : 'eye-outline'" color="medium"></ion-icon>
-        </ion-button>
-      </ion-input>
+      <!-- VERIFICAR CONTRASEÑA -->
+      <div class="campo" [class.campo-invalido]="!!errorDe('passwordConfirm')">
+        <ion-input
+          label="Verificar contraseña"
+          labelPlacement="floating"
+          fill="outline"
+          autocomplete="new-password"
+          [type]="showPasswordConfirm ? 'text' : 'password'"
+          [ngModel]="usuario.passwordConfirm"
+          (ngModelChange)="alCambiarCampo('passwordConfirm', $event)"
+          (ionBlur)="alSalirDeCampo('passwordConfirm')"
+          color="primary">
+          <ion-button 
+            fill="clear" 
+            slot="end" 
+            class="manual-toggle" 
+            (click)="togglePasswordConfirm()"
+            [attr.aria-label]="showPasswordConfirm ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+            type="button">
+            <ion-icon slot="icon-only" aria-hidden="true" [name]="showPasswordConfirm ? 'eye-off-outline' : 'eye-outline'" color="medium"></ion-icon>
+          </ion-button>
+        </ion-input>
+        @if (errorDe('passwordConfirm')) {
+          <p class="field-error" role="alert">
+            <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+            <span>{{ errorDe('passwordConfirm') }}</span>
+          </p>
+        }
+      </div>
 
       <p *ngIf="errorMessage" class="error-message">
         {{ errorMessage }}

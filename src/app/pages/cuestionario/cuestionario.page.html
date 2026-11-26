@@ -43,10 +43,19 @@
                   <ion-textarea 
                     [(ngModel)]="respuestas[$index]"
                     class="textarea-card"
+                    [class.invalido]="!!errorTexto($index)"
+                    maxlength="500"
+                    (ionBlur)="tocadas[$index] = true"
                     placeholder="Ingresa tu respuesta aquí..."
                     auto-grow="true"
                     rows="4">
                   </ion-textarea>
+                  @if (errorTexto($index)) {
+                    <p class="field-error" role="alert">
+                      <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+                      <span>{{ errorTexto($index) }}</span>
+                    </p>
+                  }
                 } @else {
                   <p class="subtitle text-sub">Selecciona la opción que mejor te represente.</p>
                   <ion-radio-group [(ngModel)]="respuestas[$index]">

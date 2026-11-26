@@ -99,13 +99,21 @@
                       <span class="company-pill-text">{{ conv.nombreEmpresa }}</span>
                     </span>
                     @if (esNoLeido(conv)) {
-                      <span class="new-tag">Nuevo</span>
+                      <span class="new-tag">
+                        {{ obtenerCantidadNoLeidos(conv) > 1 ? obtenerCantidadNoLeidos(conv) + ' nuevos' : 'Nuevo' }}
+                      </span>
                     }
                   </div>
 
                   <p class="preview-msg" [class.unread-msg]="esNoLeido(conv)">
                     @if (conv.ultimoEmisorId === uid) {
-                      <ion-icon name="checkmark-done-outline" class="check-icon" aria-hidden="true"></ion-icon>
+                      <ion-icon
+                        [name]="ultimoMensajeFueVisto(conv) ? 'checkmark-done-outline' : 'checkmark-outline'"
+                        class="check-icon"
+                        [class.visto]="ultimoMensajeFueVisto(conv)"
+                        [class.enviado]="!ultimoMensajeFueVisto(conv)"
+                        aria-hidden="true">
+                      </ion-icon>
                       <strong class="you-label">Tú: </strong>
                     }
                     {{ conv.ultimoMensaje }}
@@ -162,11 +170,24 @@
                   <p class="message-text">{{ msg.texto }}</p>
                   <div class="message-meta">
                     <span class="message-time">{{ formatearFecha(msg.creadoEn) }}</span>
-                    @if (msg.emisorId === uid) {
-                      <ion-icon name="checkmark-done-outline" class="msg-check" aria-hidden="true"></ion-icon>
-                    }
                   </div>
                 </div>
+
+                @if (msg.emisorId === uid && msg.id === ultimoMiMensajeId) {
+                  <div
+                    class="msg-status-below fade-in"
+                    [class.visto]="msg.estado === 'visto'"
+                    [class.enviado]="msg.estado !== 'visto'">
+                    <ion-icon
+                      [name]="msg.estado === 'visto' ? 'checkmark-done-outline' : 'checkmark-outline'"
+                      class="msg-check"
+                      aria-hidden="true">
+                    </ion-icon>
+                    <span class="msg-status-text">
+                      {{ msg.estado === 'visto' ? 'Visto' : 'Enviado' }}
+                    </span>
+                  </div>
+                }
               </div>
             }
           </div>

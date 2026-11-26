@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, NgZone, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -33,11 +33,18 @@ import {
   fingerPrintOutline,
   globeOutline,
   businessOutline,
-  shieldCheckmarkOutline
+  shieldCheckmarkOutline,
+  alertCircleOutline
 } from 'ionicons/icons';
 
 import { Auth, onAuthStateChanged, Unsubscribe as AuthUnsubscribe } from '@angular/fire/auth';
 import { Firestore, doc, getDoc, updateDoc } from '@angular/fire/firestore';
+import {
+  normalizarEspacios,
+  normalizarTelefono,
+  validarNombrePersona,
+  validarTelefonoMovil
+} from '../../utils/validadores';
 
 // Las 16 Regiones de Chile y sus 346 Comunas oficiales
 const REGIONES_COMUNAS_CHILE: Record<string, string[]> = {
@@ -139,6 +146,26 @@ const REGIONES_COMUNAS_CHILE: Record<string, string[]> = {
   ]
 };
 
+/* =======================================================
+   VALIDACIÓN: campos del formulario y qué campos tiene cada paso
+======================================================= */
+type CampoTexto = 'nombre' | 'apellidoPaterno' | 'apellidoMaterno' | 'telefono';
+type CampoFormulario = CampoTexto | 'ciudad' | 'comuna';
+
+const CAMPOS_POR_PASO: Record<number, CampoFormulario[]> = {
+  1: ['nombre', 'apellidoPaterno', 'apellidoMaterno'],
+  2: ['telefono'],
+  3: ['ciudad', 'comuna']
+};
+
+function crearErroresVacios(): Record<CampoFormulario, string> {
+  return { nombre: '', apellidoPaterno: '', apellidoMaterno: '', telefono: '', ciudad: '', comuna: '' };
+}
+
+function crearTocadosVacios(): Record<CampoFormulario, boolean> {
+  return { nombre: false, apellidoPaterno: false, apellidoMaterno: false, telefono: false, ciudad: false, comuna: false };
+}
+
 @Component({
   selector: 'app-perfil-editar',
   templateUrl: './perfil-editar.page.html',
@@ -199,6 +226,10 @@ export class PerfilEditarPage implements OnInit, OnDestroy {
     comuna: ''
   };
 
+  // Validación por campo: el error solo se muestra cuando el campo fue "tocado"
+  errores: Record<CampoFormulario, string> = crearErroresVacios();
+  tocados: Record<CampoFormulario, boolean> = crearTocadosVacios();
+
   private unsubAuth: AuthUnsubscribe | null = null;
 
   private auth = inject(Auth);
@@ -207,6 +238,7 @@ export class PerfilEditarPage implements OnInit, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
   private ngZone = inject(NgZone);
   private toastCtrl = inject(ToastController);
+  private host = inject(ElementRef) as ElementRef<HTMLElement>;
 
   constructor() {
     addIcons({
@@ -224,7 +256,8 @@ export class PerfilEditarPage implements OnInit, OnDestroy {
       'finger-print-outline': fingerPrintOutline,
       'globe-outline': globeOutline,
       'business-outline': businessOutline,
-      'shield-checkmark-outline': shieldCheckmarkOutline
+      'shield-checkmark-outline': shieldCheckmarkOutline,
+      'alert-circle-outline': alertCircleOutline
     });
   }
 
@@ -253,6 +286,7 @@ export class PerfilEditarPage implements OnInit, OnDestroy {
               };
 
               this.sincronizarUbicacionInicial(this.usuario.ciudad, this.usuario.comuna);
+              this.limpiarValidacion();
             });
           }
         } catch (error) {
@@ -278,6 +312,7 @@ export class PerfilEditarPage implements OnInit, OnDestroy {
   ionViewWillEnter() {
     this.pasoActual = 1;
     this.guardando = false;
+    this.limpiarValidacion();
     if (!this.usuario.pais) {
       this.usuario.pais = 'Chile';
     }
@@ -329,6 +364,10 @@ export class PerfilEditarPage implements OnInit, OnDestroy {
     const regionElegida = event?.detail?.value || this.usuario.ciudad;
     this.usuario.ciudad = regionElegida;
     this.usuario.comuna = '';
+    this.tocados.comuna = false;
+    this.errores.comuna = '';
+    this.tocados.ciudad = true;
+    this.validarCampo('ciudad');
     this.comunasDisponibles = REGIONES_COMUNAS_CHILE[regionElegida]
       ? [...REGIONES_COMUNAS_CHILE[regionElegida]].sort((a, b) => a.localeCompare(b))
       : [];
@@ -344,6 +383,8 @@ export class PerfilEditarPage implements OnInit, OnDestroy {
    */
   async alCambiarComuna(event: any) {
     const comunaElegida = event?.detail?.value || this.usuario.comuna;
+    this.tocados.comuna = true;
+    this.validarCampo('comuna');
     if (comunaElegida) {
       await this.mostrarMensaje(`Comuna ${comunaElegida} seleccionada.`, 'success');
     }
@@ -367,19 +408,129 @@ export class PerfilEditarPage implements OnInit, OnDestroy {
     }
   }
 
-  async siguientePaso() {
-    if (this.pasoActual === 1) {
-      if (!this.usuario.nombre.trim() || !this.usuario.apellidoPaterno.trim()) {
-        await this.mostrarMensaje('Completa al menos tu nombre y apellido paterno.', 'warning');
-        return;
+  /* =======================================================
+     VALIDACIÓN DE CAMPOS
+     - El error aparece al salir de un campo con contenido, o al presionar "Continuar" / "Guardar".
+     - Una vez visible, se actualiza mientras el usuario corrige.
+  ======================================================= */
+  errorDe(campo: CampoFormulario): string {
+    return this.tocados[campo] ? this.errores[campo] : '';
+  }
+
+  alCambiarCampo(campo: CampoTexto, valor: string | number | null | undefined) {
+    this.usuario[campo] = String(valor ?? '');
+
+    if (this.tocados[campo]) {
+      this.validarCampo(campo);
+    }
+  }
+
+  alSalirDeCampo(campo: CampoTexto) {
+    // Campo vacío que nunca se tocó: se avisa recién al presionar el botón
+    if (!this.usuario[campo] && !this.tocados[campo]) {
+      return;
+    }
+
+    this.normalizarCampo(campo);
+    this.tocados[campo] = true;
+    this.validarCampo(campo);
+  }
+
+  private validarCampo(campo: CampoFormulario) {
+    this.errores[campo] = this.calcularError(campo);
+  }
+
+  private calcularError(campo: CampoFormulario): string {
+    const u = this.usuario;
+
+    switch (campo) {
+      case 'nombre':
+        return validarNombrePersona(u.nombre, 'nombre');
+      case 'apellidoPaterno':
+        return validarNombrePersona(u.apellidoPaterno, 'apellido paterno');
+      case 'apellidoMaterno':
+        // Opcional: hay personas con un solo apellido. Cambia a `true` para hacerlo obligatorio.
+        return validarNombrePersona(u.apellidoMaterno, 'apellido materno', false);
+      case 'telefono':
+        return validarTelefonoMovil(u.telefono);
+      case 'ciudad':
+        return u.ciudad ? '' : 'Selecciona tu región.';
+      case 'comuna':
+        return u.comuna ? '' : (u.ciudad ? 'Selecciona tu comuna.' : 'Primero selecciona tu región.');
+    }
+  }
+
+  /** Deja el valor limpio y en el formato que se guarda (celular +56912345678, sin espacios dobles...). */
+  private normalizarCampo(campo: CampoTexto) {
+    if (campo === 'telefono') {
+      this.usuario.telefono = normalizarTelefono(this.usuario.telefono);
+    } else {
+      this.usuario[campo] = normalizarEspacios(this.usuario[campo]);
+    }
+  }
+
+  private marcarYValidarPaso(paso: number): boolean {
+    let valido = true;
+
+    for (const campo of CAMPOS_POR_PASO[paso] ?? []) {
+      if (campo !== 'ciudad' && campo !== 'comuna') {
+        this.normalizarCampo(campo);
+      }
+      this.tocados[campo] = true;
+      this.validarCampo(campo);
+
+      if (this.errores[campo]) {
+        valido = false;
       }
     }
 
-    if (this.pasoActual === 2) {
-      if (!this.usuario.telefono.trim()) {
-        await this.mostrarMensaje('Por favor, ingresa tu teléfono de contacto.', 'warning');
-        return;
-      }
+    return valido;
+  }
+
+  private validarPaso(paso: number): boolean {
+    const valido = this.marcarYValidarPaso(paso);
+    this.cdr.detectChanges();
+
+    if (!valido) {
+      this.enfocarPrimerError();
+    }
+    return valido;
+  }
+
+  /** Revisa todos los pasos antes de guardar; si hay un error, lleva al usuario a ese paso. */
+  private async validarTodoElFormulario(): Promise<boolean> {
+    const pasoConError = [1, 2, 3].find(paso => !this.marcarYValidarPaso(paso));
+
+    if (pasoConError === undefined) {
+      return true;
+    }
+
+    const cambioDePaso = pasoConError !== this.pasoActual;
+    this.pasoActual = pasoConError;
+    this.cdr.detectChanges();
+    this.enfocarPrimerError();
+
+    if (cambioDePaso) {
+      await this.mostrarMensaje(`Revisa los datos del paso ${pasoConError}.`, 'warning');
+    }
+    return false;
+  }
+
+  private limpiarValidacion() {
+    this.errores = crearErroresVacios();
+    this.tocados = crearTocadosVacios();
+  }
+
+  private enfocarPrimerError() {
+    setTimeout(() => {
+      const campo = this.host.nativeElement.querySelector('.campo-invalido') as HTMLElement | null;
+      campo?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 60);
+  }
+
+  siguientePaso() {
+    if (!this.validarPaso(this.pasoActual)) {
+      return;
     }
 
     if (this.pasoActual < this.totalPasos) {
@@ -398,13 +549,7 @@ export class PerfilEditarPage implements OnInit, OnDestroy {
   async guardarCambios() {
     if (!this.usuarioUID) return;
 
-    if (!this.usuario.ciudad) {
-      await this.mostrarMensaje('Por favor, selecciona tu región.', 'warning');
-      return;
-    }
-
-    if (!this.usuario.comuna) {
-      await this.mostrarMensaje('Por favor, selecciona tu comuna.', 'warning');
+    if (!(await this.validarTodoElFormulario())) {
       return;
     }
 

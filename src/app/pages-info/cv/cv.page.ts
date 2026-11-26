@@ -21,6 +21,10 @@ import {
   fileTrayFullOutline, bulbOutline, lockClosedOutline
 } from 'ionicons/icons';
 
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
+
 import { Auth, onAuthStateChanged, Unsubscribe as AuthUnsubscribe } from '@angular/fire/auth';
 import { Firestore, doc, updateDoc, onSnapshot, deleteField, Unsubscribe } from '@angular/fire/firestore';
 
@@ -250,48 +254,25 @@ export class CvPage implements OnInit, OnDestroy {
       return;
     }
 
+    const nombreArchivo = this.nombreArchivoSeguro(this.nombreCVSaved);
+    const base64Parts = this.cvSavedBase64.split(',');
+    const base64Clean = (base64Parts.length > 1 ? base64Parts[base64Parts.length - 1] : base64Parts[0])
+      .replace(/\s+/g, '');
+
+    // ---------- CELULAR (app Android / iOS con Capacitor) ----------
+    if (Capacitor.isNativePlatform()) {
+      await this.compartirPdfEnCelular(nombreArchivo, base64Clean);
+      return;
+    }
+
+    // ---------- NAVEGADOR (web / escritorio) ----------
     try {
-      const nombreArchivo = (this.nombreCVSaved || 'Mi_Curriculum.pdf').replace(/\s+/g, '_');
-      const base64Parts = this.cvSavedBase64.split(',');
-      const base64Clean = base64Parts.length > 1 ? base64Parts[1] : base64Parts[0];
-
-      const capacitorGlobal = (window as any).Capacitor;
-      if (capacitorGlobal && capacitorGlobal.isNativePlatform && capacitorGlobal.isNativePlatform()) {
-        const Filesystem = capacitorGlobal.Plugins?.Filesystem;
-        const Share = capacitorGlobal.Plugins?.Share;
-
-        if (Filesystem) {
-          try {
-            const savedFile = await Filesystem.writeFile({
-              path: nombreArchivo,
-              data: base64Clean,
-              directory: 'DOCUMENTS'
-            });
-
-            this.toast.exito(`Descargado en Documentos: ${nombreArchivo}`);
-
-            if (Share) {
-              await Share.share({
-                title: nombreArchivo,
-                url: savedFile.uri,
-                dialogTitle: 'Abrir o guardar mi CV'
-              });
-            }
-            return;
-          } catch (fsError) {
-            console.warn('Fallback a descarga de navegador:', fsError);
-          }
-        }
-      }
-
       const byteCharacters = atob(base64Clean);
       const byteNumbers = new Array(byteCharacters.length);
       for (let i = 0; i < byteCharacters.length; i++) {
         byteNumbers[i] = byteCharacters.charCodeAt(i);
       }
-      const byteArray = new Uint8Array(byteNumbers);
-
-      const blob = new Blob([byteArray], { type: 'application/octet-stream' });
+      const blob = new Blob([new Uint8Array(byteNumbers)], { type: 'application/pdf' });
       const blobUrl = URL.createObjectURL(blob);
 
       const enlace = document.createElement('a');
@@ -299,20 +280,89 @@ export class CvPage implements OnInit, OnDestroy {
       enlace.href = blobUrl;
       enlace.setAttribute('download', nombreArchivo);
       document.body.appendChild(enlace);
-
       enlace.click();
       document.body.removeChild(enlace);
 
       this.toast.exito('Descargando archivo PDF en tu dispositivo...');
-
-      setTimeout(() => {
-        URL.revokeObjectURL(blobUrl);
-      }, 60000);
-
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
     } catch (error) {
       console.error('Error al descargar el PDF:', error);
       this.toast.error('No se pudo descargar el archivo PDF.');
     }
+  }
+
+  /**
+   * En el celular el WebView NO descarga archivos con <a download>, así que se usan los plugins
+   * de Capacitor. Se prueba en este orden y se corta en el primero que funcione:
+   *   1) Guardar el PDF en la carpeta temporal de la app (sin permisos) y abrir el menú de
+   *      compartir del teléfono: desde ahí se abre con el visor de PDF o se guarda en Archivos/Drive.
+   *   2) Respaldo: guardar el PDF directamente en la carpeta Documentos del teléfono.
+   * Cada fallo queda en la consola con el prefijo [CV] para poder ver el motivo exacto.
+   */
+  private async compartirPdfEnCelular(nombreArchivo: string, base64Clean: string) {
+    // --- Paso 1: guardar en la carpeta de la app y compartir ---
+    let uriGuardada: string | null = null;
+
+    try {
+      const archivo = await Filesystem.writeFile({
+        path: nombreArchivo,
+        data: base64Clean,          // sin "encoding" = se guarda como binario (base64)
+        directory: Directory.Cache,
+        recursive: true
+      });
+      uriGuardada = archivo.uri;
+    } catch (error) {
+      console.error('[CV] No se pudo guardar el PDF en la carpeta de la app (Cache):', error);
+    }
+
+    if (uriGuardada) {
+      try {
+        await Share.share({
+          title: nombreArchivo,
+          url: uriGuardada,
+          dialogTitle: 'Abrir o guardar mi CV'
+        });
+        return;
+      } catch (error: any) {
+        const mensaje = String(error?.message ?? error ?? '').toLowerCase();
+
+        // Si la persona cierra el menú de compartir no es un error
+        if (mensaje.includes('cancel')) return;
+
+        console.error('[CV] No se pudo abrir el menú de compartir:', error);
+      }
+    }
+
+    // --- Paso 2 (respaldo): guardar directo en Documentos ---
+    try {
+      await Filesystem.writeFile({
+        path: nombreArchivo,
+        data: base64Clean,
+        directory: Directory.Documents,
+        recursive: true
+      });
+      this.toast.exito(`PDF guardado en Documentos: ${nombreArchivo}`);
+      return;
+    } catch (error) {
+      console.error('[CV] No se pudo guardar el PDF en Documentos:', error);
+    }
+
+    // --- Nada funcionó: queda registrado qué plugins existen en la app instalada ---
+    console.error('[CV] Plugins disponibles en esta app →',
+      'Filesystem:', Capacitor.isPluginAvailable('Filesystem'),
+      '| Share:', Capacitor.isPluginAvailable('Share'));
+    this.toast.error('No se pudo descargar el PDF. Intenta nuevamente.');
+  }
+
+  /** Deja un nombre de archivo válido para el celular: sin espacios ni caracteres raros y con extensión .pdf. */
+  private nombreArchivoSeguro(nombre: string): string {
+    const limpio = (nombre || 'Mi_Curriculum.pdf')
+      .trim()
+      .replace(/\s+/g, '_')
+      .replace(/[\\/:*?"<>|]/g, '');
+
+    const base = limpio || 'Mi_Curriculum.pdf';
+    return base.toLowerCase().endsWith('.pdf') ? base : `${base}.pdf`;
   }
 
   async guardarDatos() {

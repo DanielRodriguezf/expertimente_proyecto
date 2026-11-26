@@ -39,11 +39,12 @@ import {
   informationCircleOutline,
   chatbubbleEllipsesOutline,
   notificationsOutline,
-  closeOutline
+  closeOutline,
+  sparklesOutline
 } from 'ionicons/icons';
 
-import { Auth, onAuthStateChanged } from '@angular/fire/auth';
-import { Firestore, doc, onSnapshot, Unsubscribe } from '@angular/fire/firestore'; 
+import { Auth, onAuthStateChanged, User } from '@angular/fire/auth';
+import { Firestore, doc, onSnapshot, updateDoc, Unsubscribe } from '@angular/fire/firestore'; 
 import { GoogleAuthService } from './services/google-auth';
 import { NotificacionesService } from './services/notificaciones';
 
@@ -101,11 +102,27 @@ export class AppComponent implements OnInit, OnDestroy {
   
   mostrandoSplash: boolean = true;
 
+  // Estados para la animación de bienvenida al registrarse por primera vez
+  mostrandoBienvenidaRegistro: boolean = false;
+  listoBienvenidaRegistro: boolean = false;
+  saliendoBienvenidaRegistro: boolean = false;
+  nombreBienvenidaRegistro: string = '';
+  private timerBienvenidaListo: any = null;
+  private timerBienvenidaSalida: any = null;
+  private timerBienvenidaOcultar: any = null;
+
   private uidNotificacionesPendiente: string | null = null;
 
   private backButtonSub: Subscription | null = null;
   private routerSub: Subscription | null = null;
   private unsubPerfil: Unsubscribe | null = null;
+
+  private readonly listenerRegistroManual = (ev: Event) => {
+    const customEv = ev as CustomEvent<{ nombre?: string; uid?: string }>;
+    const nombre = customEv.detail?.nombre || this.usuarioData?.nombre || '';
+    const uid = customEv.detail?.uid || this.auth.currentUser?.uid;
+    this.dispararAnimacionBienvenidaRegistro(nombre, uid);
+  };
 
   constructor() {
     addIcons({
@@ -123,21 +140,23 @@ export class AppComponent implements OnInit, OnDestroy {
       'information-circle-outline': informationCircleOutline,
       'chatbubble-ellipses-outline': chatbubbleEllipsesOutline,
       'notifications-outline': notificationsOutline,
-      'close-outline': closeOutline
+      'close-outline': closeOutline,
+      'sparkles-outline': sparklesOutline
     });
   }
 
   ngOnInit() {
     this.configurarBotonAtrasGlobal();
     this.monitorearRutaActiva();
+    window.addEventListener('registro-exitoso', this.listenerRegistroManual);
 
     setTimeout(() => {
       this.mostrandoSplash = false;
 
-      if (this.uidNotificacionesPendiente && this.sesionActiva) {
+      if (this.uidNotificacionesPendiente && this.sesionActiva && !this.mostrandoBienvenidaRegistro) {
         this.notificaciones.iniciar(this.uidNotificacionesPendiente);
+        this.uidNotificacionesPendiente = null;
       }
-      this.uidNotificacionesPendiente = null;
 
       this.cdr.detectChanges();
     }, 3500);
@@ -158,6 +177,10 @@ export class AppComponent implements OnInit, OnDestroy {
               this.usuarioData = docSnap.data(); 
               this.calcularProgreso(this.usuarioData); 
               this.actualizarEstadoMenu();
+
+              // Respaldo automático en caso de que el documento sea nuevo y aún no haya mostrado la bienvenida
+              this.verificarPrimerRegistro(user, this.usuarioData);
+
               this.cdr.detectChanges(); 
               this.iniciarNotificaciones(user.uid);
             } else {
@@ -188,6 +211,8 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    window.removeEventListener('registro-exitoso', this.listenerRegistroManual);
+    this.limpiarTimersBienvenida();
     if (this.backButtonSub) {
       this.backButtonSub.unsubscribe();
     }
@@ -200,8 +225,110 @@ export class AppComponent implements OnInit, OnDestroy {
     this.notificaciones.detener();
   }
 
+  private verificarPrimerRegistro(user: User, data: any) {
+    if (!user || !data) return;
+
+    const uid = user.uid;
+    if (this.yaVioBienvenidaLocal(uid) || data['bienvenidaRegistroMostrada'] === true) {
+      this.guardarBienvenidaLocal(uid);
+      return;
+    }
+
+    const esCuentaNueva = data['ocultarAyudaInicial'] === false && data['bienvenidaRegistroMostrada'] !== true;
+    if (esCuentaNueva) {
+      this.dispararAnimacionBienvenidaRegistro(data['nombre'] || '', uid);
+    }
+  }
+
+  public dispararAnimacionBienvenidaRegistro(nombreCompleto: string = '', uid?: string) {
+    const primerNombre = (nombreCompleto || '').trim().split(/\s+/)[0] || '';
+    if (primerNombre) {
+      this.nombreBienvenidaRegistro = primerNombre;
+    }
+
+    if (uid) {
+      this.guardarBienvenidaLocal(uid);
+      const docRef = doc(this.firestore, `postulantes/${uid}`);
+      updateDoc(docRef, { bienvenidaRegistroMostrada: true }).catch(() => {});
+    }
+
+    if (this.mostrandoBienvenidaRegistro) {
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.mostrandoSplash = false;
+    this.listoBienvenidaRegistro = false;
+    this.saliendoBienvenidaRegistro = false;
+    this.mostrandoBienvenidaRegistro = true;
+    this.cdr.detectChanges();
+
+    this.limpiarTimersBienvenida();
+
+    // Fase 1: Al llenarse la barra (2.65 s), muestra "¡Todo listo! Entrando a ExpertiMente..."
+    this.timerBienvenidaListo = setTimeout(() => {
+      this.listoBienvenidaRegistro = true;
+      this.cdr.detectChanges();
+    }, 2650);
+
+    // Fase 2: Inicia la salida coreografiada del contenido y del telón de fondo (3.35 s)
+    this.timerBienvenidaSalida = setTimeout(() => {
+      this.saliendoBienvenidaRegistro = true;
+      this.cdr.detectChanges();
+    }, 3350);
+
+    // Fase 3: Desmonta el componente cuando el fundido de 1.1 s ya terminó por completo (4.5 s)
+    this.timerBienvenidaOcultar = setTimeout(() => {
+      this.mostrandoBienvenidaRegistro = false;
+      this.listoBienvenidaRegistro = false;
+      this.saliendoBienvenidaRegistro = false;
+
+      if (this.uidNotificacionesPendiente && this.sesionActiva) {
+        this.notificaciones.iniciar(this.uidNotificacionesPendiente);
+        this.uidNotificacionesPendiente = null;
+      }
+
+      this.cdr.detectChanges();
+    }, 4500);
+  }
+
+  private limpiarTimersBienvenida() {
+    if (this.timerBienvenidaListo) {
+      clearTimeout(this.timerBienvenidaListo);
+      this.timerBienvenidaListo = null;
+    }
+    if (this.timerBienvenidaSalida) {
+      clearTimeout(this.timerBienvenidaSalida);
+      this.timerBienvenidaSalida = null;
+    }
+    if (this.timerBienvenidaOcultar) {
+      clearTimeout(this.timerBienvenidaOcultar);
+      this.timerBienvenidaOcultar = null;
+    }
+  }
+
+  private obtenerClaveBienvenida(uid: string): string {
+    return `expertimente_bienvenida_registro_${uid}`;
+  }
+
+  private yaVioBienvenidaLocal(uid: string): boolean {
+    try {
+      return localStorage.getItem(this.obtenerClaveBienvenida(uid)) === 'true';
+    } catch {
+      return false;
+    }
+  }
+
+  private guardarBienvenidaLocal(uid: string) {
+    try {
+      localStorage.setItem(this.obtenerClaveBienvenida(uid), 'true');
+    } catch {
+      // Ignorar si el almacenamiento local está restringido
+    }
+  }
+
   private iniciarNotificaciones(uid: string) {
-    if (this.mostrandoSplash) {
+    if (this.mostrandoSplash || this.mostrandoBienvenidaRegistro) {
       this.uidNotificacionesPendiente = uid;
       return;
     }
@@ -356,7 +483,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
   async cerrarSesion() {
     try {
-      // Quita el token de este dispositivo ANTES de cerrar sesión (aún hay usuario autenticado)
       await this.notificaciones.desregistrarDispositivo();
       this.detenerNotificaciones();
       await this.googleAuth.cerrarSesion(); 

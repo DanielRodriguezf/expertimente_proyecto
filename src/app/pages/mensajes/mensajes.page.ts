@@ -13,14 +13,14 @@ import { addIcons } from 'ionicons';
 import { 
   chatbubblesOutline, businessOutline, personOutline, send, 
   arrowBackOutline, alertCircleOutline, timeOutline, 
-  checkmarkDoneOutline, refreshOutline, chatbubbleEllipsesOutline,
+  checkmarkOutline, checkmarkDoneOutline, refreshOutline, chatbubbleEllipsesOutline,
   chevronForwardOutline, checkmarkCircle, warning, closeCircle, informationCircle
 } from 'ionicons/icons';
 
 import { Auth, onAuthStateChanged, User } from '@angular/fire/auth';
 import { 
   Firestore, collection, doc, query, where, orderBy, limit, 
-  onSnapshot, writeBatch, serverTimestamp, Unsubscribe, Timestamp 
+  onSnapshot, writeBatch, serverTimestamp, Unsubscribe, Timestamp, QueryDocumentSnapshot, DocumentData 
 } from '@angular/fire/firestore';
 
 export interface Conversacion {
@@ -34,12 +34,14 @@ export interface Conversacion {
   actualizadoEn: Timestamp | any;
   ultimoMensaje: string;
   ultimoEmisorId: string;
+  ultimoEstado?: 'pendiente' | 'visto' | string;
 }
 
 export interface Mensaje {
   id: string;
   emisorId: string;
   texto: string;
+  estado: 'pendiente' | 'visto' | string;
   creadoEn: Timestamp | any;
 }
 
@@ -65,9 +67,14 @@ export class MensajesPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillL
   cargandoBandeja: boolean = true;
   errorBandeja: string | null = null;
 
+  // Mapas de control de mensajes no vistos por conversación
+  pendientesPorConv: Record<string, number> = {};
+  enviadosPendientesPorConv: Record<string, number> = {};
+
   // Estados de la Conversación Activa
   conversacionActiva: Conversacion | null = null;
   mensajes: Mensaje[] = [];
+  ultimoMiMensajeId: string | null = null;
   cargandoMensajes: boolean = false;
   errorMensajes: string | null = null;
 
@@ -80,6 +87,8 @@ export class MensajesPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillL
   private unsubBandeja: Unsubscribe | null = null;
   private unsubMensajes: Unsubscribe | null = null;
   private unsubAuth: Unsubscribe | null = null;
+  private unsubPendientesPorConv = new Map<string, Unsubscribe>();
+  private marcandoVistoIds = new Set<string>();
   private backButtonSub: Subscription | null = null;
 
   private auth = inject(Auth);
@@ -100,6 +109,7 @@ export class MensajesPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillL
       'arrow-back-outline': arrowBackOutline,
       'alert-circle-outline': alertCircleOutline,
       'time-outline': timeOutline,
+      'checkmark-outline': checkmarkOutline,
       'checkmark-done-outline': checkmarkDoneOutline,
       'refresh-outline': refreshOutline,
       'chevron-forward-outline': chevronForwardOutline,
@@ -197,7 +207,8 @@ export class MensajesPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillL
             nombreEmpresa: data['nombreEmpresa'] || 'Empresa Reclutadora',
             actualizadoEn: data['actualizadoEn'] || null,
             ultimoMensaje: data['ultimoMensaje'] || 'Sin mensajes aún',
-            ultimoEmisorId: data['ultimoEmisorId'] || ''
+            ultimoEmisorId: data['ultimoEmisorId'] || '',
+            ultimoEstado: data['ultimoEstado'] || ''
           };
         });
 
@@ -210,6 +221,8 @@ export class MensajesPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillL
         this.conversaciones = lista;
         this.cargandoBandeja = false;
         this.errorBandeja = null;
+
+        this.sincronizarEscuchaPendientes(lista);
 
         if (this.conversacionActiva) {
           const actualizada = lista.find(c => c.id === this.conversacionActiva!.id);
@@ -237,8 +250,69 @@ export class MensajesPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillL
     );
   }
 
+  private sincronizarEscuchaPendientes(lista: Conversacion[]) {
+    const idsActuales = new Set(lista.map(c => c.id));
+
+    this.unsubPendientesPorConv.forEach((unsub, convId) => {
+      if (!idsActuales.has(convId)) {
+        unsub();
+        this.unsubPendientesPorConv.delete(convId);
+        delete this.pendientesPorConv[convId];
+        delete this.enviadosPendientesPorConv[convId];
+      }
+    });
+
+    lista.forEach((conv) => {
+      if (this.unsubPendientesPorConv.has(conv.id)) return;
+
+      const mensajesRef = collection(this.firestore, `conversaciones/${conv.id}/mensajes`);
+      const qPendientes = query(mensajesRef, where('estado', '==', 'pendiente'));
+
+      const unsub = onSnapshot(
+        qPendientes,
+        (snap) => {
+          let recibidosSinVer = 0;
+          let enviadosSinVer = 0;
+
+          snap.forEach((msgDoc) => {
+            const data = msgDoc.data();
+            if (data['emisorId'] && data['emisorId'] !== this.uid) {
+              recibidosSinVer++;
+            } else if (data['emisorId'] === this.uid) {
+              enviadosSinVer++;
+            }
+          });
+
+          this.pendientesPorConv[conv.id] = recibidosSinVer;
+          this.enviadosPendientesPorConv[conv.id] = enviadosSinVer;
+          this.cdr.detectChanges();
+        },
+        () => {
+          this.pendientesPorConv[conv.id] = 0;
+        }
+      );
+
+      this.unsubPendientesPorConv.set(conv.id, unsub);
+    });
+  }
+
   esNoLeido(conv: Conversacion): boolean {
-    return !!conv.ultimoEmisorId && conv.ultimoEmisorId !== this.uid;
+    if (this.pendientesPorConv[conv.id] !== undefined) {
+      return this.pendientesPorConv[conv.id] > 0;
+    }
+    return !!conv.ultimoEmisorId && conv.ultimoEmisorId !== this.uid && conv.ultimoEstado === 'pendiente';
+  }
+
+  obtenerCantidadNoLeidos(conv: Conversacion): number {
+    return this.pendientesPorConv[conv.id] || 0;
+  }
+
+  ultimoMensajeFueVisto(conv: Conversacion): boolean {
+    if (conv.ultimoEmisorId !== this.uid) return false;
+    if (this.enviadosPendientesPorConv[conv.id] !== undefined) {
+      return this.enviadosPendientesPorConv[conv.id] === 0;
+    }
+    return conv.ultimoEstado === 'visto';
   }
 
   // ==========================================
@@ -247,6 +321,7 @@ export class MensajesPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillL
   seleccionarConversacion(conv: Conversacion) {
     this.conversacionActiva = conv;
     this.mensajes = [];
+    this.ultimoMiMensajeId = null;
     this.errorMensajes = null;
     this.iniciarEscuchaMensajes(conv.id);
   }
@@ -270,21 +345,45 @@ export class MensajesPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillL
     this.unsubMensajes = onSnapshot(
       qMensajes,
       (snapshot) => {
+        const docsParaMarcarVisto: QueryDocumentSnapshot<DocumentData>[] = [];
+
         const ultimosMensajes: Mensaje[] = snapshot.docs.map((docSnap) => {
           const data = docSnap.data();
+          const emisorId = data['emisorId'] || '';
+          const estado = data['estado'] || 'visto';
+
+          if (emisorId && emisorId !== this.uid && estado === 'pendiente' && !this.marcandoVistoIds.has(docSnap.id)) {
+            docsParaMarcarVisto.push(docSnap);
+          }
+
           return {
             id: docSnap.id,
-            emisorId: data['emisorId'] || '',
+            emisorId,
             texto: data['texto'] || '',
+            estado,
             creadoEn: data['creadoEn'] || null
           };
         });
 
         this.mensajes = ultimosMensajes.reverse();
+
+        // Identificar únicamente el último mensaje enviado por el usuario actual
+        this.ultimoMiMensajeId = null;
+        for (let i = this.mensajes.length - 1; i >= 0; i--) {
+          if (this.mensajes[i].emisorId === this.uid) {
+            this.ultimoMiMensajeId = this.mensajes[i].id;
+            break;
+          }
+        }
+
         this.cargandoMensajes = false;
         this.errorMensajes = null;
         this.cdr.detectChanges();
         this.scrollAlFinal();
+
+        if (docsParaMarcarVisto.length > 0 && this.conversacionActiva?.id === conversacionId) {
+          this.marcarMensajesComoVistos(conversacionId, docsParaMarcarVisto);
+        }
       },
       (error) => {
         console.error('Error al escuchar mensajes de la conversación:', error);
@@ -295,6 +394,32 @@ export class MensajesPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillL
     );
   }
 
+  private async marcarMensajesComoVistos(
+    conversacionId: string,
+    docsPendientes: QueryDocumentSnapshot<DocumentData>[]
+  ) {
+    try {
+      const batch = writeBatch(this.firestore);
+
+      docsPendientes.forEach((docSnap) => {
+        this.marcandoVistoIds.add(docSnap.id);
+        batch.update(docSnap.ref, {
+          estado: 'visto'
+        });
+      });
+
+      const conversacionDocRef = doc(this.firestore, `conversaciones/${conversacionId}`);
+      batch.update(conversacionDocRef, {
+        ultimoEstado: 'visto'
+      });
+
+      await batch.commit();
+    } catch (error) {
+      console.error('Error al actualizar estado de mensajes a visto:', error);
+      docsPendientes.forEach((docSnap) => this.marcandoVistoIds.delete(docSnap.id));
+    }
+  }
+
   volverABandeja() {
     if (this.unsubMensajes) {
       this.unsubMensajes();
@@ -302,6 +427,7 @@ export class MensajesPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillL
     }
     this.conversacionActiva = null;
     this.mensajes = [];
+    this.ultimoMiMensajeId = null;
     this.errorMensajes = null;
     this.cdr.detectChanges();
   }
@@ -357,6 +483,7 @@ export class MensajesPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillL
       batch.set(nuevoMensajeDocRef, {
         emisorId: emisorId,
         texto: textoLimpio,
+        estado: 'pendiente',
         creadoEn: serverTimestamp()
       });
 
@@ -364,6 +491,7 @@ export class MensajesPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillL
       batch.update(conversacionDocRef, {
         ultimoMensaje: textoLimpio,
         ultimoEmisorId: emisorId,
+        ultimoEstado: 'pendiente',
         actualizadoEn: serverTimestamp()
       });
 
@@ -392,6 +520,8 @@ export class MensajesPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillL
       this.unsubMensajes();
       this.unsubMensajes = null;
     }
+    this.unsubPendientesPorConv.forEach((unsub) => unsub());
+    this.unsubPendientesPorConv.clear();
   }
 
   private limpiarSuscripciones() {

@@ -29,6 +29,7 @@ import {
 import { Auth, signInWithEmailAndPassword } from '@angular/fire/auth'; 
 import { Firestore, doc, getDoc, updateDoc } from '@angular/fire/firestore'; 
 import { GoogleAuthService } from '../../services/google-auth';
+import { normalizarCorreo, validarCorreo } from '../../utils/validadores';
 
 @Component({
   selector: 'app-login',
@@ -63,6 +64,11 @@ export class LoginPage {
     password: ''
   };
 
+  errores = {
+    correo: '',
+    password: ''
+  };
+
   cargando: boolean = false;
   cargandoGoogle: boolean = false;
 
@@ -89,12 +95,50 @@ export class LoginPage {
     this.cargando = false;
     this.cargandoGoogle = false;
     this.credenciales = { correo: '', password: '' };
+    this.errores = { correo: '', password: '' };
     this.showPassword = false;
     this.cdr.detectChanges();
   }
 
   togglePassword() {
     this.showPassword = !this.showPassword;
+  }
+
+  /* =======================================================
+     VALIDACIÓN DE CAMPOS
+     - El error aparece al salir del campo (si ya escribió algo) o al presionar "Ingresar".
+     - Una vez visible, se actualiza mientras el usuario corrige.
+     - La contraseña solo se exige como "no vacía": no se aplican reglas de creación
+       para no bloquear cuentas antiguas.
+  ======================================================= */
+  alCambiarCorreo(valor: string | number | null | undefined) {
+    this.credenciales.correo = String(valor ?? '');
+    if (this.errores.correo) {
+      this.errores.correo = validarCorreo(this.credenciales.correo);
+    }
+  }
+
+  alSalirDeCorreo() {
+    if (!this.credenciales.correo.trim()) {
+      return;
+    }
+    this.credenciales.correo = normalizarCorreo(this.credenciales.correo);
+    this.errores.correo = validarCorreo(this.credenciales.correo);
+  }
+
+  alCambiarPassword(valor: string | number | null | undefined) {
+    this.credenciales.password = String(valor ?? '');
+    if (this.errores.password) {
+      this.errores.password = this.credenciales.password ? '' : 'Ingresa tu contraseña.';
+    }
+  }
+
+  private validarFormulario(): boolean {
+    this.credenciales.correo = normalizarCorreo(this.credenciales.correo);
+    this.errores.correo = validarCorreo(this.credenciales.correo);
+    this.errores.password = this.credenciales.password ? '' : 'Ingresa tu contraseña.';
+
+    return !this.errores.correo && !this.errores.password;
   }
 
   async mostrarError(mensaje: string, color: 'danger' | 'warning' | 'success' = 'danger') {
@@ -116,12 +160,12 @@ export class LoginPage {
   }
   
   async iniciarSesion() {
-    if (this.cargandoGoogle) {
+    if (this.cargando || this.cargandoGoogle) {
       return;
     }
 
-    if (!this.credenciales.correo || !this.credenciales.password) {
-      await this.mostrarError('Por favor, ingresa tu correo y contraseña.', 'warning');
+    if (!this.validarFormulario()) {
+      this.cdr.detectChanges();
       return;
     }
 
@@ -165,7 +209,14 @@ export class LoginPage {
       if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
         await this.mostrarError('Correo o contraseña incorrectos.');
       } else if (error.code === 'auth/invalid-email') {
-        await this.mostrarError('El formato del correo no es válido.', 'warning');
+        this.errores.correo = 'Escribe un correo válido.';
+        this.cdr.detectChanges();
+      } else if (error.code === 'auth/too-many-requests') {
+        await this.mostrarError('Demasiados intentos. Espera unos minutos.', 'warning');
+      } else if (error.code === 'auth/network-request-failed') {
+        await this.mostrarError('Sin conexión. Revisa tu internet.', 'warning');
+      } else if (error.code === 'auth/user-disabled') {
+        await this.mostrarError('Esta cuenta está deshabilitada.');
       } else {
         await this.mostrarError('Ocurrió un error al intentar entrar. Inténtalo de nuevo.');
       }

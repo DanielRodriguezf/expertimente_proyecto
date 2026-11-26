@@ -220,6 +220,39 @@ ion-header {
 }
 
 /* --- BOTONES DE ACCIÓN --- */
+.textarea-card.invalido {
+  border-color: var(--ion-color-danger);
+}
+
+.field-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0 4px 10px;
+  color: #c62828; /* rojo con buen contraste sobre blanco */
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.35;
+  animation: errorEntra 0.18s ease-out;
+
+  ion-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+}
+
+@keyframes errorEntra {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field-error {
+    animation: none;
+  }
+}
+
 .action-section {
   margin-top: 10px;
   flex-shrink: 0;

@@ -23,10 +23,12 @@ import {
   shieldCheckmarkOutline,
   checkmarkCircle,
   warning,
-  closeCircle
+  closeCircle,
+  alertCircleOutline
 } from 'ionicons/icons';
 
 import { Auth, sendPasswordResetEmail } from '@angular/fire/auth';
+import { normalizarCorreo, validarCorreo } from '../../utils/validadores';
 
 @Component({
   selector: 'app-forgot-password',
@@ -51,6 +53,7 @@ import { Auth, sendPasswordResetEmail } from '@angular/fire/auth';
 })
 export class ForgotPasswordPage {
   correo: string = '';
+  errorCorreo: string = '';
   cargando: boolean = false;
 
   private auth = inject(Auth);
@@ -67,8 +70,29 @@ export class ForgotPasswordPage {
       'shield-checkmark-outline': shieldCheckmarkOutline,
       'checkmark-circle': checkmarkCircle,
       'warning': warning,
-      'close-circle': closeCircle
+      'close-circle': closeCircle,
+      'alert-circle-outline': alertCircleOutline
     });
+  }
+
+  /* =======================================================
+     VALIDACIÓN DEL CORREO
+     - El error aparece al salir del campo (si ya escribió algo) o al presionar el botón.
+     - Una vez visible, se actualiza mientras el usuario corrige.
+  ======================================================= */
+  alCambiarCorreo(valor: string | number | null | undefined) {
+    this.correo = String(valor ?? '');
+    if (this.errorCorreo) {
+      this.errorCorreo = validarCorreo(this.correo);
+    }
+  }
+
+  alSalirDeCorreo() {
+    if (!this.correo.trim()) {
+      return;
+    }
+    this.correo = normalizarCorreo(this.correo);
+    this.errorCorreo = validarCorreo(this.correo);
   }
 
   async mostrarNotificacion(mensaje: string, color: 'success' | 'warning' | 'danger' = 'danger') {
@@ -90,9 +114,16 @@ export class ForgotPasswordPage {
   }
 
   async recuperarPassword() {
-    const correoLimpio = (this.correo || '').trim();
-    if (!correoLimpio) {
-      await this.mostrarNotificacion('Por favor, ingresa tu correo electrónico.', 'warning');
+    if (this.cargando) {
+      return;
+    }
+
+    const correoLimpio = normalizarCorreo(this.correo);
+    this.correo = correoLimpio;
+    this.errorCorreo = validarCorreo(correoLimpio);
+
+    if (this.errorCorreo) {
+      this.cdr.detectChanges();
       return;
     }
 
@@ -107,6 +138,7 @@ export class ForgotPasswordPage {
       this.ngZone.run(() => {
         this.cargando = false;
         this.correo = '';
+        this.errorCorreo = '';
         this.cdr.detectChanges();
       });
 
@@ -125,9 +157,18 @@ export class ForgotPasswordPage {
       });
 
       if (error.code === 'auth/invalid-email') {
-        await this.mostrarNotificacion('El formato del correo no es válido.', 'warning');
+        this.ngZone.run(() => {
+          this.errorCorreo = 'Escribe un correo válido.';
+          this.cdr.detectChanges();
+        });
+      } else if (error.code === 'auth/user-not-found') {
+        await this.mostrarNotificacion('No encontramos una cuenta con ese correo.', 'warning');
+      } else if (error.code === 'auth/too-many-requests') {
+        await this.mostrarNotificacion('Demasiados intentos. Espera unos minutos.', 'warning');
+      } else if (error.code === 'auth/network-request-failed') {
+        await this.mostrarNotificacion('Sin conexión. Revisa tu internet.', 'warning');
       } else {
-        await this.mostrarNotificacion('Ocurrió un error. Verifica que el correo esté registrado.', 'danger');
+        await this.mostrarNotificacion('Ocurrió un error. Inténtalo de nuevo.', 'danger');
       }
     }
   }

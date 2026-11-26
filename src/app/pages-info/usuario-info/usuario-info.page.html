@@ -42,7 +42,7 @@
                 <p class="subtitle">Registra tus estudios realizados o en curso.</p>
 
                 <!-- 1. Nivel de estudio -->
-                <div class="input-wrapper">
+                <div class="input-wrapper" [class.campo-invalido]="!!errorDe('nivelEstudio')">
                   <ion-input
                     readonly="true"
                     label="Nivel de estudio"
@@ -54,35 +54,59 @@
                     class="pointer-input modern-input">
                     <ion-icon name="chevron-down-outline" slot="end" color="primary"></ion-icon>
                   </ion-input>
+                  @if (errorDe('nivelEstudio')) {
+                    <p class="field-error" role="alert">
+                      <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+                      <span>{{ errorDe('nivelEstudio') }}</span>
+                    </p>
+                  }
                 </div>
 
                 <!-- 2. Institución educativa -->
-                <div class="input-wrapper">
+                <div class="input-wrapper" [class.campo-invalido]="!!errorDe('institucion')">
                   <ion-input
                     label="Institución educativa"
                     labelPlacement="floating"
                     fill="outline"
                     type="text"
+                    maxlength="80"
                     class="modern-input"
                     placeholder="Ej. Liceo de Maipú, Duoc UC..."
-                    [(ngModel)]="formacionActual.institucion"
+                    [ngModel]="formacionActual.institucion"
+                    (ngModelChange)="alCambiarCampo('institucion', $event)"
+                    (ionBlur)="alSalirDeCampo('institucion')"
                     [ngModelOptions]="{standalone: true}">
                   </ion-input>
+                  @if (errorDe('institucion')) {
+                    <p class="field-error" role="alert">
+                      <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+                      <span>{{ errorDe('institucion') }}</span>
+                    </p>
+                  }
                 </div>
 
                 <!-- 3. Carrera o área de estudio (aparece solo según el nivel elegido) -->
                 @if (mostrarCampoCarrera) {
-                  <div class="input-wrapper fade-in">
+                  <div class="input-wrapper fade-in" [class.campo-invalido]="!!errorDe('nombreEstudio')">
                     <ion-input
                       [label]="etiquetaCarrera"
                       labelPlacement="floating"
                       fill="outline"
                       type="text"
+                      maxlength="80"
                       class="modern-input"
                       [placeholder]="placeholderCarrera"
-                      [(ngModel)]="formacionActual.nombreEstudio"
+                      [ngModel]="formacionActual.nombreEstudio"
+                      (ngModelChange)="alCambiarCampo('nombreEstudio', $event)"
+                      (ionBlur)="alSalirDeCampo('nombreEstudio')"
                       [ngModelOptions]="{standalone: true}">
                     </ion-input>
+                    @if (errorDe('nombreEstudio')) {
+                      <p class="field-error" role="alert">
+                        <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+                        <span>{{ errorDe('nombreEstudio') }}</span>
+                      </p>
+                    }
                   </div>
                 }
 
@@ -102,7 +126,7 @@
 
                 <!-- 5. Fechas del estudio (textos centrados) -->
                 <div class="dates-grid" [class.single-column]="formacionActual.cursandoActualmente">
-                  <div class="date-field">
+                  <div class="date-field" [class.campo-invalido]="!!errorDe('anioInicio')">
                     <span class="date-label">Inicio</span>
                     <ion-input
                       aria-label="Año de inicio"
@@ -111,13 +135,21 @@
                       inputmode="numeric"
                       placeholder="Ej. 2019"
                       class="modern-input input-centrado"
-                      [(ngModel)]="formacionActual.anioInicio"
+                      [ngModel]="formacionActual.anioInicio"
+                      (ngModelChange)="alCambiarCampo('anioInicio', $event)"
+                      (ionBlur)="alSalirDeCampo('anioInicio')"
                       [ngModelOptions]="{standalone: true}">
                     </ion-input>
+                    @if (errorDe('anioInicio')) {
+                      <p class="field-error" role="alert">
+                        <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+                        <span>{{ errorDe('anioInicio') }}</span>
+                      </p>
+                    }
                   </div>
 
                   @if (!formacionActual.cursandoActualmente) {
-                    <div class="date-field fade-in">
+                    <div class="date-field fade-in" [class.campo-invalido]="!!errorDe('anioTermino')">
                       <span class="date-label">Término</span>
                       <ion-input
                         aria-label="Año de término"
@@ -126,9 +158,17 @@
                         inputmode="numeric"
                         placeholder="Ej. 2023"
                         class="modern-input input-centrado"
-                        [(ngModel)]="formacionActual.anioTermino"
+                        [ngModel]="formacionActual.anioTermino"
+                        (ngModelChange)="alCambiarCampo('anioTermino', $event)"
+                        (ionBlur)="alSalirDeCampo('anioTermino')"
                         [ngModelOptions]="{standalone: true}">
                       </ion-input>
+                      @if (errorDe('anioTermino')) {
+                        <p class="field-error" role="alert">
+                          <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+                          <span>{{ errorDe('anioTermino') }}</span>
+                        </p>
+                      }
                     </div>
                   }
                 </div>
@@ -207,43 +247,70 @@
 
                 @if (!sinExperiencia) {
                   <div class="fade-in experience-inputs-block">
-                    <div class="input-wrapper">
+                    <div class="input-wrapper" [class.campo-invalido]="!!errorDe('cargo')">
                       <ion-input
                         label="Cargo o Puesto"
                         labelPlacement="floating"
                         fill="outline"
                         type="text"
+                        maxlength="60"
                         placeholder="Ej. Vendedor, Guardia..."
                         class="modern-input"
-                        [(ngModel)]="experienciaActual.cargo"
+                        [ngModel]="experienciaActual.cargo"
+                        (ngModelChange)="alCambiarCampo('cargo', $event)"
+                        (ionBlur)="alSalirDeCampo('cargo')"
                         [ngModelOptions]="{standalone: true}">
                       </ion-input>
+                      @if (errorDe('cargo')) {
+                        <p class="field-error" role="alert">
+                          <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+                          <span>{{ errorDe('cargo') }}</span>
+                        </p>
+                      }
                     </div>
 
-                    <div class="input-wrapper">
+                    <div class="input-wrapper" [class.campo-invalido]="!!errorDe('lugar')">
                       <ion-input
                         label="Lugar o Empresa"
                         labelPlacement="floating"
                         fill="outline"
                         type="text"
+                        maxlength="80"
                         placeholder="Ej. Supermercado Lider"
                         class="modern-input"
-                        [(ngModel)]="experienciaActual.lugar"
+                        [ngModel]="experienciaActual.lugar"
+                        (ngModelChange)="alCambiarCampo('lugar', $event)"
+                        (ionBlur)="alSalirDeCampo('lugar')"
                         [ngModelOptions]="{standalone: true}">
                       </ion-input>
+                      @if (errorDe('lugar')) {
+                        <p class="field-error" role="alert">
+                          <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+                          <span>{{ errorDe('lugar') }}</span>
+                        </p>
+                      }
                     </div>
 
-                    <div class="input-wrapper">
+                    <div class="input-wrapper" [class.campo-invalido]="!!errorDe('tiempo')">
                       <ion-input
                         label="Tiempo trabajado"
                         labelPlacement="floating"
                         fill="outline"
                         type="text"
+                        maxlength="40"
                         placeholder="Ej. 2 años, 6 meses..."
                         class="modern-input"
-                        [(ngModel)]="experienciaActual.tiempo"
+                        [ngModel]="experienciaActual.tiempo"
+                        (ngModelChange)="alCambiarCampo('tiempo', $event)"
+                        (ionBlur)="alSalirDeCampo('tiempo')"
                         [ngModelOptions]="{standalone: true}">
                       </ion-input>
+                      @if (errorDe('tiempo')) {
+                        <p class="field-error" role="alert">
+                          <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+                          <span>{{ errorDe('tiempo') }}</span>
+                        </p>
+                      }
                     </div>
 
                     <div class="input-wrapper">
@@ -252,6 +319,7 @@
                         labelPlacement="floating"
                         fill="outline"
                         rows="2"
+                        maxlength="300"
                         placeholder="Describe brevemente tus tareas..."
                         class="modern-textarea"
                         [(ngModel)]="experienciaActual.descripcion"
@@ -301,7 +369,7 @@
                 <p class="subtitle">¿Qué tipo de jornada te acomoda más?</p>
 
                 <ion-radio-group formControlName="disponibilidad">
-                  <div class="radio-group-container">
+                  <div class="radio-group-container" [class.campo-invalido]="!!errorDe('disponibilidad')">
                     <ion-item class="radio-item" lines="none" [class.selected-radio]="cvForm.get('disponibilidad')?.value === 'Jornada Completa'">
                       <ion-radio value="Jornada Completa" justify="space-between" class="custom-radio">Jornada Completa</ion-radio>
                     </ion-item>
@@ -319,6 +387,12 @@
                     </ion-item>
                   </div>
                 </ion-radio-group>
+                @if (errorDe('disponibilidad')) {
+                  <p class="field-error" role="alert">
+                    <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+                    <span>{{ errorDe('disponibilidad') }}</span>
+                  </p>
+                }
               </div>
             }
 
@@ -328,17 +402,25 @@
                 <h2 class="question-text">Habilidades Blandas</h2>
                 <p class="subtitle">¿Cuáles son tus fortalezas personales?</p>
 
-                <div class="input-wrapper">
+                <div class="input-wrapper" [class.campo-invalido]="!!errorDe('habilidadesBlandas')">
                   <ion-textarea
                     formControlName="habilidadesBlandas"
                     label="Tus fortalezas"
                     labelPlacement="floating"
                     fill="outline"
                     rows="3"
+                    maxlength="500"
                     placeholder="Ej. Responsabilidad, Puntualidad..."
                     class="modern-textarea"
-                    (ionInput)="actualizarSugerenciasBlandas()">
+                    (ionInput)="actualizarSugerenciasBlandas()"
+                    (ionBlur)="alSalirDeCampo('habilidadesBlandas')">
                   </ion-textarea>
+                  @if (errorDe('habilidadesBlandas')) {
+                    <p class="field-error" role="alert">
+                      <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+                      <span>{{ errorDe('habilidadesBlandas') }}</span>
+                    </p>
+                  }
                 </div>
 
                 @if (sugerenciasBlandas.length > 0) {
@@ -361,17 +443,25 @@
                 <h2 class="question-text">Habilidades Técnicas</h2>
                 <p class="subtitle">¿Qué herramientas o conocimientos prácticos dominas?</p>
 
-                <div class="input-wrapper">
+                <div class="input-wrapper" [class.campo-invalido]="!!errorDe('habilidadesTecnicas')">
                   <ion-textarea
                     formControlName="habilidadesTecnicas"
                     label="Tus habilidades técnicas"
                     labelPlacement="floating"
                     fill="outline"
                     rows="3"
+                    maxlength="500"
                     placeholder="Ej. Manejo de caja, Excel..."
                     class="modern-textarea"
-                    (ionInput)="actualizarSugerenciasTecnicas()">
+                    (ionInput)="actualizarSugerenciasTecnicas()"
+                    (ionBlur)="alSalirDeCampo('habilidadesTecnicas')">
                   </ion-textarea>
+                  @if (errorDe('habilidadesTecnicas')) {
+                    <p class="field-error" role="alert">
+                      <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+                      <span>{{ errorDe('habilidadesTecnicas') }}</span>
+                    </p>
+                  }
                 </div>
 
                 @if (sugerenciasTecnicas.length > 0) {

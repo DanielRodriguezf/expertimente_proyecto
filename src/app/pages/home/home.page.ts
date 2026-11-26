@@ -40,6 +40,8 @@ export class HomePage implements OnInit, OnDestroy {
   private unsubAuth: AuthUnsubscribe | null = null;
   private unsubPerfil: Unsubscribe | null = null;
   private unsubConversaciones: Unsubscribe | null = null;
+  private unsubPendientesPorConv = new Map<string, Unsubscribe>();
+  private conteoPendientesPorConv = new Map<string, number>();
 
   private auth = inject(Auth);
   private firestore = inject(Firestore);
@@ -72,8 +74,6 @@ export class HomePage implements OnInit, OnDestroy {
             const data = docSnap.data();
             this.nombreUsuario = data['nombre'] || 'Usuario';
 
-            // El registro guarda ocultarAyudaInicial: false en las cuentas nuevas. Las cuentas antiguas
-            // no tienen el campo, así que no ven el aviso de "primera vez".
             const esCuentaNueva = data['ocultarAyudaInicial'] === false;
             const ocultoRemoto = data['ocultarAyudaInicial'] === true;
             const ocultoLocal = this.ayudaOcultaLocal(user.uid);
@@ -94,18 +94,53 @@ export class HomePage implements OnInit, OnDestroy {
         this.unsubConversaciones = onSnapshot(
           qConv,
           (snapshot) => {
-            let pendientes = 0;
+            const idsActuales = new Set<string>();
+
             snapshot.forEach((docSnap) => {
-              const data = docSnap.data();
-              if (data['ultimoEmisorId'] && data['ultimoEmisorId'] !== user.uid) {
-                pendientes++;
+              const convId = docSnap.id;
+              idsActuales.add(convId);
+
+              if (!this.unsubPendientesPorConv.has(convId)) {
+                const mensajesRef = collection(this.firestore, `conversaciones/${convId}/mensajes`);
+                const qPendientes = query(mensajesRef, where('estado', '==', 'pendiente'));
+
+                const unsubMsg = onSnapshot(
+                  qPendientes,
+                  (msgSnap) => {
+                    let sinVerEnConv = 0;
+                    msgSnap.forEach((msgDoc) => {
+                      const msgData = msgDoc.data();
+                      if (msgData['emisorId'] && msgData['emisorId'] !== user.uid) {
+                        sinVerEnConv++;
+                      }
+                    });
+                    this.conteoPendientesPorConv.set(convId, sinVerEnConv);
+                    this.recalcularTotalMensajesNuevos();
+                  },
+                  () => {
+                    this.conteoPendientesPorConv.set(convId, 0);
+                    this.recalcularTotalMensajesNuevos();
+                  }
+                );
+
+                this.unsubPendientesPorConv.set(convId, unsubMsg);
               }
             });
-            this.mensajesNuevosCount = pendientes;
-            this.cdr.detectChanges();
+
+            // Limpiar conversaciones eliminadas
+            this.unsubPendientesPorConv.forEach((unsub, convId) => {
+              if (!idsActuales.has(convId)) {
+                unsub();
+                this.unsubPendientesPorConv.delete(convId);
+                this.conteoPendientesPorConv.delete(convId);
+              }
+            });
+
+            this.recalcularTotalMensajesNuevos();
           },
           () => {
             this.mensajesNuevosCount = 0;
+            this.cdr.detectChanges();
           }
         );
       } else {
@@ -116,6 +151,15 @@ export class HomePage implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  private recalcularTotalMensajesNuevos() {
+    let total = 0;
+    this.conteoPendientesPorConv.forEach((cantidad) => {
+      total += cantidad;
+    });
+    this.mensajesNuevosCount = total;
+    this.cdr.detectChanges();
   }
 
   ngOnDestroy() {
@@ -179,5 +223,8 @@ export class HomePage implements OnInit, OnDestroy {
       this.unsubConversaciones();
       this.unsubConversaciones = null;
     }
+    this.unsubPendientesPorConv.forEach((unsub) => unsub());
+    this.unsubPendientesPorConv.clear();
+    this.conteoPendientesPorConv.clear();
   }
 }
