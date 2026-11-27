@@ -2926,3 +2926,135 @@ $text-muted: #5d7a52;
   font-size: 20px;
   color: currentColor;
 }
+
+.busqueda-postulantes-page {
+  .ranking-manual,
+  .busqueda-perfil {
+    color-scheme: only light;
+    background: #fff;
+    color: #213222;
+    border: 1px solid #d6e0d4;
+    border-radius: 16px;
+    box-shadow: 0 3px 12px rgba(32, 54, 36, .06);
+  }
+
+  .ranking-manual {
+    margin: 16px 0 22px;
+    padding: clamp(16px, 3vw, 26px);
+  }
+
+  .ranking-manual h3 {
+    color: #203723;
+    margin: 0 0 14px;
+    font-size: 1.35rem;
+  }
+
+  .rm-lista {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .rm-fila {
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding: 11px 0;
+    border-bottom: 1px solid #e2e9df;
+    overflow-wrap: anywhere;
+  }
+
+  .rm-puesto,
+  .rm-porcentaje {
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+    border-radius: 8px;
+    padding: 5px 7px;
+    background: #edf4e9;
+    color: #294c29;
+  }
+
+  .rm-lista:first-of-type:not([start]) .rm-fila:first-child .rm-puesto {
+    background: #fbefcc;
+    color: #664b0b;
+  }
+
+  .ranking-manual summary {
+    width: fit-content;
+    cursor: pointer;
+    margin: 14px 0 0;
+    padding: 9px 15px;
+    border: 1px solid #53774e;
+    border-radius: 9px;
+    background: #fff;
+    color: #284f2b;
+    font-weight: 700;
+  }
+
+  .ranking-manual summary:focus-visible {
+    outline: 3px solid #44733a;
+    outline-offset: 3px;
+  }
+
+  .rm-cerrar,
+  details[open] .rm-abrir {
+    display: none;
+  }
+
+  details[open] .rm-cerrar {
+    display: inline;
+  }
+
+  .rm-evidencia {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px 16px;
+    margin: 14px 0;
+    color: #354d36;
+  }
+
+  .rm-datos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 195px), 1fr));
+    gap: 9px;
+    margin: 14px 0;
+  }
+
+  .rm-datos > div {
+    padding: 12px;
+    border: 1px solid #dce5d9;
+    border-radius: 10px;
+    background: #fff;
+  }
+
+  .rm-datos dt {
+    color: #425e41;
+    font-size: .8rem;
+    font-weight: 700;
+  }
+
+  .rm-datos dd {
+    color: #213222;
+    margin: 4px 0 0;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+
+  .busqueda-perfil .idoneidad-badge {
+    color: #31552e !important;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .ranking-manual,
+    .busqueda-perfil {
+      font-weight: 700;
+    }
+
+    .busqueda-perfil :is(h4, p, p span, dt, dd, .busqueda-resumen-label, .rm-evidencia) {
+      color: #213222;
+      font-weight: 700;
+    }
+  }
+}

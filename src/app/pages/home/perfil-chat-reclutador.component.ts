@@ -616,6 +616,18 @@ interface CampoPerfil {
     }
 
     /* ESTILOS DE VISTA PERFIL COMPLETO */
+    .perfil {
+      color-scheme: only light;
+      color: #213222;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .perfil :is(h2, h3, p, dt, dd, strong, .etiqueta) {
+        color: #213222;
+        font-weight: 700;
+      }
+    }
+
     .contenido {
       flex: 1;
       overflow-y: auto;

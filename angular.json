@@ -28,6 +28,11 @@
             "inlineStyleLanguage": "scss",
             "assets": [
               {
+                "glob": "pdf.worker.min.mjs",
+                "input": "node_modules/pdfjs-dist/build",
+                "output": "assets/pdfjs"
+              },
+              {
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"

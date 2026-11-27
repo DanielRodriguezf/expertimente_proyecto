@@ -426,7 +426,7 @@
       <div>
         <strong>{{ candidato.nombres }} {{ candidato.apellidos }}</strong>
         <small *ngIf="candidato.cvManual?.areaExperiencia">
-          {{ candidato.cvManual?.areaExperiencia }}
+          {{ candidato.cvManual.areaExperiencia }}
         </small>
       </div>
 
@@ -593,13 +593,7 @@
       *ngIf="isModalBusquedaPostulantesOpen && puedePublicarOfertas">
       <ion-header>
         <ion-toolbar class="busqueda-toolbar">
-          <ion-title>
-            {{
-              rankingCargo.esVentanaCompleta
-                ? 'Ranking completo'
-                : 'Búsqueda por cargo'
-            }}
-          </ion-title>
+          <ion-title>Búsqueda por cargo</ion-title>
           <ion-buttons slot="end">
             <ion-button
               type="button"
@@ -614,7 +608,7 @@
       <div class="busqueda-contenido">
         <header
           class="busqueda-presentacion"
-          *ngIf="!rankingCargo.esVentanaCompleta">
+          >
           <div class="busqueda-presentacion-icono">
             <ion-icon name="people-outline"></ion-icon>
           </div>
@@ -631,7 +625,7 @@
         <!-- FILTROS -->
         <section
           class="busqueda-filtros"
-          *ngIf="!rankingCargo.esVentanaCompleta"
+          
           aria-labelledby="titulo-filtros-postulantes">
           <div class="busqueda-filtros-header">
             <div>
@@ -710,7 +704,7 @@
               <p id="ayuda-area-busqueda" class="busqueda-ayuda">
                 {{
                   areasBusquedaDisponibles.length > 0
-                    ? 'Filtra por área de experiencia.'
+                    ? 'Incluye perfiles con interés en el área seleccionada.'
                     : 'Sin áreas registradas para esta selección.'
                 }}
               </p>
@@ -748,7 +742,7 @@
           class="busqueda-resultados"
           aria-live="polite"
           [attr.aria-busy]="cargandoBusquedaPostulantes">
-          <ng-container *ngIf="!rankingCargo.esVentanaCompleta">
+          <ng-container>
             <div class="busqueda-estado" *ngIf="cargandoBusquedaPostulantes">
               <ion-spinner name="crescent"></ion-spinner>
               <h3>Buscando coincidencias</h3>
@@ -785,23 +779,10 @@
             </div>
           </ng-container>
 
-          <!-- RANKING A LA IZQUIERDA Y PERFILES A LA DERECHA -->
-          <app-ranking-cargo
-            #rankingCargo
-            [activo]="
-              !isLoading &&
-              !cargandoBusquedaPostulantes &&
-              busquedaRealizada &&
-              !errorBusquedaPostulantes
-            "
-            [cargo]="cargoBuscado"
-            [area]="filtroArea"
-            [nombreReclutador]="nombreReclutador"
-            [nombreEmpresa]="nombreEmpresa">
+          <!-- Ranking y fichas de la búsqueda -->
 
             <ng-container
               *ngIf="
-                !rankingCargo.esVentanaCompleta &&
                 !cargandoBusquedaPostulantes &&
                 busquedaRealizada &&
                 !errorBusquedaPostulantes
@@ -812,11 +793,10 @@
                     <span class="busqueda-etiqueta">PERFILES COINCIDENTES</span>
                     <h3>
                       Postulantes interesados en
-                      {{ cargoBuscado ? cargoBuscado : 'el área ' + filtroArea }}
+                      {{ filtroArea || cargoBuscado }}
                     </h3>
                     <p>
-                      Ordenados por porcentaje de idoneidad.
-                      Pueden tener o no una evaluación registrada.
+                      Orden por coincidencia del perfil y del CV con los criterios de la búsqueda.
                     </p>
                   </div>
                   <span class="busqueda-contador">
@@ -825,7 +805,44 @@
                   </span>
                 </div>
 
-                <div class="busqueda-estado" *ngIf="resultados.length === 0">
+                <section class="ranking-manual" *ngIf="resultados.length">
+  <h3>Ranking</h3>
+
+  <ng-template #fila let-p let-puesto="puesto">
+    <li class="rm-fila">
+      <span class="rm-puesto">#{{ puesto }}</span>
+      <strong>{{ p.nombres }} {{ p.apellidos }}</strong>
+      <span class="rm-porcentaje">
+        {{ p.porcentajeIdoneidad | number:'1.0-0' }}%
+      </span>
+    </li>
+  </ng-template>
+
+  <ol class="rm-lista">
+    <ng-container *ngFor="let persona of resultados | slice:0:3; index as i">
+      <ng-container
+        *ngTemplateOutlet="fila; context: { $implicit: persona, puesto: i + 1 }">
+      </ng-container>
+    </ng-container>
+  </ol>
+
+  <details *ngIf="resultados.length > 3">
+    <summary>
+      <span class="rm-abrir">Desplegar ranking</span>
+      <span class="rm-cerrar">Ocultar ranking completo</span>
+    </summary>
+
+    <ol class="rm-lista" start="4">
+      <ng-container *ngFor="let persona of resultados | slice:3; index as i">
+        <ng-container
+          *ngTemplateOutlet="fila; context: { $implicit: persona, puesto: i + 4 }">
+        </ng-container>
+      </ng-container>
+    </ol>
+  </details>
+</section>
+
+<div class="busqueda-estado" *ngIf="resultados.length === 0">
                   <div class="busqueda-estado-icono">
                     <ion-icon name="people-outline"></ion-icon>
                   </div>
@@ -839,7 +856,7 @@
                   class="busqueda-perfiles"
                   *ngIf="resultados.length > 0"
                   style="grid-template-columns: minmax(0, 1fr);">
-                  <article class="busqueda-perfil" *ngFor="let p of resultados">
+                  <article class="busqueda-perfil" *ngFor="let p of resultados; index as puesto">
                     <div class="busqueda-perfil-header">
                       <div class="busqueda-avatar">
                         <img
@@ -855,7 +872,7 @@
                       <div class="busqueda-perfil-identidad">
                         <h4>{{ p.nombres }} {{ p.apellidos }}</h4>
                         <div class="idoneidad-badge" *ngIf="p.porcentajeIdoneidad !== undefined" style="color: var(--ion-color-primary); font-weight: bold; margin-bottom: 5px; font-size: 0.9em;">
-                          Idoneidad con tu búsqueda: {{ p.porcentajeIdoneidad | number:'1.0-0' }}%
+                          #{{ puesto + 1 }} · Coincidencia del perfil: {{ p.porcentajeIdoneidad | number:'1.0-0' }}%
                         </div>
                         <p *ngIf="p.correo">
                           <ion-icon name="mail-outline"></ion-icon>
@@ -879,6 +896,22 @@
                           {{ cargo }}
                         </span>
                       </div>
+
+                      <div class="rm-evidencia">
+     <strong>{{ p.criterios }}</strong>
+     <span>{{ p.estadoCV }}</span>
+   </div>
+
+                      <p *ngIf="!p.cargos.length">
+                        Sin cargos específicos registrados.
+                      </p>
+
+                      <dl class="rm-datos">
+     <div *ngFor="let dato of p.resumenPerfil">
+       <dt>{{ dato.slice(0, dato.indexOf(':')) }}</dt>
+       <dd>{{ dato.slice(dato.indexOf(':') + 1).trim() }}</dd>
+     </div>
+   </dl>
 
                       <ng-container *ngIf="p.cvManual as cv">
                         <p class="busqueda-estudios" *ngIf="cv.nivelEducativo">
@@ -921,7 +954,7 @@
 
                       <!-- Solo se puede aceptar a quien ya tiene una evaluación registrada -->
                       <ion-button
-                        *ngIf="p.tieneEvaluacion"
+                        *ngIf="p.tieneEvaluacion && cargoBuscado"
                         type="button"
                         color="primary"
                         fill="solid"
@@ -936,14 +969,13 @@
                       </ion-button>
                     </div>
 
-                    <p *ngIf="!p.tieneEvaluacion" class="busqueda-sin-cv">
-                      Aún no tiene una evaluación registrada para este cargo.
+                    <p *ngIf="p.tieneEvaluacion" class="busqueda-sin-cv">
+                      Cuestionario: {{ p.porcentajeEvaluacion }}%
                     </p>
                   </article>
                 </div>
               </ng-container>
             </ng-container>
-          </app-ranking-cargo>
         </div>
 
         <div class="busqueda-volver">
