@@ -102,6 +102,34 @@
       }
     }
   }
+
+  .sidebar-footer {
+    background: var(--ion-color-light);
+    border-top: 1px solid rgba(var(--ion-color-light-contrast-rgb), 0.08);
+
+    .sidebar-footer-toolbar {
+      --background: var(--ion-color-light);
+      padding: 8px 0;
+    }
+
+    .logout-item {
+      --background: transparent;
+      --color: var(--ion-color-danger);
+      font-weight: 700;
+      margin: 4px 15px;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+
+      ion-icon {
+        color: var(--ion-color-danger);
+        transition: all 0.2s ease;
+      }
+
+      &:hover {
+        --background: rgba(var(--ion-color-danger-rgb), 0.1);
+      }
+    }
+  }
 }
 
 /* ========================================= */

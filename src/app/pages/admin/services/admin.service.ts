@@ -54,16 +54,26 @@ export interface CargoInteres {
   descripcion: string;
 }
 
-// --- INTERFAZ PARA POSTULANTES (Actualizada con todos los campos) ---
+export interface FormacionAcademica {
+  id?: string;
+  anioInicio: string;
+  anioTermino: string;
+  cursandoActualmente: boolean;
+  institucion: string;
+  nivelEstudio: string;
+  nombreEstudio: string;
+}
+
+// --- INTERFAZ PARA POSTULANTES (Actualizada con estructura real de Firestore) ---
 export interface Postulante {
   id: string;
   uid?: string;
   nombre: string;
   apellidoPaterno: string;
-  apellidoMaterno: string;
+  apellidoMaterno?: string;
   correo: string;
   rut: string;
-  telefono: string;
+  telefono?: string;
   ciudad: string;
   comuna: string;
   direccion?: string;
@@ -75,18 +85,21 @@ export interface Postulante {
   fotoPerfil?: string;
   cvNombre?: string;
   cvBase64?: string;
+  areasInteres?: string[];
   cvManual?: {
     anosExperiencia?: number; 
-    areasExperiencia?: AreaExperiencia[]; // Ahora es arreglo de objetos
-    cargosInteres?: CargoInteres[]; // Nuevo campo
-    carrera?: string; // Nuevo campo
-    disponibilidad?: string; // Nuevo campo
-    establecimiento?: string; // Nuevo campo
+    areasExperiencia?: AreaExperiencia[];
+    areasInteres?: string[];
+    cargosInteres?: CargoInteres[];
+    formacionesAcademicas?: FormacionAcademica[];
+    carrera?: string;
+    disponibilidad?: string;
+    establecimiento?: string;
     habilidades?: string;
     habilidadesBlandas?: string;
     habilidadesTecnicas?: string;
     nivelEducativo?: string;
-    sinExperiencia?: boolean; // Nuevo campo booleano
+    sinExperiencia?: boolean;
   };
 }
 
@@ -118,11 +131,11 @@ export interface Oferta {
   contactoEmail?: string;
   contactoTelefono?: string;
   candidatosCount?: number;
-  cargoId?: string; // Nuevo campo
-  cargoNombre?: string; // Nuevo campo
-  formularioId?: string; // Nuevo campo
-  fechaPublicacion?: any; // Ahora lo trae de Firebase
-  fechaActualizacion?: any; // Nuevo campo
+  cargoId?: string;
+  cargoNombre?: string;
+  formularioId?: string;
+  fechaPublicacion?: any;
+  fechaActualizacion?: any;
   estado: string; 
   preguntas?: Pregunta[];
 }
@@ -146,7 +159,7 @@ export interface CargoSolicitud {
   estado: 'pendiente' | 'aprobado' | 'rechazado' | string;
 }
 
-// --- NUEVA INTERFAZ PARA LA COLECCIÓN DE ÁREAS EN FIRESTORE ---
+// --- INTERFAZ PARA LA COLECCIÓN DE ÁREAS EN FIRESTORE ---
 export interface AreaCatalogo {
   id: string;
   nombre: string;

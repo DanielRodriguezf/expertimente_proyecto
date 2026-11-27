@@ -1,8 +1,10 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { Auth } from '@angular/fire/auth';
 import { 
-  IonHeader, IonToolbar, IonTitle, IonContent, 
+  IonHeader, IonToolbar, IonTitle, IonContent, IonFooter,
   IonList, IonItem, IonLabel, IonBadge, 
   IonButton, IonButtons, IonIcon,
   IonModal, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonCardSubtitle,
@@ -18,7 +20,8 @@ import {
   menuOutline, listOutline, createOutline, documentOutline, helpCircleOutline,
   shieldCheckmarkOutline, schoolOutline, starOutline,
   heartOutline, hardwareChipOutline, syncOutline, trashOutline, logoLinkedin,
-  filterOutline, swapVerticalOutline, addCircleOutline, layersOutline, removeCircleOutline 
+  filterOutline, swapVerticalOutline, addCircleOutline, layersOutline, removeCircleOutline,
+  logOutOutline 
 } from 'ionicons/icons';
 
 import { AdminService, ReclutadorConEmpresa, Postulante, Oferta, CargoSolicitud, AreaCatalogo } from '../services/admin.service';
@@ -31,7 +34,7 @@ import { AdminService, ReclutadorConEmpresa, Postulante, Oferta, CargoSolicitud,
   imports: [
     CommonModule, 
     FormsModule, 
-    IonHeader, IonToolbar, IonTitle, IonContent, 
+    IonHeader, IonToolbar, IonTitle, IonContent, IonFooter,
     IonList, IonItem, IonLabel, IonBadge, 
     IonButton, IonButtons, IonIcon, 
     IonModal, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonCardSubtitle,
@@ -43,6 +46,9 @@ export class DashboardPage implements OnInit {
   private adminService = inject(AdminService);
   private cdr = inject(ChangeDetectorRef);
   private alertController = inject(AlertController);
+  private auth = inject(Auth);
+  private router = inject(Router);
+  private ngZone = inject(NgZone);
 
   vistaActual: 'reclutadores' | 'postulantes' | 'ofertas' | 'cargos' = 'reclutadores';
   
@@ -85,7 +91,7 @@ export class DashboardPage implements OnInit {
     habilidadesTecnicas: '',
     habilidadesBlandas: '',
     anosExperienciaMinima: 0,
-    nivelEducativoMinimo: 'Sin requisito'
+    nivelEducativoMinimo: 'Enseñanza básica'
   };
 
   // Variables para el catálogo de Áreas desde la colección 'areas' de Firestore
@@ -101,7 +107,8 @@ export class DashboardPage implements OnInit {
       linkOutline, peopleOutline, informationCircleOutline, timeOutline,
       menuOutline, listOutline, createOutline, documentOutline, helpCircleOutline,
       shieldCheckmarkOutline, schoolOutline, starOutline, heartOutline, hardwareChipOutline, syncOutline,
-      trashOutline, logoLinkedin, filterOutline, swapVerticalOutline, addCircleOutline, layersOutline, removeCircleOutline
+      trashOutline, logoLinkedin, filterOutline, swapVerticalOutline, addCircleOutline, layersOutline, removeCircleOutline,
+      logOutOutline
     });
   }
 
@@ -117,6 +124,34 @@ export class DashboardPage implements OnInit {
   cambiarVista(nuevaVista: 'reclutadores' | 'postulantes' | 'ofertas' | 'cargos') {
     this.vistaActual = nuevaVista;
     this.cargarDatos(nuevaVista);
+  }
+
+  // ==========================================
+  // CERRAR SESIÓN (LOGOUT)
+  // ==========================================
+  async cerrarSesion() {
+    const alert = await this.alertController.create({
+      header: 'Cerrar Sesión',
+      message: '¿Estás seguro que deseas salir del panel de administración?',
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Cerrar Sesión',
+          role: 'destructive',
+          handler: async () => {
+            try {
+              await this.auth.signOut();
+              this.ngZone.run(() => {
+                this.router.navigate(['/login'], { replaceUrl: true });
+              });
+            } catch (error) {
+              console.error('Error al cerrar sesión:', error);
+            }
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 
   async cargarDatos(vista: string) {
@@ -452,6 +487,25 @@ export class DashboardPage implements OnInit {
     }, 200);
   }
 
+  normalizarNivelEducativo(nivel?: string): string {
+    const opcionesValidas = [
+      'Enseñanza básica',
+      'Educación media C.H. / Técnica',
+      'Universitaria / I.P. / C.F.T.',
+      'Magíster o Postgrado'
+    ];
+    if (nivel && opcionesValidas.includes(nivel)) {
+      return nivel;
+    }
+    if (nivel === 'Enseñanza Media' || nivel === 'Técnico Nivel Medio') {
+      return 'Educación media C.H. / Técnica';
+    }
+    if (nivel === 'Técnico Nivel Superior' || nivel === 'Universitario') {
+      return 'Universitaria / I.P. / C.F.T.';
+    }
+    return 'Enseñanza básica';
+  }
+
   cargarDatosEnFormularioCargo(cargo: CargoSolicitud) {
     // Si algún cargo antiguo tenía áreas separadas por coma, tomamos solo la primera
     const areaInicial = cargo.areaLaboral ? cargo.areaLaboral.split(',')[0].trim() : '';
@@ -463,7 +517,7 @@ export class DashboardPage implements OnInit {
       habilidadesTecnicas: cargo.habilidadesTecnicas || '',
       habilidadesBlandas: cargo.habilidadesBlandas || '',
       anosExperienciaMinima: cargo.anosExperienciaMinima ?? 0,
-      nivelEducativoMinimo: cargo.nivelEducativoMinimo || 'Sin requisito'
+      nivelEducativoMinimo: this.normalizarNivelEducativo(cargo.nivelEducativoMinimo)
     };
   }
 
@@ -543,7 +597,7 @@ export class DashboardPage implements OnInit {
         habilidadesTecnicas: habTecnicasLimpias,
         habilidadesBlandas: habBlandasLimpias,
         anosExperienciaMinima: expMinima,
-        nivelEducativoMinimo: this.formularioCargo.nivelEducativoMinimo || 'Sin requisito'
+        nivelEducativoMinimo: this.formularioCargo.nivelEducativoMinimo || 'Enseñanza básica'
       });
       this.cerrarModalCargo();
       this.cargarDatos('cargos');

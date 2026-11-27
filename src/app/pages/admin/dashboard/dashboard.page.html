@@ -41,6 +41,17 @@
         </ion-menu-toggle>
       </ion-list>
     </ion-content>
+
+    <ion-footer class="ion-no-border sidebar-footer">
+      <ion-toolbar class="sidebar-footer-toolbar">
+        <ion-menu-toggle auto-hide="false">
+          <ion-item button lines="none" class="logout-item" (click)="cerrarSesion()" detail="false">
+            <ion-icon name="log-out-outline" slot="start"></ion-icon>
+            <ion-label>Cerrar Sesión</ion-label>
+          </ion-item>
+        </ion-menu-toggle>
+      </ion-toolbar>
+    </ion-footer>
   </ion-menu>
 
   <!-- ========================================== -->
@@ -143,7 +154,10 @@
                     <ion-card-subtitle>{{ postulante.correo }}</ion-card-subtitle>
                   </ion-card-header>
                   <ion-card-content>
-                    <div class="info-row"><ion-icon name="location-outline"></ion-icon> <span>{{ postulante.ciudad }}, {{ postulante.comuna }}</span></div>
+                    <div class="info-row"><ion-icon name="location-outline"></ion-icon> <span>{{ postulante.comuna }}, {{ postulante.ciudad }}</span></div>
+                    @if (postulante.cvManual?.nivelEducativo) {
+                      <div class="info-row"><ion-icon name="school-outline"></ion-icon> <span>{{ postulante.cvManual?.nivelEducativo }}</span></div>
+                    }
                   </ion-card-content>
                 </ion-card>
               }
@@ -376,9 +390,9 @@
             @if (postulanteSeleccionado.fotoPerfil) {
               <ion-avatar class="modal-avatar"><img [src]="postulanteSeleccionado.fotoPerfil"></ion-avatar>
             } @else {
-              <ion-avatar class="modal-avatar-placeholder"><ion-icon name="person"></ion-icon></ion-avatar>
+              <ion-avatar class="modal-avatar-placeholder"><ion-icon name="person-outline"></ion-icon></ion-avatar>
             }
-            <h2 class="modal-title">{{ postulanteSeleccionado.nombre }} {{ postulanteSeleccionado.apellidoPaterno }} {{ postulanteSeleccionado.apellidoMaterno }}</h2>
+            <h2 class="modal-title">{{ postulanteSeleccionado.nombre }} {{ postulanteSeleccionado.apellidoPaterno }} {{ postulanteSeleccionado.apellidoMaterno || '' }}</h2>
           </div>
           
           <div class="modal-grid">
@@ -412,35 +426,82 @@
                 </ion-card-header>
                 <ion-card-content>
                   @if (postulanteSeleccionado.cvManual) {
+                    <!-- EXPERIENCIA LABORAL -->
                     @if (postulanteSeleccionado.cvManual.sinExperiencia) {
                       <div class="info-row"><ion-icon name="briefcase-outline"></ion-icon><span><strong>Experiencia:</strong> Sin experiencia laboral previa.</span></div>
                     } @else {
-                      <div class="info-row"><ion-icon name="briefcase-outline"></ion-icon><span><strong>Años de Experiencia:</strong> {{ postulanteSeleccionado.cvManual.anosExperiencia }} años</span></div>
-                      
+                      @if (postulanteSeleccionado.cvManual.anosExperiencia !== undefined && postulanteSeleccionado.cvManual.anosExperiencia !== null) {
+                        <div class="info-row"><ion-icon name="briefcase-outline"></ion-icon><span><strong>Años de Experiencia:</strong> {{ postulanteSeleccionado.cvManual.anosExperiencia }} años</span></div>
+                      }
+
                       @if (postulanteSeleccionado.cvManual.areasExperiencia && postulanteSeleccionado.cvManual.areasExperiencia.length > 0) {
-                        <div class="ion-margin-top">
-                          <strong style="color: #000; font-size: 0.95rem;">Historial Laboral:</strong>
-                          <ul class="opciones-lista" style="margin-top: 5px;">
-                            @for (exp of postulanteSeleccionado.cvManual.areasExperiencia; track exp.cargo) {
-                              <li><strong>{{ exp.cargo }}</strong> en {{ exp.lugar }} ({{ exp.tiempo }})<br><span style="font-size: 0.85em; color: #718096;">{{ exp.descripcion }}</span></li>
-                            }
-                          </ul>
+                        <div class="info-row" style="margin-bottom: 6px;">
+                          <ion-icon name="briefcase-outline"></ion-icon>
+                          <span><strong>Historial Laboral:</strong></span>
                         </div>
+                        <ul class="opciones-lista" style="margin-top: 0; margin-bottom: 12px; padding-left: 34px;">
+                          @for (exp of postulanteSeleccionado.cvManual.areasExperiencia; track $index) {
+                            <li style="margin-bottom: 6px;">
+                              <strong>{{ exp.cargo }}</strong> en {{ exp.lugar }} ({{ exp.tiempo }})
+                              @if (exp.descripcion) {
+                                <br><span style="font-size: 0.9em; color: #718096;">{{ exp.descripcion }}</span>
+                              }
+                            </li>
+                          }
+                        </ul>
+                      } @else if (postulanteSeleccionado.cvManual.anosExperiencia === undefined || postulanteSeleccionado.cvManual.anosExperiencia === null) {
+                        <div class="info-row"><ion-icon name="briefcase-outline"></ion-icon><span><strong>Experiencia:</strong> Con experiencia (sin detalle registrado).</span></div>
                       }
                     }
 
                     <div style="border-top: 1px solid #e2e8f0; margin: 15px 0;"></div>
 
-                    <div class="info-row"><ion-icon name="school-outline"></ion-icon><span><strong>Nivel Educativo:</strong> {{ postulanteSeleccionado.cvManual.nivelEducativo }}</span></div>
-                    @if (postulanteSeleccionado.cvManual.carrera) { <div class="info-row"><ion-icon name="document-text-outline"></ion-icon><span><strong>Carrera:</strong> {{ postulanteSeleccionado.cvManual.carrera }}</span></div> }
-                    @if (postulanteSeleccionado.cvManual.establecimiento) { <div class="info-row"><ion-icon name="business-outline"></ion-icon><span><strong>Institución:</strong> {{ postulanteSeleccionado.cvManual.establecimiento }}</span></div> }
-                    @if (postulanteSeleccionado.cvManual.disponibilidad) { <div class="info-row"><ion-icon name="time"></ion-icon><span><strong>Disponibilidad:</strong> {{ postulanteSeleccionado.cvManual.disponibilidad }}</span></div> }
+                    <!-- FORMACIÓN ACADÉMICA Y DISPONIBILIDAD -->
+                    @if (postulanteSeleccionado.cvManual.nivelEducativo) {
+                      <div class="info-row"><ion-icon name="school-outline"></ion-icon><span><strong>Nivel Educativo:</strong> {{ postulanteSeleccionado.cvManual.nivelEducativo }}</span></div>
+                    }
+
+                    @if (postulanteSeleccionado.cvManual.formacionesAcademicas && postulanteSeleccionado.cvManual.formacionesAcademicas.length > 0) {
+                      <div class="info-row" style="margin-bottom: 6px;">
+                        <ion-icon name="document-text-outline"></ion-icon>
+                        <span><strong>Formación Académica:</strong></span>
+                      </div>
+                      <ul class="opciones-lista" style="margin-top: 0; margin-bottom: 12px; padding-left: 34px;">
+                        @for (form of postulanteSeleccionado.cvManual.formacionesAcademicas; track form.id || $index) {
+                          <li style="margin-bottom: 6px;">
+                            <strong>{{ form.nombreEstudio }}</strong>
+                            @if (form.nivelEstudio && form.nivelEstudio !== form.nombreEstudio) {
+                              <span> ({{ form.nivelEstudio }})</span>
+                            }
+                            <br>
+                            <span style="font-size: 0.9em; color: #718096;">
+                              {{ form.institucion }} ({{ form.anioInicio }} - {{ form.cursandoActualmente ? 'Actualidad' : (form.anioTermino || 'Finalizado') }})
+                            </span>
+                          </li>
+                        }
+                      </ul>
+                    } @else {
+                      @if (postulanteSeleccionado.cvManual.carrera) { <div class="info-row"><ion-icon name="document-text-outline"></ion-icon><span><strong>Carrera:</strong> {{ postulanteSeleccionado.cvManual.carrera }}</span></div> }
+                      @if (postulanteSeleccionado.cvManual.establecimiento) { <div class="info-row"><ion-icon name="business-outline"></ion-icon><span><strong>Institución:</strong> {{ postulanteSeleccionado.cvManual.establecimiento }}</span></div> }
+                    }
+
+                    @if (postulanteSeleccionado.cvManual.disponibilidad) {
+                      <div class="info-row"><ion-icon name="time-outline"></ion-icon><span><strong>Disponibilidad:</strong> {{ postulanteSeleccionado.cvManual.disponibilidad }}</span></div>
+                    }
+
+                    <!-- ÁREAS / CARGOS DE INTERÉS -->
+                    @if ((postulanteSeleccionado.areasInteres && postulanteSeleccionado.areasInteres.length > 0) || (postulanteSeleccionado.cvManual.areasInteres && postulanteSeleccionado.cvManual.areasInteres.length > 0)) {
+                      <div class="info-row">
+                        <ion-icon name="layers-outline"></ion-icon>
+                        <span><strong>Áreas de Interés:</strong> {{ (postulanteSeleccionado.areasInteres?.length ? postulanteSeleccionado.areasInteres : postulanteSeleccionado.cvManual.areasInteres)?.join(', ') }}</span>
+                      </div>
+                    }
 
                     @if (postulanteSeleccionado.cvManual.cargosInteres && postulanteSeleccionado.cvManual.cargosInteres.length > 0) {
                       <div class="ion-margin-top">
                         <strong style="color: #000; font-size: 0.95rem;">Cargos de Interés:</strong>
                         <ul class="opciones-lista" style="margin-top: 5px;">
-                          @for (cargo of postulanteSeleccionado.cvManual.cargosInteres; track cargo.cargo) {
+                          @for (cargo of postulanteSeleccionado.cvManual.cargosInteres; track $index) {
                             <li><strong>{{ cargo.cargo }}</strong></li>
                           }
                         </ul>
@@ -449,6 +510,7 @@
 
                     <div style="border-top: 1px solid #e2e8f0; margin: 15px 0;"></div>
                     
+                    <!-- HABILIDADES -->
                     @if (postulanteSeleccionado.cvManual.habilidades) { <div class="info-row"><ion-icon name="star-outline"></ion-icon><span><strong>Habilidades Generales:</strong> {{ postulanteSeleccionado.cvManual.habilidades }}</span></div> }
                     @if (postulanteSeleccionado.cvManual.habilidadesBlandas) { <div class="info-row"><ion-icon name="heart-outline"></ion-icon><span><strong>Habilidades Blandas:</strong> {{ postulanteSeleccionado.cvManual.habilidadesBlandas }}</span></div> }
                     @if (postulanteSeleccionado.cvManual.habilidadesTecnicas) { <div class="info-row"><ion-icon name="hardware-chip-outline"></ion-icon><span><strong>Habilidades Técnicas:</strong> {{ postulanteSeleccionado.cvManual.habilidadesTecnicas }}</span></div> }
@@ -747,11 +809,10 @@
                         fill="outline"
                         interface="popover"
                         [(ngModel)]="formularioCargo.nivelEducativoMinimo">
-                        <ion-select-option value="Sin requisito">Sin requisito</ion-select-option>
-                        <ion-select-option value="Enseñanza Media">Enseñanza Media</ion-select-option>
-                        <ion-select-option value="Técnico Nivel Medio">Técnico Nivel Medio</ion-select-option>
-                        <ion-select-option value="Técnico Nivel Superior">Técnico Nivel Superior</ion-select-option>
-                        <ion-select-option value="Universitario">Universitario</ion-select-option>
+                        <ion-select-option value="Enseñanza básica">Enseñanza básica</ion-select-option>
+                        <ion-select-option value="Educación media C.H. / Técnica">Educación media C.H. / Técnica</ion-select-option>
+                        <ion-select-option value="Universitaria / I.P. / C.F.T.">Universitaria / I.P. / C.F.T.</ion-select-option>
+                        <ion-select-option value="Magíster o Postgrado">Magíster o Postgrado</ion-select-option>
                       </ion-select>
                     </div>
                   </div>
