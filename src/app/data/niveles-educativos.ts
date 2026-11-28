@@ -78,28 +78,36 @@ export function nivelMayorVisible(valor: unknown): string {
 export function experienciaVisible(cv: {
   sinExperiencia?: boolean;
   anosExperiencia?: unknown;
+  areasExperiencia?: unknown;
 }): string {
-  if (cv.sinExperiencia === true) {
-    return 'Sin experiencia declarada';
+  if (cv.sinExperiencia === true) return 'Sin experiencia declarada';
+
+  if (Array.isArray(cv.areasExperiencia)) {
+    const empleos = cv.areasExperiencia.map((empleo: unknown) => {
+      if (typeof empleo === 'string') return empleo.trim();
+      if (!empleo || typeof empleo !== 'object') return '';
+
+      const e = empleo as Record<string, unknown>;
+      const cargo = String(e['cargo'] || e['puesto'] || e['rol'] || '').trim();
+      const tiempo = String(e['tiempo'] || e['duracion'] || e['periodo'] || '').trim();
+
+      return [cargo, tiempo].filter(Boolean).join(' · ') ||
+        String(e['lugar'] || e['descripcion'] || '').trim();
+    }).filter(Boolean);
+
+    if (!empleos.length) return 'Sin empleos registrados';
+    if (empleos.length === 1) return empleos[0];
+    return empleos.join('\n');
   }
 
+  // Compatibilidad con perfiles antiguos que solo guardaban los años.
   const valor = cv.anosExperiencia;
-
-  if (typeof valor !== 'number' && typeof valor !== 'string') {
-    return 'No especificado';
-  }
+  if (typeof valor !== 'number' && typeof valor !== 'string') return 'No especificado';
 
   const texto = String(valor).trim();
+  const numero = Number(texto.replace(',', '.'));
+  if (!texto || numero < 0) return 'No especificado';
+  if (!/^\d+(?:[.,]\d+)?$/.test(texto)) return texto;
 
-  if (!texto || Number(texto.replace(',', '.')) < 0) {
-    return 'No especificado';
-  }
-
-  // Conserva rangos ya escritos, por ejemplo "3 a 5 años".
-  if (!/^\d+(?:[.,]\d+)?$/.test(texto)) {
-    return texto;
-  }
-
-  const cantidad = Number(texto.replace(',', '.'));
-  return texto + (cantidad === 1 ? ' año' : ' años');
+  return texto + (numero === 1 ? ' año' : ' años');
 }

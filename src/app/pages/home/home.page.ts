@@ -164,9 +164,11 @@ export interface PostulanteCompleto {
 }
 
 export interface PostulanteBusqueda {
+  escaneoCV?: number;
   criterios?: string;
   estadoCV?: string;
-  resumenPerfil?: string[];
+  resultadoTernaId?: string;
+  experienciaResumen?: string;
   postulanteId: string;
   nombres: string;
   apellidos: string;
@@ -290,6 +292,7 @@ export class HomePage implements OnInit, OnDestroy {
   private cancelarBusquedaEnVivo: Array<() => void> = [];
   private ternaDocs: Array<{ id: string; data: Record<string, any> }> = [];
   private perfilesDocs = new Map<string, Record<string, any>>();
+  private seleccionesBusqueda?: Set<string>;
   private ternaLista = false;
   private perfilesLista = false;
 
@@ -488,7 +491,20 @@ private notaOferta(
 }
 
   get cargosBusquedaDisponibles(): string[] {
-    return this.cargosCatalogoBusqueda;
+    const area = this.normalizarTexto(this.filtroArea);
+    if (!area) return this.cargosCatalogoBusqueda;
+
+    const nombres = new Set(
+      Array.from(this.catalogoCargosPorId.values())
+        .filter(cargo => this.separarAreas(cargo.areaLaboral).some(
+          valor => this.normalizarTexto(valor) === area
+        ))
+        .map(cargo => this.normalizarTexto(cargo.nombre))
+    );
+
+    return this.cargosCatalogoBusqueda.filter(
+      nombre => nombres.has(this.normalizarTexto(nombre))
+    );
   }
 
   catalogoAbierto = false;
@@ -519,7 +535,7 @@ private notaOferta(
     const nombre = this.normalizarTexto(this.filtroCargo);
     const areas = new Set<string>();
     for (const cargo of this.catalogoCargosPorId.values()) {
-      if (nombre && this.normalizarTexto(cargo.nombre) !== nombre) continue;
+
       for (const area of cargo.areaLaboral.split(',')) {
         if (area.trim()) areas.add(area.trim());
       }
@@ -1569,6 +1585,10 @@ private prioridadPostulacion(
  actualizarFiltroArea(event: Event): void {
   const selector = event.target as HTMLSelectElement | null;
   this.filtroArea = selector?.value || '';
+    if (this.filtroCargo && !this.cargosBusquedaDisponibles.includes(this.filtroCargo)) {
+      this.actualizarFiltroCargo('');
+    }
+    this.catalogoAbierto = false;
 
   if (this.busquedaRealizada) {
     this.reconstruirBusqueda(this.solicitudBusquedaActual);
@@ -1593,6 +1613,12 @@ private prioridadPostulacion(
     }
 
     const cargoIngresado = this.filtroCargo.trim();
+    if (cargoIngresado && this.filtroArea && !this.cargosBusquedaDisponibles.some(
+      nombre => this.normalizarTexto(nombre) === this.normalizarTexto(cargoIngresado)
+    )) {
+      void this.mostrarToast('Selecciona un cargo del área elegida.');
+      return;
+    }
 
     if (!cargoIngresado && !this.filtroArea.trim()) {
       void this.mostrarToast('Selecciona un cargo o un área laboral.');
@@ -1640,634 +1666,185 @@ private prioridadPostulacion(
       });
     };
 
+    const uidActual = this.usuarioId;
     this.cancelarBusquedaEnVivo.push(
       onSnapshot(
-        collection(this.firestore, 'postulaciones-terna'),
-        snapshot => {
-          if (solicitud !== this.solicitudBusquedaActual) {
-            return;
-          }
-
-          this.ternaDocs = snapshot.docs.map(documento => ({
-            id: documento.id,
-            data: documento.data()
-          }));
-          this.ternaLista = true;
+        query(
+          collection(this.firestore, 'selecciones-cargo'),
+          where('reclutadorId', '==', uidActual)
+        ),
+        snap => {
+          if (solicitud !== this.solicitudBusquedaActual) return;
+          this.seleccionesBusqueda = new Set(
+            snap.docs.map(d => String(d.get('postulanteId') || ''))
+          );
           this.reconstruirBusqueda(solicitud);
         },
         fallo
       )
     );
-
     this.cancelarBusquedaEnVivo.push(
-      onSnapshot(
-        collection(this.firestore, 'postulantes'),
-        snapshot => {
-          if (solicitud !== this.solicitudBusquedaActual) {
-            return;
-          }
+      onSnapshot(collection(this.firestore, 'postulaciones-terna'), snap => {
+        if (solicitud !== this.solicitudBusquedaActual) return;
 
-          const perfiles = new Map<string, Record<string, any>>();
-          snapshot.docs.forEach(documento =>
-            perfiles.set(documento.id, documento.data())
-          );
-
-          this.perfilesDocs = perfiles;
-          this.perfilesLista = true;
-          this.reconstruirBusqueda(solicitud);
-        },
-        fallo
-      )
+        this.ternaDocs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
+        this.ternaLista = true;
+        this.reconstruirBusqueda(solicitud);
+      }, fallo)
     );
   }
 
-  private revisionRanking = 0;
-  private textosPDF = new Map<string, Promise<string>>();
+  private comprobacionesCV = new Map<string, () => void>();
+  private areasConPDF = new Map<string, string[]>();
 
-  private detenerBusquedaEnVivo(): void {
-    this.revisionRanking++;
-    this.textosPDF.clear();
-    for (const cancelar of this.cancelarBusquedaEnVivo) {
-      cancelar();
-    }
+  private tienePDF(valor: unknown): boolean {
+    return typeof valor === 'string' &&
+      /^(?:data:application\/pdf[^,]*;base64,)?JVBER/i.test(valor.trimStart());
+  }
 
+  private areasDelPerfil(datos: Record<string, any> | undefined): string[] {
+    if (!datos || !this.tienePDF(datos['cvBase64'])) return [];
+
+    const raiz = datos['areasInteres'];
+    const areas = Array.isArray(raiz) && raiz.length
+      ? raiz
+      : datos['cvManual']?.areasInteres;
+
+    return Array.isArray(areas)
+      ? areas.filter(a => typeof a === 'string').map(a => this.normalizarTexto(a))
+      : [];
+  }
+
+  private detenerBusquedaEnVivo() {
+    this.seleccionesBusqueda = undefined;
+    for (const cancelar of this.comprobacionesCV.values()) cancelar();
+    this.comprobacionesCV.clear();
+    this.areasConPDF.clear();
+    this.cancelarBusquedaEnVivo.forEach(cancelar => cancelar());
     this.cancelarBusquedaEnVivo = [];
     this.ternaDocs = [];
-    this.perfilesDocs = new Map();
     this.ternaLista = false;
-    this.perfilesLista = false;
+  }
+
+  private separarAreas(valor: unknown): string[] {
+    return String(valor ?? '').split(',').map(area => area.trim()).filter(Boolean);
   }
 
   private reconstruirBusqueda(solicitud: number): void {
     if (
-      solicitud !== this.solicitudBusquedaActual ||
       !this.ternaLista ||
-      !this.perfilesLista
-    ) {
-      return;
+      !this.seleccionesBusqueda ||
+      solicitud !== this.solicitudBusquedaActual
+    ) return;
+
+    const norm = (v: unknown) => this.normalizarTexto(String(v ?? ''));
+    const area = norm(this.filtroArea);
+    const cargo = norm(this.cargoBuscado);
+    const aceptados = new Set(this.seleccionesBusqueda);
+
+    for (const { data: d } of this.ternaDocs) {
+      if (
+        norm(d['estado']) === 'aceptado' &&
+        (d['reclutadorId'] === this.usuarioId || d['aceptadoPor'] === this.usuarioId)
+      ) {
+        aceptados.add(d['postulanteId']);
+      }
     }
 
-    const candidatos = this.construirCandidatosBusqueda();
+    const ids = new Set<string>();
+    const filas = new Map<string, PostulanteBusqueda>();
+
+    for (const { id, data: d } of this.ternaDocs) {
+      const uid = d['postulanteId'];
+      const porcentaje = d['porcentajeIdoneidad'] ?? d['porcentaje'];
+      const nombreCargo = String(d['nombreCargo'] || d['cargoNombre'] || '');
+      const areas = this.separarAreas(d['areaLaboral']).map(norm);
+
+      if (
+        typeof uid !== 'string' || !uid || aceptados.has(uid) ||
+        d['disponible'] !== true || norm(d['estado']) !== 'disponible' ||
+        !Number.isFinite(porcentaje) || porcentaje < 0 || porcentaje > 100 ||
+        (cargo && norm(nombreCargo) !== cargo) ||
+        (area && !areas.includes(area))
+      ) continue;
+
+      ids.add(uid);
+
+      const intereses = this.areasConPDF.get(uid) ?? [];
+      const coincide = area
+        ? intereses.includes(area)
+        : areas.some(a => intereses.includes(a));
+
+      if (!coincide) continue;
+
+      // En una búsqueda por área, mostrar una sola ficha con su mejor resultado.
+      if ((filas.get(uid)?.porcentajeIdoneidad ?? -1) >= porcentaje) continue;
+
+      filas.set(uid, {
+        resultadoTernaId: id,
+        postulanteId: uid,
+        nombres: d['nombrePostulante'] || 'Postulante',
+        apellidos: '',
+        correo: d['correoPostulante'] || '',
+        telefono: d['telefonoPostulante'] || '',
+        fotoPerfil: d['fotoPerfil'],
+        cargos: [nombreCargo],
+        areasLaborales: areas,
+        cargosAceptados: [],
+        porcentajeIdoneidad: porcentaje
+      });
+    }
+
+    // Consultar únicamente las fichas de quienes ya tienen una terna coincidente.
+    for (const [uid, cancelar] of this.comprobacionesCV) {
+      if (!ids.has(uid)) {
+        cancelar();
+        this.comprobacionesCV.delete(uid);
+        this.areasConPDF.delete(uid);
+      }
+    }
+
+    for (const uid of ids) {
+      if (this.comprobacionesCV.has(uid)) continue;
+
+      const cancelar = onSnapshot(
+        doc(this.firestore, 'postulantes', uid),
+        snap => {
+          if (
+            solicitud !== this.solicitudBusquedaActual ||
+            this.comprobacionesCV.get(uid) !== cancelar
+          ) return;
+
+          this.areasConPDF.set(uid, this.areasDelPerfil(snap.data()));
+          this.reconstruirBusqueda(solicitud);
+        },
+        () => {
+          if (this.comprobacionesCV.get(uid) !== cancelar) return;
+          this.areasConPDF.set(uid, []);
+          this.errorBusquedaPostulantes =
+            'No se pudo comprobar el CV. Revisa la conexión y los permisos y repite la búsqueda.';
+          this.reconstruirBusqueda(solicitud);
+        }
+      );
+
+      this.comprobacionesCV.set(uid, cancelar);
+    }
 
     this.ngZone.run(() => {
-      this.postulantesBusqueda = candidatos;
+      this.postulantesBusquedaFiltrados = [...filas.values()].sort((a, b) =>
+        b.porcentajeIdoneidad! - a.porcentajeIdoneidad! ||
+        a.nombres.localeCompare(b.nombres, 'es') ||
+        a.postulanteId.localeCompare(b.postulanteId)
+      );
+
+      this.postulantesBusqueda = this.postulantesBusquedaFiltrados;
       this.busquedaRealizada = true;
-      this.cargandoBusquedaPostulantes = false;
-      this.aplicarFiltrosBusqueda();
+      this.cargandoBusquedaPostulantes = [...ids].some(
+        uid => !this.areasConPDF.has(uid)
+      );
       this.cdr.detectChanges();
     });
   }
-
- private construirCandidatosBusqueda(): PostulanteBusqueda[] {
-  const candidatos = new Map<string, PostulanteBusqueda>();
-  const cargoBuscado = this.normalizarTexto(this.cargoBuscado);
-  const areaBuscada = this.normalizarTexto(this.filtroArea);
-
-  // Primero reunimos los intereses declarados en el perfil y en el CV.
-  for (const [uid, perfil] of this.perfilesDocs) {
-    const cv = perfil['cvManual'] ?? {};
-
-    const intereses = [
-      perfil['cargosInteres'],
-      perfil['cargosPreferencia'],
-      perfil['cargos'],
-      cv.cargosInteres
-    ].flatMap(valor => this.resolverCargosInteres(valor));
-
-    const areas = [
-      perfil['areaInteres'],
-      perfil['areasInteres'],
-      cv.areaInteres,
-      cv.areasInteres
-    ].flatMap(valor => this.leerAreasInteres(valor));
-
-    if (!intereses.length && !areas.length) continue;
-
-    const candidato = this.crearCandidatoBusqueda(uid, perfil, {}, '');
-
-    for (const area of areas) {
-      this.agregarCargoACandidato(candidato, '', area);
-    }
-
-    for (const interes of intereses) {
-      this.agregarCargoACandidato(
-        candidato,
-        interes.nombre,
-        interes.areaLaboral
-      );
-    }
-
-    candidatos.set(uid, candidato);
-  }
-
-  // Después incorporamos las evaluaciones guardadas en la aplicación.
-  for (const { id, data } of this.ternaDocs) {
-    const uid = String(data['postulanteId'] || id);
-    const nombreGuardado = String(
-      data['nombreCargo'] || data['cargoNombre'] || ''
-    ).trim();
-
-    const catalogo =
-      this.catalogoCargosPorId.get(String(data['cargoId'] ?? '')) ||
-      this.catalogoCargosPorNombre.get(this.normalizarTexto(nombreGuardado));
-
-    const nombreCargo = catalogo?.nombre || nombreGuardado;
-    const areaLaboral = String(
-      data['areaLaboral'] || catalogo?.areaLaboral || ''
-    ).trim();
-
-    let candidato = candidatos.get(uid);
-
-    if (!candidato) {
-      candidato = this.crearCandidatoBusqueda(
-        uid,
-        this.perfilesDocs.get(uid) || {},
-        data,
-        ''
-      );
-      candidatos.set(uid, candidato);
-    }
-
-    this.agregarCargoACandidato(candidato, nombreCargo, areaLaboral);
-
-    const nombreNormalizado = this.normalizarTexto(nombreCargo);
-    const correspondeAlCargo =
-      !!cargoBuscado && nombreNormalizado === cargoBuscado;
-
-    const correspondeAlArea =
-      !!areaBuscada && this.separarAreas(areaLaboral).some(
-        area => this.normalizarTexto(area) === areaBuscada
-      );
-
-    const correspondeALaBusqueda = cargoBuscado
-      ? correspondeAlCargo
-      : correspondeAlArea;
-
-    const porcentaje = this.porcentajeDeTerna(data);
-
-    if (correspondeALaBusqueda && porcentaje !== undefined) {
-      candidato.porcentajeEvaluacion = Math.max(
-        candidato.porcentajeEvaluacion ?? 0,
-        porcentaje
-      );
-      candidato.tieneEvaluacion = true;
-    }
-
-    if (this.normalizarTexto(String(data['estado'] ?? '')) === 'aceptado') {
-      candidato.cargosAceptados.push(nombreNormalizado);
-    }
-  }
-
-  return Array.from(candidatos.values());
-}
-
-  private crearCandidatoBusqueda(
-    postulanteId: string,
-    perfil: Record<string, any>,
-    data: Record<string, any>,
-    areaInicial: string
-  ): PostulanteBusqueda {
-    const { nombres, apellidos } = this.nombreDeCandidato(perfil, data);
-    const cvPerfil = perfil['cvManual'] || {};
-
-    return {
-      postulanteId,
-      nombres,
-      apellidos,
-      correo: String(
-        perfil['correo'] ?? perfil['email'] ?? data['correoPostulante'] ?? ''
-      ),
-      telefono: String(
-        perfil['telefono'] ?? perfil['celular'] ?? data['telefonoPostulante'] ?? ''
-      ),
-      fotoPerfil: String(
-        perfil['fotoPerfil'] ?? data['fotoPerfil'] ?? ''
-      ),
-      cargos: [],
-      areasLaborales: [],
-      cargosAceptados: [],
-      cvManual: {
-        ...cvPerfil,
-        nivelEducativo:
-          cvPerfil.nivelEducativo || data['nivelEducativo'] || '',
-        areaExperiencia: cvPerfil.areaExperiencia || areaInicial || ''
-      },
-      cvBase64: perfil['cvBase64'] || data['cvBase64'] || undefined,
-      tieneEvaluacion: false,
-      aceptado: false
-    };
-  }
-
-  /**
-   * Misma resolución de nombre que usa la lista de postulantes por
-   * oferta (nombres/nombre y apellidos/apellidoPaterno + apellidoMaterno).
-   * Antes el buscador solo leía 'nombres' y 'apellidos', y los perfiles
-   * nuevos aparecían como "Candidato".
-   */
-  private nombreDeCandidato(
-    perfil: Record<string, any>,
-    data: Record<string, any>
-  ): { nombres: string; apellidos: string } {
-    const completo = String(data['nombrePostulante'] || '').trim();
-    const partes = completo ? completo.split(' ') : [];
-
-    const nombres = String(
-      perfil['nombres'] ||
-        perfil['nombre'] ||
-        data['nombres'] ||
-        partes[0] ||
-        'Candidato'
-    );
-
-    const apellidosPerfil =
-      perfil['apellidos'] ||
-      [perfil['apellidoPaterno'], perfil['apellidoMaterno']]
-        .filter(Boolean)
-        .join(' ');
-
-    const apellidos = String(
-      apellidosPerfil ||
-        data['apellidos'] ||
-        partes.slice(1).join(' ') ||
-        ''
-    );
-
-    return { nombres, apellidos };
-  }
-
-  /**
-   * El ranking por cargo calcula el porcentaje con
-   * puntajeObtenido / puntajeMaximo. El buscador solo leía
-   * 'porcentajeIdoneidad' o 'porcentaje', por eso los resultados
-   * nuevos salían sin porcentaje y al final de la lista.
-   */
-  private porcentajeDeTerna(data: Record<string, any>): number | undefined {
-    for (const candidato of [data['porcentajeIdoneidad'], data['porcentaje']]) {
-      if (typeof candidato === 'number' && Number.isFinite(candidato) && candidato >= 0 && candidato <= 100) {
-        return candidato;
-      }
-    }
-
-    const obtenido = data['puntajeObtenido'];
-    const maximo = data['puntajeMaximo'];
-
-    if (
-      typeof obtenido === 'number' &&
-      typeof maximo === 'number' &&
-      Number.isFinite(obtenido) &&
-      Number.isFinite(maximo) &&
-      maximo > 0 &&
-      obtenido >= 0 &&
-      obtenido <= maximo
-    ) {
-      return (obtenido / maximo) * 100;
-    }
-
-    return undefined;
-  }
-
- private valoresDeInteres(raw: unknown): unknown[] {
-  if (Array.isArray(raw)) return raw;
-  if (typeof raw === 'string') return raw.split(',');
-  if (!raw || typeof raw !== 'object') return [];
-
-  const objeto = raw as Record<string, unknown>;
-  const claves = [
-    'id', 'cargoId', 'cargo', 'nombreCargo', 'cargoNombre',
-    'nombre', 'area', 'areaLaboral'
-  ];
-
-  if (claves.some(clave => clave in objeto)) {
-    return [objeto];
-  }
-
-  return Object.entries(objeto).flatMap(([clave, valor]) => {
-    if (valor === true) return [clave];
-    if (valor === false || valor == null) return [];
-    return [valor];
-  });
-}
-
-private leerAreasInteres(raw: unknown): string[] {
-  return this.valoresDeInteres(raw).flatMap(item => {
-    if (typeof item === 'string') {
-      return this.separarAreas(item);
-    }
-
-    if (!item || typeof item !== 'object') return [];
-
-    const objeto = item as Record<string, unknown>;
-    const nombre = objeto['areaLaboral'] ?? objeto['area'] ?? objeto['nombre'];
-
-    return typeof nombre === 'string' ? this.separarAreas(nombre) : [];
-  });
-}
-
-private resolverCargosInteres(raw: unknown): InfoCargo[] {
-  const resultado: InfoCargo[] = [];
-
-  for (const item of this.valoresDeInteres(raw)) {
-    if (!item) continue;
-
-    const objeto = typeof item === 'object'
-      ? item as Record<string, unknown>
-      : undefined;
-
-    const id = String(
-      objeto?.['cargoId'] ?? objeto?.['id'] ?? item
-    ).trim();
-
-    const nombreDirecto = String(
-      objeto
-        ? objeto['cargo'] ?? objeto['nombreCargo'] ??
-          objeto['cargoNombre'] ?? objeto['nombre'] ?? ''
-        : item
-    ).trim();
-
-    const catalogo =
-      this.catalogoCargosPorId.get(id) ||
-      this.catalogoCargosPorNombre.get(this.normalizarTexto(nombreDirecto));
-
-    const nombre = catalogo?.nombre || nombreDirecto;
-    const areaDeclarada = objeto?.['areaLaboral'] ?? objeto?.['area'];
-    const areaLaboral = this.areaDeCargo(
-      nombre,
-      areaDeclarada || catalogo?.areaLaboral || ''
-    );
-
-    if (!nombre || /^[A-Za-z0-9]{20}$/.test(nombre)) {
-      if (areaLaboral) resultado.push({ nombre: '', areaLaboral });
-      continue;
-    }
-
-    resultado.push({ nombre, areaLaboral });
-  }
-
-  return resultado;
-}
-
-  private separarAreas(valor: unknown): string[] {
-    return String(valor ?? '')
-      .split(',')
-      .map(parte => parte.trim())
-      .filter(parte => parte !== '');
-  }
-
-  private agregarCargoACandidato(
-    candidato: PostulanteBusqueda,
-    nombreCargo: string,
-    areaLaboral: string
-  ): void {
-    const nombre = nombreCargo.trim();
-
-    if (
-      nombre &&
-      !candidato.cargos.some(
-        cargo =>
-          this.normalizarTexto(cargo) === this.normalizarTexto(nombre)
-      )
-    ) {
-      candidato.cargos.push(nombre);
-    }
-
-    for (const area of this.separarAreas(areaLaboral)) {
-      if (
-        !candidato.areasLaborales.some(
-          existente =>
-            this.normalizarTexto(existente) === this.normalizarTexto(area)
-        )
-      ) {
-        candidato.areasLaborales.push(area);
-      }
-    }
-  }
-
-  /**
-   * Filtra en memoria por cargo y área, calcula el estado "aceptado"
-   * solo para el cargo buscado y ordena por porcentaje de idoneidad.
-   */
-private async aplicarFiltrosBusqueda(): Promise<void> {
-  const revision = ++this.revisionRanking;
-  if (!this.busquedaRealizada) {
-    this.postulantesBusquedaFiltrados = [];
-    return;
-  }
-
-  const cargo = this.normalizarTexto(this.cargoBuscado);
-  const area = this.normalizarTexto(this.filtroArea);
-
-  const resultados = this.postulantesBusqueda.filter(postulante => {
-    if (area) {
-      return postulante.areasLaborales.some(
-        valor => this.normalizarTexto(valor) === area
-      );
-    }
-
-    return !!cargo && postulante.cargos.some(
-      valor => this.normalizarTexto(valor).includes(cargo)
-    );
-  });
-
-  for (const postulante of resultados) {
-    this.puntuarPerfil(postulante, cargo, area, '');
-    postulante.estadoCV = postulante.cvBase64
-      ? 'Leyendo CV…'
-      : 'Sin CV adjunto';
-    postulante.aceptado = !!cargo && postulante.cargosAceptados.includes(cargo);
-  }
-
-  const ordenar = () => resultados.sort((a, b) => {
-    const diferencia =
-      (b.porcentajeIdoneidad ?? -1) - (a.porcentajeIdoneidad ?? -1);
-
-    if (diferencia !== 0) return diferencia;
-
-    return `${a.nombres} ${a.apellidos}`.localeCompare(
-      `${b.nombres} ${b.apellidos}`,
-      'es',
-      { sensitivity: 'base' }
-    );
-  });
-
-  this.postulantesBusquedaFiltrados = ordenar();
-
-  // El perfil se muestra de inmediato. Si tiene PDF, se completa la ficha al leerlo.
-  for (const p of resultados.slice()) {
-    if (!p.cvBase64) continue;
-
-    const texto = await this.textoDelPDF(p.cvBase64);
-    if (revision !== this.revisionRanking) return;
-
-    this.puntuarPerfil(p, cargo, area, texto);
-    p.estadoCV = texto
-      ? 'CV leído'
-      : 'CV sin texto legible · se usaron los datos del perfil';
-
-    this.postulantesBusquedaFiltrados = ordenar();
-    this.cdr.detectChanges();
-  }
-}
-
-private textoDelPDF(archivo: string): Promise<string> {
-  const previo = this.textosPDF.get(archivo);
-  if (previo) return previo;
-
-  const lectura = (async () => {
-    const pdfjs = await import('pdfjs-dist');
-
-    pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-      'assets/pdfjs/pdf.worker.min.mjs',
-      document.baseURI
-    ).href;
-
-    const base64 = archivo.replace(/^data:application\/pdf[^,]*,/i, '');
-    const data = Uint8Array.from(atob(base64), caracter => caracter.charCodeAt(0));
-    const tarea = pdfjs.getDocument({ data, isEvalSupported: false });
-
-    try {
-      const pdf = await tarea.promise;
-      const paginas: string[] = [];
-
-      for (let numero = 1; numero <= pdf.numPages; numero++) {
-        const pagina = await pdf.getPage(numero);
-        const contenido = await pagina.getTextContent();
-
-        paginas.push(
-          contenido.items
-            .map(item => 'str' in item ? item.str : '')
-            .join(' ')
-        );
-
-        pagina.cleanup();
-      }
-
-      return paginas.join(' ').trim();
-    } finally {
-      await tarea.destroy();
-    }
-  })().catch(() => '');
-
-  this.textosPDF.set(archivo, lectura);
-  return lectura;
-}
-
-private puntuarPerfil(
-  p: PostulanteBusqueda,
-  cargo: string,
-  area: string,
-  pdf: string
-): void {
-  const perfil = this.perfilesDocs.get(p.postulanteId) ?? {};
-  const cv = { ...perfil, ...perfil['cvManual'] };
-
-  const texto = (valor: unknown): string => {
-    if (Array.isArray(valor)) {
-      return valor.map(texto).filter(Boolean).join(', ');
-    }
-
-    return typeof valor === 'string' || typeof valor === 'number'
-      ? String(valor).trim()
-      : '';
-  };
-
-  const limpiar = (valor: string): string =>
-    this.normalizarTexto(valor).replace(/[^a-z0-9]+/g, ' ').trim();
-
-  const trabajos = Array.isArray(cv.areasExperiencia)
-    ? cv.areasExperiencia
-    : [];
-
-  const evidencia = ' ' + limpiar([
-    cv.carrera,
-    cv.areaExperiencia,
-    cv.habilidades,
-    cv.habilidadesTecnicas,
-    cv.resumenProfesional,
-    ...trabajos.flatMap((e: any) => [e?.cargo, e?.descripcion]),
-    pdf
-  ].map(texto).join(' ')) + ' ';
-
-  const contiene = (valor: string): boolean => {
-    const termino = limpiar(valor);
-    return !!termino && evidencia.includes(' ' + termino + ' ');
-  };
-
-  const alternativas = (valor: string): string[] =>
-    valor
-      .replace(/([a-z])\/([ao])\b/g, '$1')
-      .split(/\s+\/\s+|,|;| y /)
-      .map(parte => parte.trim())
-      .filter(Boolean);
-
-  const grupos: [string, string[]][] = [];
-
-  if (cargo) {
-    grupos.push(['Cargo', alternativas(cargo)]);
-  }
-
-  const sector = area ||
-    this.catalogoCargosPorNombre.get(cargo)?.areaLaboral ||
-    '';
-
-  if (sector && limpiar(sector) !== limpiar(cargo)) {
-    grupos.push(['Área laboral', alternativas(sector)]);
-  }
-
-  if (/secretaria|asistente administrativ/.test(cargo)) {
-    grupos.push(
-      ['Gestión de agenda', ['agenda', 'agendas', 'calendarización']],
-      ['Ofimática', ['excel', 'word', 'office', 'ofimática']],
-      ['Atención', [
-        'atención al cliente',
-        'atención de público',
-        'atención telefónica',
-        'recepción'
-      ]]
-    );
-  }
-
-  const coincidencias = grupos.filter(
-    ([, palabras]) => palabras.some(contiene)
-  );
-
-  const coincideInteres = cargo
-    ? p.cargos.some(valor => limpiar(valor) === limpiar(cargo))
-    : p.areasLaborales.some(valor => limpiar(valor) === limpiar(area));
-
-  const preferencia: [string, string[]] = [
-    cargo ? 'Interés en el cargo' : 'Interés en el área',
-    []
-  ];
-
-  grupos.push(preferencia);
-
-  if (coincideInteres) {
-    coincidencias.push(preferencia);
-  }
-
-  p.porcentajeIdoneidad = Math.round(
-    100 * coincidencias.length / grupos.length
-  );
-
-  p.criterios = coincidencias.length + '/' + grupos.length +
-    ' criterios con coincidencia' +
-    (coincidencias.length
-      ? ' · ' + coincidencias.map(([nombre]) => nombre).join(', ')
-      : '');
-
-  const datos: [string, unknown][] = [
-    ['Áreas de interés', p.areasLaborales],
-    ['Carrera', cv.carrera],
-    ['Disponibilidad', cv.disponibilidad],
-    ['Habilidades técnicas', cv.habilidadesTecnicas],
-    ['Habilidades blandas', cv.habilidadesBlandas],
-    ['Experiencia', experienciaVisible(cv)]
-  ];
-
-  p.resumenPerfil = datos.map(
-    ([etiqueta, valor]) => etiqueta + ': ' + (texto(valor) || 'Sin registrar')
-  );
-}
 
   // ACEPTAR POSTULANTE DESDE BÚSQUEDA Y ENVIAR NOTIFICACIÓN
 
@@ -2279,7 +1856,7 @@ private puntuarPerfil(
       !this.puedePublicarOfertas ||
       !postulante.postulanteId ||
       !this.cargoBuscado.trim() ||
-      !postulante.tieneEvaluacion ||
+      !!this.aceptandoPostulanteId ||
       postulante.aceptado
     ) {
       return;
@@ -2290,42 +1867,49 @@ private puntuarPerfil(
 
     try {
       const cargoReferencia = this.cargoBuscado.trim();
-      const cargoClave = this.normalizarTexto(cargoReferencia);
       const empresaNombre = this.nombreEmpresa || 'Una empresa';
-
-      const corresponde = (data: Record<string, any>) => {
-        const cargo = this.catalogoCargosPorId.get(String(data['cargoId'] ?? ''));
-        const nombre = cargo?.nombre || data['nombreCargo'] || data['cargoNombre'] || '';
-        return this.normalizarTexto(nombre) === cargoClave;
-      };
-
-      const referencias = this.ternaDocs
-        .filter(({ data }) => data['postulanteId'] === postulante.postulanteId && corresponde(data))
-        .map(({ id }) => doc(this.firestore, 'postulaciones-terna', id));
-
+      const id = encodeURIComponent(JSON.stringify([uid, postulante.postulanteId]));
+      const seleccion = doc(this.firestore, 'selecciones-cargo', id);
       const aviso = doc(collection(this.firestore, 'notificaciones'));
+
       await runTransaction(this.firestore, async transaccion => {
-        const registros = await Promise.all(referencias.map(ref => transaccion.get(ref)));
-        const delCargo = registros.filter(registro => {
-          const data = registro.data();
-          return data && data['postulanteId'] === postulante.postulanteId && corresponde(data);
+        const ref = doc(this.firestore, 'postulaciones-terna', postulante.resultadoTernaId!);
+        const r = (await transaccion.get(ref)).data();
+        const perfilCV = await transaccion.get(
+          doc(this.firestore, 'postulantes', postulante.postulanteId)
+        );
+        const intereses = this.areasDelPerfil(perfilCV.data());
+        const areaSeleccionada = this.normalizarTexto(this.filtroArea);
+        const areasCargo = this.separarAreas(r?.['areaLaboral'])
+          .map(a => this.normalizarTexto(a));
+
+        if (
+          !r || r['postulanteId'] !== postulante.postulanteId ||
+          r['disponible'] !== true ||
+          this.normalizarTexto(String(r['estado'] || '')) !== 'disponible' ||
+          this.normalizarTexto(String(r['nombreCargo'] || r['cargoNombre'] || '')) !==
+            this.normalizarTexto(cargoReferencia) ||
+          !areasCargo.some(a => intereses.includes(a) && (!areaSeleccionada || a === areaSeleccionada))
+        ) {
+          throw Error('La candidatura dejó de estar disponible.');
+        }
+
+        const anterior = await transaccion.get(seleccion);
+        if (anterior.exists()) throw Error('Selección ya registrada');
+        transaccion.update(ref, {
+          disponible: false, estado: 'Aceptado',
+          reclutadorId: uid, fechaDecision: serverTimestamp()
         });
 
-        if (!delCargo.some(r => this.porcentajeDeTerna(r.data()!) !== undefined)) {
-          throw new Error('Ya no hay una evaluación para este cargo.');
-        }
-        if (delCargo.some(r => this.normalizarTexto(String(r.get('estado') ?? '')) === 'aceptado')) {
-          throw new Error('La selección ya fue registrada.');
-        }
-
-        for (const registro of delCargo) {
-          transaccion.update(registro.ref, {
-            estado: 'Aceptado',
-            disponible: false,
-            reclutadorId: uid,
-            fechaDecision: serverTimestamp()
-          });
-        }
+        transaccion.set(seleccion, {
+          postulanteId: postulante.postulanteId,
+          reclutadorId: uid,
+          nombreCargo: cargoReferencia,
+          nombreEmpresa: empresaNombre,
+          nombreReclutador: this.nombreReclutador,
+          estado: 'Aceptado',
+          fecha: serverTimestamp()
+        });
 
         transaccion.set(aviso, {
           postulanteId: postulante.postulanteId,

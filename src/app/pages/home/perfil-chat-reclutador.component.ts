@@ -88,7 +88,7 @@ interface CampoPerfil {
       </ion-button>
 
       <ion-button
-        *ngIf="!soloDetalles"
+        *ngIf="desdeAceptados && !soloDetalles"
         type="button"
         (click)="abrirChat()">
         Enviar mensaje
@@ -172,22 +172,6 @@ interface CampoPerfil {
             </div>
           </dl>
 
-          <h3>Experiencia laboral</h3>
-
-          <p *ngIf="!experiencias.length">
-            Sin experiencias registradas.
-          </p>
-
-          <article
-            class="experiencia"
-            *ngFor="let experiencia of experiencias">
-            <strong>
-              {{ experiencia.cargo }} · {{ experiencia.lugar }}
-            </strong>
-            <p>{{ experiencia.tiempo }}</p>
-            <p>{{ experiencia.descripcion }}</p>
-          </article>
-
           <div class="acciones">
             <ion-button
               *ngIf="cvDocumento"
@@ -198,6 +182,7 @@ interface CampoPerfil {
             </ion-button>
 
             <ion-button
+              *ngIf="perfilDesdeAceptados"
               type="button"
               (click)="abrirChat()">
               Enviar mensaje
@@ -750,7 +735,12 @@ interface CampoPerfil {
 export class PerfilChatReclutadorComponent
   implements OnChanges, OnDestroy {
 
+  @Input() desdeAceptados = false;
   @Input() soloDetalles = false;
+
+  get perfilDesdeAceptados(): boolean {
+    return this.route.snapshot.queryParamMap.get('volver') === 'aceptados';
+  }
   @Input() pagina = false;
   @Input() enWidget = false;
   @Input() modoInicial = 'perfil';
@@ -791,7 +781,6 @@ export class PerfilChatReclutadorComponent
 
   cargosPerfil: string[] = [];
   camposPerfil: CampoPerfil[] = [];
-  experiencias: any[] = [];
 
   cvDocumento = '';
 
@@ -853,8 +842,7 @@ export class PerfilChatReclutadorComponent
         vista: modo,
         postulante: this.postulanteId,
         oferta: parametros.get('oferta'),
-        volver:
-          parametros.get('volver') ||
+        volver: this.desdeAceptados ? 'aceptados' : parametros.get('volver') ||
           parametros.get('vista') ||
           'buscar'
       }
@@ -945,16 +933,7 @@ export class PerfilChatReclutadorComponent
         { etiqueta: 'Disponibilidad', valor: cv.disponibilidad },
         { etiqueta: 'Habilidades técnicas', valor: cv.habilidadesTecnicas },
         { etiqueta: 'Habilidades blandas', valor: cv.habilidadesBlandas },
-        {
-          etiqueta: 'Experiencia declarada',
-          valor:
-            cv.sinExperiencia === true
-              ? 'Declara no tener experiencia'
-              : cv.sinExperiencia === false
-                ? 'Declara tener experiencia'
-                : 'No especificado'
-        },
-        { etiqueta: 'Años de experiencia', valor: experienciaVisible(cv) },
+        { etiqueta: 'Experiencia laboral', valor: experienciaVisible(cv) },
         { etiqueta: 'Archivo de CV', valor: data['cvNombre'] }
       ].map(campo => ({
         etiqueta: campo.etiqueta,
@@ -970,7 +949,6 @@ export class PerfilChatReclutadorComponent
         this.cargosPerfil = cargos
           .map((cargo: any) => String(cargo?.cargo || '').trim())
           .filter(Boolean);
-        this.experiencias = Array.isArray(cv.areasExperiencia) ? cv.areasExperiencia : [];
         this.cvDocumento = data['cvBase64'] || '';
         this.camposPerfil = campos;
         this.perfilDisponible = true;

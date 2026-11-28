@@ -217,6 +217,7 @@ import {
               </p>
 
               <app-perfil-chat-reclutador
+                [desdeAceptados]="true"
                 [postulanteId]="f['postulanteId']"
                 [nombrePostulante]="nombre(f['perfil'])"
                 [nombreReclutador]="nombreReclutador"
@@ -489,6 +490,139 @@ export class ReclutadorHerramientasComponent
   private cancelaciones: (() => void)[] = [];
   private version = 0;
 
+  private esVistaAceptados(): boolean {
+    return this.vista === 'aceptados';
+  }
+
+  private escucharAceptados(v: number): void {
+    type Fila = Record<string, any>;
+    const uid = this.reclutadorId;
+
+    const fuentes = new Map<string, Fila[]>();
+    const titulos = new Map<string, string>();
+    const ofertas = new Map<string, () => void>();
+    const perfiles = new Map<string, Fila | null>();
+    const personas = new Map<string, () => void>();
+
+    const activo = () => v === this.version;
+    const fallo = () => this.fallar(
+      'No se pudieron cargar los aceptados. Revisa la conexión y los permisos.', v
+    );
+
+    const render = () => {
+      if (!activo()) return;
+
+      const filas = new Map<string, Fila>();
+
+      for (const [fuente, lista] of fuentes) {
+        for (const fila of lista) {
+          const id = String(fila['postulanteId'] || '');
+          if (!id) continue;
+
+          const cargo = String(
+            fila['nombreCargo'] || fila['cargoNombre'] || fila['cargoId'] || ''
+          ).trim().toLowerCase();
+
+          const clave = JSON.stringify([
+            id, fuente.startsWith('oferta:') ? fuente : cargo
+          ]);
+
+          filas.set(clave, {
+            ...fila,
+            postulanteId: id,
+            ofertaTitulo: titulos.get(fuente),
+            perfil: perfiles.get(id)
+          });
+        }
+      }
+
+      const ids = new Set(
+        Array.from(filas.values(), fila => String(fila['postulanteId']))
+      );
+
+      for (const [id, cancelar] of personas) {
+        if (!ids.has(id)) {
+          cancelar();
+          personas.delete(id);
+          perfiles.delete(id);
+        }
+      }
+
+      for (const id of ids) {
+        if (personas.has(id)) continue;
+
+        personas.set(id, onSnapshot(doc(this.db, 'postulantes', id), snap => {
+          if (!activo() || !personas.has(id)) return;
+          perfiles.set(id, snap.data() ?? null);
+          render();
+        }, fallo));
+      }
+
+      const fecha = (fila: Fila) =>
+        (fila['fechaDecision'] || fila['fecha'] || fila['fechaAceptacion'])
+          ?.toMillis?.() || 0;
+
+      this.zone.run(() => {
+        this.filas = Array.from(filas.values())
+          .filter(fila => !!fila['perfil'])
+          .sort((a, b) => fecha(b) - fecha(a));
+        this.cargando = false;
+        this.cdr.markForCheck();
+      });
+    };
+
+    const observar = (
+      coleccion: string, campo: string, valor: string, fuente: string
+    ) => onSnapshot(
+      query(collection(this.db, coleccion), where(campo, '==', valor)),
+      snap => {
+        if (!activo() || (fuente.startsWith('oferta:') && !ofertas.has(fuente))) return;
+
+        const registros = snap.docs.map(d => ({ ...d.data(), id: d.id } as Fila));
+        fuentes.set(fuente, registros.filter(fila =>
+          coleccion === 'selecciones-cargo' ||
+          String(fila['estado'] || '').trim().toLowerCase() === 'aceptado'
+        ));
+        render();
+      },
+      fallo
+    );
+
+    this.cancelaciones.push(
+      observar('selecciones-cargo', 'reclutadorId', uid, 'manual'),
+      observar('postulaciones-terna', 'reclutadorId', uid, 'historial'),
+      onSnapshot(
+        query(collection(this.db, 'ofertas'), where('reclutadorId', '==', uid)),
+        snap => {
+          if (!activo()) return;
+          const claves = new Set(snap.docs.map(d => 'oferta:' + d.id));
+
+          for (const [clave, cancelar] of ofertas) {
+            if (!claves.has(clave)) {
+              cancelar();
+              ofertas.delete(clave);
+              fuentes.delete(clave);
+              titulos.delete(clave);
+            }
+          }
+
+          for (const oferta of snap.docs) {
+            const clave = 'oferta:' + oferta.id;
+            titulos.set(clave, oferta.get('titulo') || '');
+            if (!ofertas.has(clave)) {
+              ofertas.set(clave, observar('postulaciones', 'ofertaId', oferta.id, clave));
+            }
+          }
+          render();
+        },
+        fallo
+      ),
+      () => {
+        for (const cancelar of [...ofertas.values(), ...personas.values()]) cancelar();
+      }
+    );
+  }
+
   ngOnChanges() {
     this.limpiar();
 
@@ -504,6 +638,10 @@ export class ReclutadorHerramientasComponent
 
     const v = this.version;
 
+    if (this.esVistaAceptados()) {
+      this.escucharAceptados(v);
+      return;
+    }
     const fuente =
       this.vista === 'aceptados'
         ? 'selecciones-cargo'

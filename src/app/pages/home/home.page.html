@@ -647,7 +647,33 @@
           </div>
 
           <div class="busqueda-campos">
-            <div class="busqueda-campo" (focusout)="cerrarCatalogoAlSalir($event)">
+            <!-- ÁREA LABORAL HABILITADA -->
+            <div class="busqueda-campo">
+              <label for="area-busqueda">Área laboral</label>
+              <div class="busqueda-control">
+                <ion-icon name="briefcase-outline" aria-hidden="true"></ion-icon>
+                <select
+                  id="area-busqueda"
+                  (change)="actualizarFiltroArea($event)"
+                  aria-describedby="ayuda-area-busqueda">
+                  <option value="" [selected]="!filtroArea">Todas las áreas</option>
+                  <option
+                    *ngFor="let area of areasBusquedaDisponibles"
+                    [value]="area"
+                    [selected]="area === filtroArea">
+                    {{ area }}
+                  </option>
+                </select>
+              </div>
+              <p id="ayuda-area-busqueda" class="busqueda-ayuda">
+                {{
+                  areasBusquedaDisponibles.length > 0
+                    ? 'Incluye perfiles con interés en el área seleccionada.'
+                    : 'Sin áreas registradas para esta selección.'
+                }}
+              </p>
+            </div>
+<div class="busqueda-campo" (focusout)="cerrarCatalogoAlSalir($event)">
               <label for="busqueda-cargo">Cargo de preferencia</label>
 
               <div class="busqueda-control">
@@ -683,32 +709,7 @@
               </p>
             </div>
 
-            <!-- ÁREA LABORAL HABILITADA -->
-            <div class="busqueda-campo">
-              <label for="area-busqueda">Área laboral</label>
-              <div class="busqueda-control">
-                <ion-icon name="briefcase-outline" aria-hidden="true"></ion-icon>
-                <select
-                  id="area-busqueda"
-                  (change)="actualizarFiltroArea($event)"
-                  aria-describedby="ayuda-area-busqueda">
-                  <option value="" [selected]="!filtroArea">Todas las áreas</option>
-                  <option
-                    *ngFor="let area of areasBusquedaDisponibles"
-                    [value]="area"
-                    [selected]="area === filtroArea">
-                    {{ area }}
-                  </option>
-                </select>
-              </div>
-              <p id="ayuda-area-busqueda" class="busqueda-ayuda">
-                {{
-                  areasBusquedaDisponibles.length > 0
-                    ? 'Incluye perfiles con interés en el área seleccionada.'
-                    : 'Sin áreas registradas para esta selección.'
-                }}
-              </p>
-            </div>
+            
           </div>
 
           <div class="busqueda-filtros-footer">
@@ -885,65 +886,6 @@
                       </div>
                     </div>
 
-                    <div class="busqueda-perfil-resumen">
-                      <span class="busqueda-resumen-label">
-                        Cargos de preferencia
-                      </span>
-                      <div class="busqueda-cargos">
-                        <span
-                          class="busqueda-cargo-chip"
-                          *ngFor="let cargo of p.cargos">
-                          {{ cargo }}
-                        </span>
-                      </div>
-
-                      <div class="rm-evidencia">
-     <strong>{{ p.criterios }}</strong>
-     <span>{{ p.estadoCV }}</span>
-   </div>
-
-                      <p *ngIf="!p.cargos.length">
-                        Sin cargos específicos registrados.
-                      </p>
-
-                      <dl class="rm-datos">
-     <div *ngFor="let dato of p.resumenPerfil">
-       <dt>{{ dato.slice(0, dato.indexOf(':')) }}</dt>
-       <dd>{{ dato.slice(dato.indexOf(':') + 1).trim() }}</dd>
-     </div>
-   </dl>
-
-                      <ng-container *ngIf="p.cvManual as cv">
-                        <p class="busqueda-estudios" *ngIf="cv.nivelEducativo">
-                          <ion-icon name="school-outline"></ion-icon>
-                          <span>
-                            <strong>Estudios:</strong>
-                            {{ nivelEducativoVisible(cv.nivelEducativo) }}
-                          </span>
-                        </p>
-                        <p class="busqueda-estudios" *ngIf="cv.areaExperiencia">
-                          <ion-icon name="briefcase-outline"></ion-icon>
-                          <span>
-                            <strong>Área de experiencia:</strong>
-                            {{ cv.areaExperiencia }}
-                          </span>
-                        </p>
-                      </ng-container>
-                    </div>
-
-                    <ion-button
-                      *ngIf="p.cvBase64"
-                      type="button"
-                      fill="outline"
-                      class="busqueda-cv-boton"
-                      (click)="verCV(p.cvBase64)">
-                      <ion-icon slot="start" name="document-text-outline"></ion-icon>
-                      Ver currículum
-                    </ion-button>
-                    <p *ngIf="!p.cvBase64" class="busqueda-sin-cv">
-                      Sin currículum adjunto.
-                    </p>
-
                     <div class="busqueda-perfil-acciones" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
                       <app-perfil-chat-reclutador
                         [postulanteId]="p.postulanteId"
@@ -954,7 +896,7 @@
 
                       <!-- Solo se puede aceptar a quien ya tiene una evaluación registrada -->
                       <ion-button
-                        *ngIf="p.tieneEvaluacion && cargoBuscado"
+                        *ngIf="cargoBuscado"
                         type="button"
                         color="primary"
                         fill="solid"
@@ -969,9 +911,7 @@
                       </ion-button>
                     </div>
 
-                    <p *ngIf="p.tieneEvaluacion" class="busqueda-sin-cv">
-                      Cuestionario: {{ p.porcentajeEvaluacion }}%
-                    </p>
+                    
                   </article>
                 </div>
               </ng-container>
